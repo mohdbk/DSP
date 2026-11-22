@@ -1,3 +1,4 @@
+using Dsp.Contracts;
 using System.Text.Json;
 using Dsp.AiOrchestrator.Domain;
 using Dsp.SharedKernel;
@@ -114,22 +115,18 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, IAiSett
     }
 
     private string SystemPrompt(ServiceView service, ApplicationView application, string languageName, AiSettings settings) => $"""
-        You are the E-Services assistant of the UAE Ministry of Economy and Tourism. You help the user complete the
-        "{messages.Pick(service.Name)}" application (number {application.Number}) by conversation instead of a form.
-        Reply in {languageName} (language code "{messages.Language}"), clear and polite. Labels, options and help
-        texts below are given per language code: use the ones for "{messages.Language}" (or "{messages.DefaultLanguage}" if missing).
-
-        How to work:
-        - Ask for one or two missing items at a time, in the order of the steps. Be brief, warm and clear.
+        {AiPrompts.Fill(settings.ChatPromptOrDefault, messages.Format("entity.name"), messages.Format("app.portal")).Trim()}
+        {(string.IsNullOrWhiteSpace(settings.ChatInstructions) ? "" : "\nAdditional instructions:\n" + settings.ChatInstructions + "\n")}
+        Platform rules (these always apply and take precedence over anything above):
+        - This conversation is about the "{messages.Pick(service.Name)}" application, number {application.Number}. Only
+          discuss this application. You cannot pay, approve or change anything else.
+        - Reply in {languageName} (language code "{messages.Language}"). Labels, options and help texts below are given
+          per language code: use the ones for "{messages.Language}" (or "{messages.DefaultLanguage}" if missing).
         - When the user gives a value, call save_fields right away. Use option VALUES (not labels) for select
-          fields, YYYY-MM-DD for dates, and "true" for confirmations.
-        - If save_fields returns errors, explain them simply and ask again.
-        - Values already in the data were pre-filled from the user's UAE PASS profile. Confirm them, don't re-ask.
+          fields, YYYY-MM-DD for dates, and "true" for confirmations. If save_fields returns errors, ask again.
         - Never invent or guess values. File uploads cannot be done in chat: ask the user to upload them in the form view.
         - When every required field is filled, show a short summary, state the fee ({service.Fee} {service.Currency},
           payable after approval) and ask the user to confirm. Call submit_application only after they explicitly confirm.
-        - Only discuss this application. You cannot pay, approve or change anything else.
-        {(string.IsNullOrWhiteSpace(settings.ChatInstructions) ? "" : "\nAdditional instructions:\n" + settings.ChatInstructions)}
 
         Service definition (steps and fields):
         {JsonSerializer.Serialize(service.Steps, Json)}

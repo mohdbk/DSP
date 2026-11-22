@@ -69,8 +69,12 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
 - The AI Orchestrator acts with the user's own token over the public API (chat) or through `/internal/ai/review`
   (pre-review). Built-in checks always run as guardrails next to any model. Models are reached through an
   OpenAI-compatible endpoint (Net0 in production) — never hard-code a vendor. Provider, address, model, key,
-  temperature, timeout, limits, toggles and extra instructions are set in Back Office → Settings → AI (stored in
-  Platform, key encrypted); `Llm__*` variables are only the fallback.
+  temperature, timeout, limits, toggles, the prompts and extra instructions are set in Back Office → Settings → AI
+  (stored in Platform, key encrypted); `Llm__*` variables are only the fallback.
+- **Prompts.** The editable part of each prompt (who the model is, how to work) ships in `Dsp.Contracts/AiPrompts.cs`
+  with `{ministry}` and `{portal}` placeholders filled from the texts `entity.name` and `app.portal`. Never write the
+  ministry's or product's name into a prompt. Safety rules (language, tools, output format, never deciding, never
+  submitting without confirmation) are appended in the AI Orchestrator's code and are not editable.
 
 ### Service definitions
 
@@ -163,8 +167,14 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   includes the ministry name (`entity.name`), the product name (`app.portal`) and `site.name`. No hard-coded
   user-facing text in components, pages or services.
 - New keys go in `src/Services/Platform/Dsp.Platform.Infrastructure/Seed/translations.json` with every shipped
-  language. The seeder adds missing keys at start-up and never overwrites a text staff edited.
+  language. The seeder adds missing keys at start-up and never overwrites a text staff edited. Then run
+  `node tools/i18n/usage.mjs`: it records where each key is used (portal, back office, service messages) for the
+  Translations page, and CI fails when it is out of date. Prefer literal keys (`t('a.b')`) or a clear prefix
+  (``t(`status.${s}`)``) so the tool can find them.
 - Forms that edit data texts use `MultilingualField` (one input per enabled language, default first and required).
+  Long instructions (AI prompts and the like) use `MarkdownEditor`; show Markdown with `MarkdownView` (never as HTML).
+- Each language says whether the portal and the back office offer it; `mountApp(router, 'portal' | 'backoffice')`
+  makes `getLanguages()` return only the ones the running portal offers. The services accept every enabled language.
 - The language switch names each language in its own name, and sets `lang` and `dir` on `<html>`; AEGOV
   components follow. Use logical utilities only (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`,
   `text-start`/`text-end`), never left/right.

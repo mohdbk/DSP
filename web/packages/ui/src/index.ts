@@ -19,6 +19,7 @@ export * from './feedback/Feedback';
 // Forms
 export * from './forms/fields';
 export * from './forms/MultilingualField';
+export * from './forms/MarkdownEditor';
 export * from './forms/ServiceForm';
 
 // Data

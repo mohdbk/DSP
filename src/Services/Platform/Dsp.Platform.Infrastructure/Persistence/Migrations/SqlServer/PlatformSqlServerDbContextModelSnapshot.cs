@@ -34,10 +34,11 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.SqlServer
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("ChatEnabled")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ChatInstructions")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ChatPrompt")
                         .HasMaxLength(8000)
                         .HasColumnType("nvarchar(max)");
 
@@ -52,6 +53,9 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.SqlServer
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<bool>("Paused")
+                        .HasColumnType("bit");
+
                     b.Property<string>("ProtectedApiKey")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -61,10 +65,11 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.SqlServer
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<bool>("ReviewEnabled")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ReviewInstructions")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReviewPrompt")
                         .HasMaxLength(8000)
                         .HasColumnType("nvarchar(max)");
 
@@ -102,6 +107,12 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.SqlServer
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)");
+
+                    b.Property<bool>("HiddenInBackoffice")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HiddenInPortal")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("bit");

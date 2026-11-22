@@ -27,6 +27,15 @@ public sealed partial class Language : Entity
     public string Direction { get; private set; } = TextDirections.LeftToRight;
     public bool IsEnabled { get; private set; }
     public bool IsDefault { get; private set; }
+
+    /// <summary>Not offered in the citizen portal (the services and the back office can still use it).</summary>
+    public bool HiddenInPortal { get; private set; }
+
+    /// <summary>Not offered in the back office.</summary>
+    public bool HiddenInBackoffice { get; private set; }
+
+    public bool ShowInPortal => !HiddenInPortal;
+    public bool ShowInBackoffice => !HiddenInBackoffice;
     public int SortOrder { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public string UpdatedBy { get; private set; } = "";
@@ -35,7 +44,8 @@ public sealed partial class Language : Entity
     {
         var normalized = (code ?? "").Trim();
         if (!CodePattern().IsMatch(normalized)) throw new DomainException("errors.language.code");
-        var language = new Language { Code = normalized, IsEnabled = false };
+        // New languages start disabled and, once enabled, hidden from citizens until staff show them in the portal.
+        var language = new Language { Code = normalized, IsEnabled = false, HiddenInPortal = true };
         language.Update(name, direction, sortOrder, by);
         return language;
     }
@@ -47,6 +57,15 @@ public sealed partial class Language : Entity
         Name = new LocalizedText(name);
         Direction = direction;
         SortOrder = sortOrder;
+        Touch(by);
+    }
+
+    /// <summary>Which portals offer the language in their language switch. The default is offered in both.</summary>
+    public void SetVisibility(bool portal, bool backoffice, string by)
+    {
+        if (IsDefault && (!portal || !backoffice)) throw new DomainException("errors.language.hideDefault");
+        HiddenInPortal = !portal;
+        HiddenInBackoffice = !backoffice;
         Touch(by);
     }
 
@@ -68,6 +87,8 @@ public sealed partial class Language : Entity
     {
         IsDefault = true;
         IsEnabled = true;
+        HiddenInPortal = false;
+        HiddenInBackoffice = false;
         Touch(by);
     }
 

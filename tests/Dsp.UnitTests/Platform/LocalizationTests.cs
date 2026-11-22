@@ -101,3 +101,61 @@ public class ServiceDefinitionJsonTests
         Assert.Equal("تصريح", ServiceDefinitionJson.Deserialize(ServiceDefinitionJson.Serialize(d)).Name["ar"]);
     }
 }
+
+public class AiPromptTests
+{
+    [Fact]
+    public void Placeholders_are_filled_and_other_braces_are_left_alone()
+    {
+        var text = Dsp.Contracts.AiPrompts.Fill("{portal} of {ministry}. Keep {other}.", "Ministry X", "Portal Y");
+
+        Assert.Equal("Portal Y of Ministry X. Keep {other}.", text);
+    }
+
+    [Fact]
+    public void Both_default_prompts_use_the_configurable_ministry_name()
+    {
+        Assert.Contains("{ministry}", Dsp.Contracts.AiPrompts.DefaultChat);
+        Assert.Contains("{ministry}", Dsp.Contracts.AiPrompts.DefaultReview);
+        Assert.DoesNotContain("Economy", Dsp.Contracts.AiPrompts.DefaultChat + Dsp.Contracts.AiPrompts.DefaultReview);
+    }
+
+    [Fact]
+    public void Settings_keep_a_custom_prompt_and_refuse_one_that_is_too_long()
+    {
+        var settings = Dsp.Platform.Domain.AiSettings.CreateDefault();
+        settings.Update("", "", "", 0.2, 90, false, 6, 30, null, null, "  Be kind.  ", null, "staff");
+
+        Assert.Equal("Be kind.", settings.ChatPrompt);
+        Assert.Null(settings.ReviewPrompt);
+        Assert.Throws<Dsp.SharedKernel.ValidationException>(() =>
+            settings.Update("", "", "", 0.2, 90, false, 6, 30, null, null, new string('a', 8001), null, "staff"));
+    }
+}
+
+public class LanguageVisibilityTests
+{
+    [Fact]
+    public void A_new_language_is_hidden_from_citizens_until_staff_show_it()
+    {
+        var language = Language.Create("ur", new LocalizedText { ["en"] = "Urdu" }, "rtl", 30, "staff");
+
+        Assert.False(language.ShowInPortal);
+        Assert.True(language.ShowInBackoffice);
+
+        language.SetVisibility(true, false, "staff");
+        Assert.True(language.ShowInPortal);
+        Assert.False(language.ShowInBackoffice);
+    }
+
+    [Fact]
+    public void The_default_language_is_always_shown_in_both_portals()
+    {
+        var en = Language.Create("en", new LocalizedText { ["en"] = "English" }, "ltr", 0, "staff");
+        LanguagePolicy.SetDefault([en], en, "staff");
+
+        Assert.True(en.ShowInPortal);
+        Assert.True(en.ShowInBackoffice);
+        Assert.Throws<DomainException>(() => en.SetVisibility(false, true, "staff"));
+    }
+}

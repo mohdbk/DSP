@@ -216,6 +216,8 @@ export interface LanguageAdmin {
   isEnabled: boolean;
   isDefault: boolean;
   sortOrder: number;
+  showInPortal: boolean;
+  showInBackoffice: boolean;
   translated: number;
   total: number;
   updatedAt: string;
@@ -228,6 +230,8 @@ export interface TranslationRow {
   text?: string | null;
   updatedAt?: string | null;
   updatedBy?: string | null;
+  /** Where the key is used: 'portal', 'backoffice' and/or 'services' (messages from the APIs). Empty: added by staff or unused. */
+  usedIn: string[];
 }
 
 export interface AiSettingsView {
@@ -237,12 +241,17 @@ export interface AiSettingsView {
   hasApiKey: boolean;
   temperature: number;
   timeoutSeconds: number;
-  chatEnabled: boolean;
-  reviewEnabled: boolean;
+  /** Emergency stop: the chat uses the guided conversation and the pre-review the built-in checks. */
+  paused: boolean;
   maxToolIterations: number;
   maxHistoryMessages: number;
   chatInstructions?: string | null;
   reviewInstructions?: string | null;
+  /** Staff's prompt; null means the shipped default is in force. */
+  chatPrompt?: string | null;
+  reviewPrompt?: string | null;
+  defaultChatPrompt: string;
+  defaultReviewPrompt: string;
   isConfigured: boolean;
   updatedAt: string;
   updatedBy: string;

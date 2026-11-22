@@ -113,3 +113,71 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    DECLARE @var nvarchar(max);
+    SELECT @var = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[platform].[AiSettings]') AND [c].[name] = N'ChatEnabled');
+    IF @var IS NOT NULL EXEC(N'ALTER TABLE [platform].[AiSettings] DROP CONSTRAINT ' + @var + ';');
+    ALTER TABLE [platform].[AiSettings] DROP COLUMN [ChatEnabled];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    EXEC sp_rename N'[platform].[AiSettings].[ReviewEnabled]', N'Paused', 'COLUMN';
+    EXEC(N'UPDATE [platform].[AiSettings] SET [Paused] = 0;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    ALTER TABLE [platform].[Languages] ADD [HiddenInBackoffice] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    ALTER TABLE [platform].[Languages] ADD [HiddenInPortal] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    ALTER TABLE [platform].[AiSettings] ADD [ChatPrompt] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    ALTER TABLE [platform].[AiSettings] ADD [ReviewPrompt] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122164206_PromptsPauseLanguageVisibility', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

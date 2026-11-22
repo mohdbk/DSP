@@ -22,14 +22,22 @@ public sealed class AiSettings : Entity
     public double Temperature { get; private set; } = 0.2;
     public int TimeoutSeconds { get; private set; } = 90;
 
-    /// <summary>The chat view uses the model (otherwise the guided assistant).</summary>
-    public bool ChatEnabled { get; private set; } = true;
-
-    /// <summary>The AI pre-review uses the model (otherwise the built-in checks alone).</summary>
-    public bool ReviewEnabled { get; private set; } = true;
+    /// <summary>
+    /// Emergency stop: while paused, the chat uses the guided conversation and the pre-review the built-in checks,
+    /// without losing the model's settings. Otherwise the model is always used when it is configured.
+    /// </summary>
+    public bool Paused { get; private set; }
 
     public int MaxToolIterations { get; private set; } = 6;
     public int MaxHistoryMessages { get; private set; } = 30;
+
+    /// <summary>Staff's version of the chat assistant's prompt; null uses the shipped default.</summary>
+    public string? ChatPrompt { get; private set; }
+
+    /// <summary>Staff's version of the pre-review prompt; null uses the shipped default.</summary>
+    public string? ReviewPrompt { get; private set; }
+
+    public const int MaxPromptLength = 8000;
 
     /// <summary>Extra instructions added to the chat assistant's prompt.</summary>
     public string? ChatInstructions { get; private set; }
@@ -46,8 +54,8 @@ public sealed class AiSettings : Entity
     public static AiSettings CreateDefault() => new() { Id = SingletonId, UpdatedAt = DateTimeOffset.UtcNow, UpdatedBy = "Platform" };
 
     public void Update(string providerName, string baseUrl, string model, double temperature, int timeoutSeconds,
-        bool chatEnabled, bool reviewEnabled, int maxToolIterations, int maxHistoryMessages,
-        string? chatInstructions, string? reviewInstructions, string by)
+        bool paused, int maxToolIterations, int maxHistoryMessages,
+        string? chatInstructions, string? reviewInstructions, string? chatPrompt, string? reviewPrompt, string by)
     {
         var url = (baseUrl ?? "").Trim();
         if (url.Length > 0 && (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("https" or "http")))
@@ -57,17 +65,21 @@ public sealed class AiSettings : Entity
         if (maxToolIterations is < 1 or > 20) throw new ValidationException([new FieldError("maxToolIterations", "errors.ai.iterations")]);
         if (maxHistoryMessages is < 2 or > 200) throw new ValidationException([new FieldError("maxHistoryMessages", "errors.ai.history")]);
 
+        if (chatPrompt?.Length > MaxPromptLength) throw new ValidationException([new FieldError("chatPrompt", "errors.ai.promptLength")]);
+        if (reviewPrompt?.Length > MaxPromptLength) throw new ValidationException([new FieldError("reviewPrompt", "errors.ai.promptLength")]);
+
         ProviderName = (providerName ?? "").Trim();
         BaseUrl = url.TrimEnd('/');
         Model = (model ?? "").Trim();
         Temperature = temperature;
         TimeoutSeconds = timeoutSeconds;
-        ChatEnabled = chatEnabled;
-        ReviewEnabled = reviewEnabled;
+        Paused = paused;
         MaxToolIterations = maxToolIterations;
         MaxHistoryMessages = maxHistoryMessages;
         ChatInstructions = string.IsNullOrWhiteSpace(chatInstructions) ? null : chatInstructions.Trim();
         ReviewInstructions = string.IsNullOrWhiteSpace(reviewInstructions) ? null : reviewInstructions.Trim();
+        ChatPrompt = string.IsNullOrWhiteSpace(chatPrompt) ? null : chatPrompt.Trim();
+        ReviewPrompt = string.IsNullOrWhiteSpace(reviewPrompt) ? null : reviewPrompt.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
         UpdatedBy = by;
     }
