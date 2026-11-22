@@ -5,8 +5,7 @@ import {
   type TranslationRow,
 } from '@dsp/core';
 import {
-  Actions, AegovButton, ChoiceField, DataTable, FileField, listStateProps, Loading, Notice, ownName, PageHeader, Panel,
-  Tag, TextAreaField, TextField, type ColumnDef,
+  Actions, AegovButton, ChoiceField, type ColumnDef, DataTable, FileField, FloppyDisk, IconLabel, listStateProps, Loading, Notice, ownName, PageHeader, Panel, Tag, TextAreaField, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { SettingsNav } from './SettingsNav';
@@ -174,7 +173,7 @@ export function TranslationsPage() {
                 onAegovButtonClick={() => run('save', () => api.put(
                   `${base}/translations/${encodeURIComponent(code)}/${encodeURIComponent(editing.isNew ? newKey.trim() : editing.key)}`,
                   { text }), t('settings.saved'))}>
-                {t('save')}
+                <IconLabel icon={FloppyDisk}>{t('save')}</IconLabel>
               </AegovButton>
             </span>
           </Actions>

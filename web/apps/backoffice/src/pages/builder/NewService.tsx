@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { ApiError, getCurrencies, getDefaultLang, getLang, t, type BuilderService, type FieldError, type LocalizedText, type ServiceDefinition } from '@dsp/core';
-import { AegovButton, AegovLink, MultilingualField, Notice, PageHeader, Panel, TextField } from '@dsp/ui';
+import {
+  AegovButton, AegovLink, ArrowLeft, IconLabel, MultilingualField, Notice, PageHeader, Panel, TextField,
+} from '@dsp/ui';
 import { api } from '../../session';
 
 /** A text in the editor's language (staff fill in the other languages in the editor). */
@@ -48,7 +50,7 @@ export function NewServicePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={t('builder.createTitle')} actions={<AegovLink href="/services">{t('builder.backToList')}</AegovLink>} />
+      <PageHeader title={t('builder.createTitle')} actions={<AegovLink href="/services"><IconLabel icon={ArrowLeft} mirror>{t('builder.backToList')}</IconLabel></AegovLink>} />
       <Panel>
         <form onSubmit={create}>
           {error && <Notice kind="error">{error}</Notice>}

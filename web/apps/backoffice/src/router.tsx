@@ -1,6 +1,8 @@
 import { createRootRoute, createRoute, createRouter, redirect } from '@tanstack/react-router';
 import { countUnread, t } from '@dsp/core';
-import { EmptyState, PortalFrame, requireSignedIn, validateListSearch } from '@dsp/ui';
+import {
+  EmptyState, Files, GearSix, PortalFrame, requireSignedIn, Tray, validateListSearch, Wrench,
+} from '@dsp/ui';
 import { api, currentUser, signOut } from './session';
 import { LoginPage } from './pages/Login';
 import { InboxPage } from './pages/Inbox';
@@ -22,10 +24,10 @@ function Root() {
       user={user && { name: user.name, role: user.title ?? t('staff') }}
       loadUnread={() => countUnread(api)}
       navItems={pathname => [
-        { href: '/inbox', label: t('nav.inbox'), active: pathname.startsWith('/inbox') || pathname.startsWith('/tasks') },
-        { href: '/applications', label: t('nav.allApplications'), active: pathname.startsWith('/applications') },
-        { href: '/services', label: t('nav.builder'), active: pathname.startsWith('/services') },
-        { href: '/settings/languages', label: t('nav.settings'), active: pathname.startsWith('/settings') },
+        { href: '/inbox', label: t('nav.inbox'), active: pathname.startsWith('/inbox') || pathname.startsWith('/tasks'), icon: Tray },
+        { href: '/applications', label: t('nav.allApplications'), active: pathname.startsWith('/applications'), icon: Files },
+        { href: '/services', label: t('nav.builder'), active: pathname.startsWith('/services'), icon: Wrench },
+        { href: '/settings/languages', label: t('nav.settings'), active: pathname.startsWith('/settings'), icon: GearSix },
       ]} />
   );
 }

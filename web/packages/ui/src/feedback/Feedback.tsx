@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { AegovBadge, AegovCallout, AegovProgress } from '@aegov/designsystem-react';
 import { t, type ApplicationStatus } from '@dsp/core';
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
+import { FolderOpen, Icon } from '../icons';
 
 type CalloutVariant = 'default' | 'error' | 'info' | 'success' | 'warning';
 
@@ -35,9 +37,10 @@ export function Loading({ label }: { label?: string }) {
 }
 
 /** Nothing to show yet. */
-export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
+export function EmptyState({ title, children, icon = FolderOpen }: { title: string; children?: ReactNode; icon?: PhosphorIcon }) {
   return (
-    <div className="py-12 text-center">
+    <div className="flex flex-col items-center py-12 text-center">
+      <Icon icon={icon} size="size-12" weight="duotone" className="mb-4 text-aeblack-400" />
       <p className="text-h6 font-bold text-aeblack-800">{title}</p>
       {children && <div className="mt-2 text-aeblack-600">{children}</div>}
     </div>

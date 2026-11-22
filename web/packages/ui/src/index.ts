@@ -18,6 +18,7 @@ export * from './navigation/useTabsScrollFix';
 export * from './feedback/Feedback';
 
 // Forms
+export * from './icons';
 export * from './forms/fields';
 export * from './forms/MultilingualField';
 export * from './forms/MarkdownEditor';

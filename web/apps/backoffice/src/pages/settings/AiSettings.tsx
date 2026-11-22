@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ApiError, formatDate, t, type AiSettingsView, type AiTestResult, type FieldError } from '@dsp/core';
 import {
-  Actions, AegovButton, CheckboxField, Loading, MarkdownEditor, Notice, NumberField, PageHeader, Panel, Tag, TextField,
+  Actions, AegovButton, CheckboxField, FloppyDisk, IconLabel, Loading, MarkdownEditor, Notice, NumberField, PageHeader, Panel, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { SettingsNav } from './SettingsNav';
@@ -158,7 +158,7 @@ export function AiSettingsPage() {
           <AegovButton appearance="outline" isDisabled={!!busy || dirty} isLoading={busy === 'test'} onAegovButtonClick={test}>
             {t('ai.settings.test')}
           </AegovButton>
-          <AegovButton isDisabled={!!busy || !dirty} isLoading={busy === 'save'} onAegovButtonClick={save}>{t('save')}</AegovButton>
+          <AegovButton isDisabled={!!busy || !dirty} isLoading={busy === 'save'} onAegovButtonClick={save}><IconLabel icon={FloppyDisk}>{t('save')}</IconLabel></AegovButton>
         </span>
       </Actions>
     </>

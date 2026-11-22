@@ -5,6 +5,7 @@ import {
 } from '@dsp/core';
 import { DescriptionList } from '../data/DescriptionList';
 import { Money, Tag } from '../feedback/Feedback';
+import { ArrowRight, FileText, Icon, IconLabel } from '../icons';
 
 /** A service in the catalogue, with its fee and the button that starts an application. */
 export function ServiceCard({ service, busy, disabled, onApply }: {
@@ -16,9 +17,14 @@ export function ServiceCard({ service, busy, disabled, onApply }: {
   return (
     <AegovCard appearance="solid" variant="neutral-min" borderWidth={1} hover="standard" className="flex h-full flex-col">
       <div className="flex h-full flex-col">
-      <div className="flex flex-wrap gap-2">
-        <Tag variant="aegold">{loc(service.category)}</Tag>
-        {service.workflowVersion === 2 && <Tag variant="techblue">{t('catalog.aiAssisted')}</Tag>}
+      <div className="flex items-start justify-between gap-3">
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+          <Icon icon={FileText} size="size-10" weight="duotone" />
+        </span>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Tag variant="aegold">{loc(service.category)}</Tag>
+          {service.workflowVersion === 2 && <Tag variant="techblue">{t('catalog.aiAssisted')}</Tag>}
+        </div>
       </div>
       <h2 className="mt-3 text-h5 font-bold text-aeblack-900">{loc(service.name)}</h2>
       <p className="mt-2 flex-1 text-aeblack-600">{loc(service.description)}</p>
@@ -27,7 +33,7 @@ export function ServiceCard({ service, busy, disabled, onApply }: {
           <strong><Money>{formatMoney(service.fee, service.currency)}</Money></strong>
           <span className="text-sm text-aeblack-600"> · {t('steps', { n: service.stepCount })}</span>
         </span>
-        <AegovButton size="sm" isLoading={!!busy} isDisabled={!!disabled} onAegovButtonClick={onApply}>{t('catalog.apply')}</AegovButton>
+        <AegovButton size="sm" isLoading={!!busy} isDisabled={!!disabled} onAegovButtonClick={onApply}><IconLabel icon={ArrowRight} mirror>{t('catalog.apply')}</IconLabel></AegovButton>
       </div>
       </div>
     </AegovCard>

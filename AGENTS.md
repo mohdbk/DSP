@@ -184,6 +184,13 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   in a left-to-right span (`Money`). Format amounts only with `formatMoney` (web) or `ICurrencies.FormatAsync`
   (services): symbol, position and decimals come from Settings → Currencies; never hard-code `#,0.##` or a code. Dates read `11 November 2026`; keep Latin digits.
 
+### Icons
+
+Phosphor only (`@phosphor-icons/react`, re-exported from `@dsp/ui`), through `Icon` / `IconLabel`: 24px next to body
+text, `aria-hidden` beside a visible label, `fill` weight for the active nav item, `mirror` for directional icons
+(arrows, back/next). Use them on navigation, header links, main actions, service cards, help, status and empty
+states — not on every list item, and never as the only signal of meaning.
+
 ### Accessibility
 
 WCAG 2.2 AA in both languages: keyboard access for everything, one `h1` per page and ordered headings, no meaning

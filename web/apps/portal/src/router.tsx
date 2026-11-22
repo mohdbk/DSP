@@ -1,6 +1,8 @@
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
 import { countUnread, t } from '@dsp/core';
-import { EmptyState, PortalFrame, requireSignedIn, validateListSearch } from '@dsp/ui';
+import {
+  EmptyState, Files, PortalFrame, requireSignedIn, Tray, validateListSearch,
+} from '@dsp/ui';
 import { api, currentUser, signOut } from './session';
 import { AuthCallbackPage, LoginPage } from './pages/Login';
 import { CatalogPage } from './pages/Catalog';
@@ -17,8 +19,8 @@ function Root() {
       notificationsHref="/notifications"
       loadUnread={() => countUnread(api)}
       navItems={pathname => [
-        { href: '/', label: t('nav.services'), active: pathname === '/' },
-        { href: '/applications', label: t('nav.myApplications'), active: pathname.startsWith('/applications') },
+        { href: '/', label: t('nav.services'), active: pathname === '/', icon: Files },
+        { href: '/applications', label: t('nav.myApplications'), active: pathname.startsWith('/applications'), icon: Tray },
       ]} />
   );
 }
