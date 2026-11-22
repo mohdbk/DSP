@@ -28,25 +28,23 @@ export function AppShell({ service, nav = [], account, children }: {
   // The header moves its slotted children into its own layout, so React must never add or remove them in place:
   // when the shape changes (signed in or out), the key gives React a fresh header instead.
   const shape = `${nav.length > 0 ? 'nav' : 'bare'}-${account ? 'account' : 'anonymous'}`;
-  // Ministry identity: the logo (emblem first) always sits on the left, in every language. The header and footer
-  // mirror for right-to-left, so they are laid out left to right and their content is set back to the page direction.
-  const lang = getLang();
-  const dir = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
-  const logo = lang === 'ar' ? logoAr : logoEn;
+  // The official MoET lockup in the page language. The header and footer mirror for right-to-left as AEGOV specifies.
+  const logo = getLang() === 'ar' ? logoAr : logoEn;
   return (
     <div className="flex min-h-screen flex-col bg-whitely-50">
-      <div dir="ltr">
-      <AegovHeader key={`${shape}-${dir}`} gsrStars={GSR_STARS} entityName={t('entity.name')} entityDomain={ENTITY_DOMAIN} logoLabel={t('entity.home')}
+      <AegovHeader key={shape} gsrStars={GSR_STARS} entityName={t('entity.name')} entityDomain={ENTITY_DOMAIN} logoLabel={t('entity.home')}
         skipContentContainer="#main" labelMenu={t('nav.menu')}>
-        <img slot="logo" src={logo} alt={t('entity.name')} />
-        <div slot="actions" dir={dir}><LanguageSwitch /></div>
+        {/* The header sizes its logo with ::slotted(img), but Tailwind's base styles (height: auto; max-width: 100%) win
+            over shadow styles, so the same AEGOV sizes are set here: 48/64/72px tall, at most 12/18/20rem wide. */}
+        <img slot="logo" src={logo} alt={t('entity.name')} className="h-12 w-auto max-w-48 lg:h-16 lg:max-w-72 xl:h-18 xl:max-w-80" />
+        <div slot="actions"><LanguageSwitch /></div>
         {nav.length > 0 && (
-          <AegovNavbar slot="navigation" dir={dir} labelNav={t('nav.main')}>
+          <AegovNavbar slot="navigation" labelNav={t('nav.main')}>
             {nav.map(item => <AegovNavbarItem key={item.href} href={item.href} isActive={!!item.active}>{item.label}</AegovNavbarItem>)}
           </AegovNavbar>
         )}
-        {account && <div slot="secondary-actions" dir={dir} className="flex items-center gap-3">{account}</div>}
-        <nav slot="mobile-content" dir={dir} aria-label={t('nav.main')} className="flex flex-col gap-4">
+        {account && <div slot="secondary-actions" className="flex items-center gap-3">{account}</div>}
+        <nav slot="mobile-content" aria-label={t('nav.main')} className="flex flex-col gap-4">
           <p className="text-sm font-semibold text-aeblack-600">{service}</p>
           {nav.length > 0 && (
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
@@ -59,25 +57,22 @@ export function AppShell({ service, nav = [], account, children }: {
           <LanguageSwitch />
         </nav>
       </AegovHeader>
-      </div>
 
       <main id="main" className="aegov-container flex-1 py-8">{children}</main>
 
-      <div dir="ltr">
-      <AegovFooter key={dir} navVariant="flat">
+      <AegovFooter navVariant="flat">
         <div slot="brand">
           <img src={logo} alt={t('entity.name')} className="h-14 w-auto" />
-          <p dir={dir} className="mt-4 text-start text-sm text-aeblack-600">{t('footer.about')}</p>
+          <p className="mt-4 text-sm text-aeblack-600">{t('footer.about')}</p>
         </div>
-        <div className="aegov-footer__group" dir={dir}>
+        <div className="aegov-footer__group">
           <h2>{t('footer.services')}</h2>
           <ul role="list">
             <li><a href="/">{service}</a></li>
           </ul>
         </div>
-        <p slot="copyright" dir={dir}>© {new Date().getFullYear()} {t('entity.name')}. {t('footer.rights')} · {t('footer.platform')}</p>
+        <p slot="copyright">© {new Date().getFullYear()} {t('entity.name')}. {t('footer.rights')} · {t('footer.platform')}</p>
       </AegovFooter>
-      </div>
     </div>
   );
 }
