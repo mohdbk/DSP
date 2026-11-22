@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useRouter, useRouterState } from '@tanstack/react-router';
-import { useLang } from '@dsp/core';
+import { siteName, useLang } from '@dsp/core';
 import { AppShell, type NavItem } from './AppShell';
 import { AccountArea } from '../navigation/AccountArea';
 import { useInternalLinks } from '../navigation/useInternalLinks';
@@ -22,7 +22,8 @@ export function PortalFrame({ service, homeLabel, navItems, user, notificationsH
   /** Paths that show the bare shell (sign-in pages). */
   publicPaths: string[];
 }) {
-  useLang(); // re-render everything when the language changes
+  const lang = useLang(); // re-render everything when the language changes
+  useEffect(() => { document.title = siteName(service); }, [service, lang]);
   const router = useRouter();
   useInternalLinks(href => router.history.push(href));
   const pathname = useRouterState({ select: s => s.location.pathname });
