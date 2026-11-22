@@ -66,10 +66,9 @@ public sealed class UaePassIdentityProvider(
 
     private async Task<string> ExchangeCodeAsync(string code, string redirectUri, CancellationToken ct)
     {
-        // Back channel only. UAE PASS reads the parameters from the token URL; client credentials go in Basic auth.
-        var url = $"{options.BaseUrl}/token?grant_type=authorization_code" +
-                  $"&redirect_uri={Uri.EscapeDataString(redirectUri)}&code={Uri.EscapeDataString(code)}";
-        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        // Back channel only. Standard OAuth 2.0: the parameters go once, in the form body (sending them in the URL as
+        // well makes UAE PASS see a repeated grant_type and answer "Bad grant type"); client credentials go in Basic auth.
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{options.BaseUrl}/token")
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
