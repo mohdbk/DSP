@@ -4,7 +4,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Dsp.AiOrchestrator.Application;
 
-public sealed record ChatRequest(Guid ApplicationId, IReadOnlyList<ChatMessage> Messages, string? PendingField);
+/// <param name="Language">"en" or "ar": the language the assistant replies in.</param>
+public sealed record ChatRequest(Guid ApplicationId, IReadOnlyList<ChatMessage> Messages, string? PendingField,
+    string? Language = null)
+{
+    public string Lang => Language is not null && Language.StartsWith("ar", StringComparison.OrdinalIgnoreCase) ? "ar" : "en";
+}
 
 public sealed record ChatResponse(string Reply, string? PendingField, ApplicationView Application, string Mode);
 
@@ -24,8 +29,9 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
 
         if (application.Status != "Draft")
         {
-            return new ChatResponse(
-                $"Application {application.Number} is already {Humanize(application.Status)}. You can follow it from My applications.",
+            return new ChatResponse(request.Lang == "ar"
+                    ? $"تم تقديم الطلب {application.Number} بالفعل. يمكنك متابعته من صفحة طلباتي."
+                    : $"Application {application.Number} is already {Humanize(application.Status)}. You can follow it from My applications.",
                 null, application, llm.IsConfigured ? "llm" : "guided");
         }
 
@@ -37,12 +43,14 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
     private async Task<ChatResponse> RunAgentAsync(ChatRequest request, ServiceView service,
         ApplicationView application, CancellationToken ct)
     {
-        var messages = new List<LlmMessage> { new("system", SystemPrompt(service, application)) };
+        var messages = new List<LlmMessage> { new("system", SystemPrompt(service, application, request.Lang)) };
         messages.AddRange(request.Messages.TakeLast(AgentPolicy.MaxHistoryMessages)
             .Where(m => m.Role is ChatRoles.User or ChatRoles.Assistant)
             .Select(m => new LlmMessage(m.Role, m.Content)));
         if (request.Messages.Count == 0)
-            messages.Add(new LlmMessage(ChatRoles.User, "Hello, I want to start this application."));
+            messages.Add(new LlmMessage(ChatRoles.User, request.Lang == "ar"
+                ? "مرحبًا، أريد بدء هذا الطلب."
+                : "Hello, I want to start this application."));
 
         for (var i = 0; i < AgentPolicy.MaxToolIterations; i++)
         {
@@ -63,7 +71,9 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
 
         logger.LogWarning("Agent hit the tool iteration limit for {ApplicationId}", application.Id);
         application = await eservices.GetApplicationAsync(application.Id, ct);
-        return new ChatResponse("I saved what I could. Please check the form view to finish the remaining fields.",
+        return new ChatResponse(request.Lang == "ar"
+                ? "حفظت ما استطعت. يرجى استخدام النموذج لإكمال الحقول المتبقية."
+                : "I saved what I could. Please check the form view to finish the remaining fields.",
             null, application, "llm");
     }
 
@@ -108,9 +118,10 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
         }
     }
 
-    private static string SystemPrompt(ServiceView service, ApplicationView application) => $"""
+    private static string SystemPrompt(ServiceView service, ApplicationView application, string lang) => $"""
         You are the MoET E-Services assistant. You help the user complete the "{service.Name}" application
         (number {application.Number}) by conversation instead of a form.
+        Reply in {(lang == "ar" ? "Arabic (Modern Standard Arabic, clear and polite). Use the Arabic labels (labelAr) of fields" : "English")}.
 
         How to work:
         - Ask for one or two missing items at a time, in the order of the steps. Be brief, warm and clear.

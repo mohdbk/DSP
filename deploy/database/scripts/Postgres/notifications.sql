@@ -82,3 +82,28 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140114_ServiceBuilderAgenticReviewArabic') THEN
+    ALTER TABLE notifications."Notifications" ADD "BodyAr" character varying(2000);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140114_ServiceBuilderAgenticReviewArabic') THEN
+    ALTER TABLE notifications."Notifications" ADD "TitleAr" character varying(300);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140114_ServiceBuilderAgenticReviewArabic') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261122140114_ServiceBuilderAgenticReviewArabic', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+

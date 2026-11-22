@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { Alert, Spinner } from '@dsp/shared';
+import { Alert, Spinner, t } from '@dsp/shared';
 import { api, currentUser } from '../session';
 
 interface Provider { name: string; displayName: string }
@@ -14,7 +14,7 @@ export function LoginPage() {
   useEffect(() => {
     api.get<Provider[]>('/api/identity/providers')
       .then(setProviders)
-      .catch(() => setError('Sign-in is unavailable right now. Please try again shortly.'));
+      .catch(() => setError(t('login.unavailable')));
   }, []);
 
   if (currentUser()) return <Navigate to={returnUrl} replace />;
@@ -22,22 +22,22 @@ export function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="card">
-        <h1>Sign in</h1>
-        <p className="muted">Sign in to apply for ministry services, track your applications and download certificates.</p>
+        <h1>{t('login.title')}</h1>
+        <p className="muted">{t('login.intro')}</p>
         {error && <Alert kind="error">{error}</Alert>}
         {!providers && !error && <Spinner />}
-        {providers?.length === 0 && <Alert kind="warning">No sign-in method is configured.</Alert>}
+        {providers?.length === 0 && <Alert kind="warning">{t('login.none')}</Alert>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
           {providers?.map(p => (
             <a key={p.name}
               className={`btn ${p.name === 'uaepass' ? 'btn-uaepass' : 'btn-secondary'}`}
               href={`/api/identity/citizen/${p.name}/login?returnUrl=${encodeURIComponent(returnUrl)}`}>
-              Sign in with {p.displayName}
+              {t('login.with', { name: p.name === 'uaepass' ? t('uaePass') : p.displayName })}
             </a>
           ))}
         </div>
         <p className="muted" style={{ fontSize: 13, marginTop: 20 }}>
-          This environment uses the UAE PASS staging service. Use a UAE PASS staging account to sign in.
+          {t('login.staging')}
         </p>
       </div>
     </div>
@@ -56,8 +56,8 @@ export function AuthCallbackPage() {
       api.setToken(token);
       navigate(returnUrl.startsWith('/') ? returnUrl : '/', { replace: true });
     } else {
-      navigate('/login?error=Sign-in%20failed', { replace: true });
+      navigate(`/login?error=${encodeURIComponent(t('login.failed'))}`, { replace: true });
     }
   }, [navigate]);
-  return <main><Spinner label="Signing you in…" /></main>;
+  return <main><Spinner label={t('login.signingIn')} /></main>;
 }

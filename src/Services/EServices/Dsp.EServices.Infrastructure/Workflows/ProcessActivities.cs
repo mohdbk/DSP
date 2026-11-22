@@ -54,3 +54,20 @@ public sealed class RejectApplication : CodeActivity
     protected override async ValueTask ExecuteAsync(ActivityExecutionContext context) =>
         await context.Steps().RejectAsync(context.ApplicationId(), context.CancellationToken);
 }
+
+[Activity("DSP", "Applications", "Run the AI pre-review. Returns true when the applicant must be asked for more information.")]
+public sealed class RunAiReview : CodeActivity<bool>
+{
+    protected override async ValueTask ExecuteAsync(ActivityExecutionContext context)
+    {
+        var askApplicant = await context.Steps().RunAiReviewAsync(context.ApplicationId(), context.CancellationToken);
+        context.Set(Result, askApplicant);
+    }
+}
+
+[Activity("DSP", "Applications", "Ask the applicant for the information the AI pre-review needs.")]
+public sealed class RequestInformation : CodeActivity
+{
+    protected override async ValueTask ExecuteAsync(ActivityExecutionContext context) =>
+        await context.Steps().RequestInformationAsync(context.ApplicationId(), context.CancellationToken);
+}

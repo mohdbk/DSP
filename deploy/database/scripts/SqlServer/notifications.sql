@@ -92,3 +92,32 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140111_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    ALTER TABLE [notifications].[Notifications] ADD [BodyAr] nvarchar(2000) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140111_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    ALTER TABLE [notifications].[Notifications] ADD [TitleAr] nvarchar(300) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140111_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122140111_ServiceBuilderAgenticReviewArabic', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

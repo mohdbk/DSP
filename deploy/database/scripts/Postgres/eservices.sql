@@ -146,3 +146,103 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    ALTER TABLE eservices."ReviewTasks" ADD "AiRecommendation" character varying(32);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    ALTER TABLE eservices."Applications" ADD "InformationRequestCount" integer NOT NULL DEFAULT 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    ALTER TABLE eservices."Applications" ADD "InformationRequestJson" text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    ALTER TABLE eservices."Applications" ADD "ServiceVersion" integer NOT NULL DEFAULT 1;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    CREATE TABLE eservices."AiAssessments" (
+        "Id" uuid NOT NULL,
+        "ApplicationId" uuid NOT NULL,
+        "Round" integer NOT NULL,
+        "Recommendation" character varying(32) NOT NULL,
+        "Summary" character varying(2000) NOT NULL,
+        "FindingsJson" text NOT NULL,
+        "QuestionsJson" text NOT NULL,
+        "Mode" character varying(16) NOT NULL,
+        "Model" character varying(100),
+        "CreatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_AiAssessments" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    CREATE TABLE eservices."ServiceVersions" (
+        "Id" uuid NOT NULL,
+        "Code" character varying(64) NOT NULL,
+        "Version" integer NOT NULL,
+        "Status" character varying(16) NOT NULL,
+        "Name" character varying(200) NOT NULL,
+        "DefinitionJson" text NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "CreatedBy" character varying(200) NOT NULL,
+        "UpdatedAt" timestamp with time zone NOT NULL,
+        "UpdatedBy" character varying(200) NOT NULL,
+        "PublishedAt" timestamp with time zone,
+        "PublishedBy" character varying(200),
+        CONSTRAINT "PK_ServiceVersions" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    CREATE INDEX "IX_AiAssessments_ApplicationId_Round" ON eservices."AiAssessments" ("ApplicationId", "Round");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    CREATE INDEX "IX_ServiceVersions_Code_Status" ON eservices."ServiceVersions" ("Code", "Status");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    CREATE UNIQUE INDEX "IX_ServiceVersions_Code_Version" ON eservices."ServiceVersions" ("Code", "Version");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122140044_ServiceBuilderAgenticReviewArabic') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261122140044_ServiceBuilderAgenticReviewArabic', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+

@@ -26,6 +26,8 @@ public abstract class NotificationsDbContext(DbContextOptions options) : DbConte
             e.Property(x => x.Recipient).HasMaxLength(200);
             e.Property(x => x.Title).HasMaxLength(300);
             e.Property(x => x.Body).HasMaxLength(2000);
+            e.Property(x => x.TitleAr).HasMaxLength(300);
+            e.Property(x => x.BodyAr).HasMaxLength(2000);
             e.Property(x => x.Link).HasMaxLength(300);
         });
     }

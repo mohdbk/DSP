@@ -88,6 +88,10 @@ namespace Dsp.Notifications.Infrastructure.Persistence.Migrations.SqlServer
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<string>("BodyAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -105,6 +109,10 @@ namespace Dsp.Notifications.Infrastructure.Persistence.Migrations.SqlServer
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("TitleAr")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 

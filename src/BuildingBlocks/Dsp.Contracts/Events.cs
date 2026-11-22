@@ -8,7 +8,8 @@ public sealed record ApplicationStatusChanged(
     string ServiceName,
     string ApplicantId,
     string Status,
-    string Message) : IntegrationEvent;
+    string Message,
+    string? MessageAr = null) : IntegrationEvent;
 
 /// <summary>A payment was completed by the payer. Consumed by E-Services to resume the workflow.</summary>
 public sealed record PaymentCompleted(

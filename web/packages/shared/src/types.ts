@@ -3,15 +3,22 @@
 export type FieldType =
   | 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'file' | 'checkbox';
 
-export interface FieldOption { value: string; label: string }
+export const FIELD_TYPES: FieldType[] = ['text', 'textarea', 'email', 'phone', 'number', 'date', 'select', 'file', 'checkbox'];
+
+export const PROFILE_CLAIMS = ['name', 'emirates_id', 'email', 'mobile'] as const;
+
+export interface FieldOption { value: string; label: string; labelAr?: string | null }
 
 export interface FieldDefinition {
   key: string;
   label: string;
+  labelAr?: string | null;
   type: FieldType;
   required: boolean;
   help?: string | null;
+  helpAr?: string | null;
   placeholder?: string | null;
+  placeholderAr?: string | null;
   options?: FieldOption[] | null;
   minLength?: number | null;
   maxLength?: number | null;
@@ -19,12 +26,16 @@ export interface FieldDefinition {
   max?: number | null;
   pattern?: string | null;
   patternMessage?: string | null;
+  patternMessageAr?: string | null;
+  prefillFrom?: string | null;
 }
 
 export interface FormStep {
   id: string;
   title: string;
+  titleAr?: string | null;
   description?: string | null;
+  descriptionAr?: string | null;
   fields: FieldDefinition[];
 }
 
@@ -33,11 +44,15 @@ export interface ServiceDefinition {
   name: string;
   nameAr?: string | null;
   description: string;
+  descriptionAr?: string | null;
   category: string;
+  categoryAr?: string | null;
   fee: number;
   currency: string;
   referenceField?: string | null;
+  version?: number;
   workflowVersion: number;
+  reviewChecklist?: string[] | null;
   steps: FormStep[];
 }
 
@@ -46,14 +61,21 @@ export interface ServiceSummary {
   name: string;
   nameAr?: string | null;
   description: string;
+  descriptionAr?: string | null;
   category: string;
+  categoryAr?: string | null;
   fee: number;
   currency: string;
   stepCount: number;
+  version: number;
+  workflowVersion: number;
 }
 
 export type ApplicationStatus =
-  | 'Draft' | 'Submitted' | 'UnderReview' | 'AwaitingPayment' | 'Paid' | 'Approved' | 'Rejected';
+  | 'Draft' | 'Submitted' | 'AiReview' | 'InformationRequested' | 'UnderReview' | 'AwaitingPayment' | 'Paid'
+  | 'Approved' | 'Rejected';
+
+export interface LocalizedText { en: string; ar: string }
 
 export type FormData = Record<string, string | null | undefined>;
 
@@ -62,6 +84,7 @@ export interface Application {
   number: string;
   serviceCode: string;
   serviceName: string;
+  serviceVersion: number;
   workflowVersion: number;
   applicantId: string;
   applicantName: string;
@@ -78,6 +101,8 @@ export interface Application {
   decisionComment?: string | null;
   paymentId?: string | null;
   certificateDocumentId?: string | null;
+  informationRequest: LocalizedText[];
+  informationRequestCount: number;
 }
 
 export interface FieldError { field: string; message: string }
@@ -97,6 +122,56 @@ export interface ReviewTask {
   dueAt: string;
   completedAt?: string | null;
   outcome?: string | null;
+  aiRecommendation?: AiRecommendation | null;
+}
+
+export type AiRecommendation = 'approve' | 'request_information' | 'reject' | 'unavailable';
+
+export interface AiFinding { severity: 'issue' | 'warning' | 'info'; field?: string | null; message: string }
+
+export interface AiAssessment {
+  id: string;
+  round: number;
+  recommendation: AiRecommendation;
+  summary: string;
+  findings: AiFinding[];
+  questions: LocalizedText[];
+  mode: 'llm' | 'rules' | 'unavailable';
+  model?: string | null;
+  createdAt: string;
+}
+
+// Service builder
+
+export interface BuilderServiceSummary {
+  code: string;
+  name: string;
+  nameAr?: string | null;
+  category: string;
+  publishedVersion?: number | null;
+  draftVersion?: number | null;
+  workflowVersion: number;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface ServiceVersionInfo {
+  version: number;
+  status: 'Draft' | 'Published' | 'Retired';
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
+  publishedAt?: string | null;
+  publishedBy?: string | null;
+}
+
+export interface BuilderService {
+  code: string;
+  published?: ServiceDefinition | null;
+  draft?: ServiceDefinition | null;
+  draftErrors: FieldError[];
+  versions: ServiceVersionInfo[];
 }
 
 export interface Payment {
@@ -126,6 +201,8 @@ export interface Notification {
   id: string;
   title: string;
   body: string;
+  titleAr?: string | null;
+  bodyAr?: string | null;
   link?: string | null;
   createdAt: string;
   isRead: boolean;

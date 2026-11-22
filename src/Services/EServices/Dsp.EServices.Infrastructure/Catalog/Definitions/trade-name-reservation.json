@@ -3,52 +3,68 @@
   "name": "Trade Name Reservation",
   "nameAr": "حجز اسم تجاري",
   "description": "Reserve a trade name for a new business before applying for a trade licence.",
+  "descriptionAr": "احجز اسمًا تجاريًا لنشاطك الجديد قبل التقدم بطلب الرخصة التجارية.",
   "category": "Business",
+  "categoryAr": "الأعمال",
   "fee": 200,
   "currency": "AED",
   "referenceField": "tradeNameEn",
-  "workflowVersion": 1,
+  "workflowVersion": 2,
+  "reviewChecklist": [
+    "The Arabic trade name is written in Arabic letters and matches the meaning of the English name.",
+    "The trade name does not imitate a well-known brand, a government body or a ruling family name.",
+    "The trade name is not offensive and does not mislead about the business activity.",
+    "The trade name is not confusingly similar to names already reserved."
+  ],
   "steps": [
     {
       "id": "applicant",
       "title": "Applicant details",
+      "titleAr": "بيانات مقدم الطلب",
       "description": "We filled in what we know from your UAE PASS profile. Check and complete it.",
+      "descriptionAr": "عبأنا ما نعرفه من ملفك في الهوية الرقمية. يرجى المراجعة والإكمال.",
       "fields": [
-        { "key": "fullName", "label": "Full name", "type": "text", "required": true, "maxLength": 150, "prefillFrom": "name" },
-        { "key": "emiratesId", "label": "Emirates ID", "type": "text", "required": true, "placeholder": "784-1990-1234567-1", "pattern": "^784-\\d{4}-\\d{7}-\\d$", "patternMessage": "Enter the Emirates ID as 784-YYYY-NNNNNNN-N.", "prefillFrom": "emirates_id" },
-        { "key": "email", "label": "Email", "type": "email", "required": true, "prefillFrom": "email" },
-        { "key": "mobile", "label": "Mobile number", "type": "phone", "required": true, "placeholder": "9715XXXXXXXX", "pattern": "^(\\+?971|0)?5\\d{8}$", "patternMessage": "Enter a UAE mobile number, e.g. 971501234567.", "prefillFrom": "mobile" }
+        { "key": "fullName", "label": "Full name", "labelAr": "الاسم الكامل", "type": "text", "required": true, "maxLength": 150, "prefillFrom": "name" },
+        { "key": "emiratesId", "label": "Emirates ID", "labelAr": "رقم الهوية الإماراتية", "type": "text", "required": true, "placeholder": "784-1990-1234567-1", "placeholderAr": "784-1990-1234567-1", "pattern": "^784-\\d{4}-\\d{7}-\\d$", "patternMessage": "Enter the Emirates ID as 784-YYYY-NNNNNNN-N.", "patternMessageAr": "أدخل رقم الهوية بالصيغة 784-YYYY-NNNNNNN-N.", "prefillFrom": "emirates_id" },
+        { "key": "email", "label": "Email", "labelAr": "البريد الإلكتروني", "type": "email", "required": true, "prefillFrom": "email" },
+        { "key": "mobile", "label": "Mobile number", "labelAr": "رقم الهاتف المتحرك", "type": "phone", "required": true, "placeholder": "9715XXXXXXXX", "placeholderAr": "9715XXXXXXXX", "pattern": "^(\\+?971|0)?5\\d{8}$", "patternMessage": "Enter a UAE mobile number, e.g. 971501234567.", "patternMessageAr": "أدخل رقم هاتف متحرك إماراتي، مثل 971501234567.", "prefillFrom": "mobile" }
       ]
     },
     {
       "id": "trade-name",
       "title": "Trade name",
+      "titleAr": "الاسم التجاري",
       "description": "Choose the name you want to reserve and tell us about the business.",
+      "descriptionAr": "اختر الاسم الذي تريد حجزه وأخبرنا عن النشاط.",
       "fields": [
-        { "key": "tradeNameEn", "label": "Trade name (English)", "type": "text", "required": true, "minLength": 3, "maxLength": 60, "help": "Names with reserved words such as Ministry or Federal are not allowed." },
-        { "key": "tradeNameAr", "label": "Trade name (Arabic)", "type": "text", "required": true, "minLength": 3, "maxLength": 60 },
+        { "key": "tradeNameEn", "label": "Trade name (English)", "labelAr": "الاسم التجاري (بالإنجليزية)", "type": "text", "required": true, "minLength": 3, "maxLength": 60, "help": "Names with reserved words such as Ministry or Federal are not allowed.", "helpAr": "لا يُسمح بالأسماء التي تتضمن كلمات محجوزة مثل وزارة أو اتحادي." },
+        { "key": "tradeNameAr", "label": "Trade name (Arabic)", "labelAr": "الاسم التجاري (بالعربية)", "type": "text", "required": true, "minLength": 3, "maxLength": 60, "help": "Write the name in Arabic letters.", "helpAr": "اكتب الاسم بالحروف العربية." },
         {
-          "key": "legalForm", "label": "Legal form", "type": "select", "required": true,
+          "key": "legalForm", "label": "Legal form", "labelAr": "الشكل القانوني", "type": "select", "required": true,
           "options": [
-            { "value": "llc", "label": "Limited Liability Company (LLC)" },
-            { "value": "sole", "label": "Sole Establishment" },
-            { "value": "civil", "label": "Civil Company" }
+            { "value": "llc", "label": "Limited Liability Company (LLC)", "labelAr": "شركة ذات مسؤولية محدودة" },
+            { "value": "sole", "label": "Sole Establishment", "labelAr": "مؤسسة فردية" },
+            { "value": "civil", "label": "Civil Company", "labelAr": "شركة مدنية" }
           ]
         },
         {
-          "key": "activity", "label": "Main business activity", "type": "select", "required": true,
+          "key": "activity", "label": "Main business activity", "labelAr": "النشاط الرئيسي", "type": "select", "required": true,
           "options": [
-            { "value": "general-trading", "label": "General trading" },
-            { "value": "consultancy", "label": "Management consultancy" },
-            { "value": "ecommerce", "label": "E-commerce" },
-            { "value": "tourism", "label": "Tourism services" }
+            { "value": "general-trading", "label": "General trading", "labelAr": "تجارة عامة" },
+            { "value": "consultancy", "label": "Management consultancy", "labelAr": "استشارات إدارية" },
+            { "value": "ecommerce", "label": "E-commerce", "labelAr": "تجارة إلكترونية" },
+            { "value": "tourism", "label": "Tourism services", "labelAr": "خدمات سياحية" }
           ]
         },
-        { "key": "emirate", "label": "Emirate", "type": "select", "required": true,
+        { "key": "emirate", "label": "Emirate", "labelAr": "الإمارة", "type": "select", "required": true,
           "options": [
-            { "value": "AUH", "label": "Abu Dhabi" }, { "value": "DXB", "label": "Dubai" }, { "value": "SHJ", "label": "Sharjah" },
-            { "value": "AJM", "label": "Ajman" }, { "value": "UAQ", "label": "Umm Al Quwain" }, { "value": "RAK", "label": "Ras Al Khaimah" },
-            { "value": "FUJ", "label": "Fujairah" }
+            { "value": "AUH", "label": "Abu Dhabi", "labelAr": "أبوظبي" },
+            { "value": "DXB", "label": "Dubai", "labelAr": "دبي" },
+            { "value": "SHJ", "label": "Sharjah", "labelAr": "الشارقة" },
+            { "value": "AJM", "label": "Ajman", "labelAr": "عجمان" },
+            { "value": "UAQ", "label": "Umm Al Quwain", "labelAr": "أم القيوين" },
+            { "value": "RAK", "label": "Ras Al Khaimah", "labelAr": "رأس الخيمة" },
+            { "value": "FUJ", "label": "Fujairah", "labelAr": "الفجيرة" }
           ]
         }
       ]
@@ -56,8 +72,9 @@
     {
       "id": "declaration",
       "title": "Declaration",
+      "titleAr": "الإقرار",
       "fields": [
-        { "key": "declaration", "label": "I confirm the information provided is correct and complete", "type": "checkbox", "required": true }
+        { "key": "declaration", "label": "I confirm the information provided is correct and complete", "labelAr": "أقر بأن المعلومات المقدمة صحيحة وكاملة", "type": "checkbox", "required": true }
       ]
     }
   ]

@@ -26,7 +26,10 @@ public sealed class ReviewTask : Entity
     public string? CompletedBy { get; private set; }
     public string? Outcome { get; private set; }
 
-    public static ReviewTask For(ServiceApplication application, TimeSpan sla)
+    /// <summary>The AI pre-review's recommendation (AI-assisted process), shown to staff. Staff always decide.</summary>
+    public string? AiRecommendation { get; private set; }
+
+    public static ReviewTask For(ServiceApplication application, TimeSpan sla, string? aiRecommendation = null)
     {
         var now = DateTimeOffset.UtcNow;
         return new ReviewTask
@@ -40,6 +43,7 @@ public sealed class ReviewTask : Entity
             Status = ReviewTaskStatus.Open,
             CreatedAt = now,
             DueAt = now.Add(sla),
+            AiRecommendation = aiRecommendation,
         };
     }
 

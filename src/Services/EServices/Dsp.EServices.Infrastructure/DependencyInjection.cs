@@ -26,7 +26,13 @@ public static class DependencyInjection
         services.AddDspDbContext<EServicesDbContext, EServicesSqlServerDbContext, EServicesPostgresDbContext>(configuration, "EServices");
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
         services.AddScoped<IReviewTaskRepository, ReviewTaskRepository>();
-        services.AddSingleton<IServiceCatalog, EmbeddedServiceCatalog>();
+        services.AddScoped<IAiAssessmentRepository, AiAssessmentRepository>();
+
+        // Service definitions live in the database (edited in the service builder); the shipped ones seed it.
+        services.AddScoped<ServiceVersionRepository>();
+        services.AddScoped<IServiceVersionRepository>(sp => sp.GetRequiredService<ServiceVersionRepository>());
+        services.AddScoped<IServiceCatalog>(sp => sp.GetRequiredService<ServiceVersionRepository>());
+        services.AddSingleton<EmbeddedServiceCatalog>();
 
         var workflows = configuration.GetConnectionString("Workflows")
                         ?? throw new InvalidOperationException("ConnectionStrings:Workflows is required.");
@@ -45,6 +51,7 @@ public static class DependencyInjection
             }));
             elsa.AddActivitiesFrom<ApplicationProcessWorkflow>();
             elsa.AddWorkflow<ApplicationProcessWorkflow>();
+            elsa.AddWorkflow<AgenticApplicationProcessWorkflow>();
         });
         services.AddScoped<IWorkflowEngine, ElsaWorkflowEngine>();
 
@@ -61,8 +68,24 @@ public static class DependencyInjection
             c.DefaultRequestHeaders.Add(InternalApi.Header, internalKey);
         }).AddHttpMessageHandler<CorrelationIdHandler>();
 
+        services.AddHttpClient<IAiReviewer, AiReviewerClient>(c =>
+        {
+            c.BaseAddress = new Uri(configuration["Services:AiOrchestrator"] ?? "http://ai-orchestrator.railway.internal:8080");
+            c.DefaultRequestHeaders.Add(InternalApi.Header, internalKey);
+            c.Timeout = TimeSpan.FromSeconds(120);
+        }).AddHttpMessageHandler<CorrelationIdHandler>();
+
         services.AddDspMessaging<EServicesDbContext>(configuration, "eservices");
         services.AddEventSubscription<PaymentCompleted, PaymentCompletedHandler>();
         return services;
+    }
+
+    /// <summary>Imports the shipped service definitions into an empty catalog (first start only).</summary>
+    public static async Task SeedServiceCatalogAsync(this IServiceProvider services, CancellationToken ct = default)
+    {
+        using var scope = services.CreateScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<CatalogSeeder>();
+        var shipped = scope.ServiceProvider.GetRequiredService<EmbeddedServiceCatalog>().GetAll();
+        await seeder.SeedAsync(shipped, ct);
     }
 }
