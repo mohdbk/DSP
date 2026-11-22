@@ -133,7 +133,7 @@ export function ServiceAnswers({ steps, values, fileNames, onOpenFile, stepActio
 export function StepProgress({ titles, current }: { titles: string[]; current: number }) {
   return (
     <div className="mb-6 overflow-x-auto">
-      <AegovTimeline>
+      <AegovTimeline key={titles.length}>
         {titles.map((title, i) => (
           <AegovTimelineStep key={i} status={i < current ? 'completed' : i === current ? 'active' : 'pending'}>
             {title}

@@ -15,6 +15,7 @@ export function ServiceCard({ service, busy, disabled, onApply }: {
 }) {
   return (
     <AegovCard appearance="solid" variant="neutral-min" borderWidth={1} hover="standard" className="flex h-full flex-col">
+      <div className="flex h-full flex-col">
       <div className="flex flex-wrap gap-2">
         <Tag variant="aegold">{loc(service.category, service.categoryAr)}</Tag>
         {service.workflowVersion === 2 && <Tag variant="techblue">{t('catalog.aiAssisted')}</Tag>}
@@ -27,6 +28,7 @@ export function ServiceCard({ service, busy, disabled, onApply }: {
           <span className="text-sm text-aeblack-600"> · {t('steps', { n: service.stepCount })}</span>
         </span>
         <AegovButton size="sm" isLoading={!!busy} isDisabled={!!disabled} onAegovButtonClick={onApply}>{t('catalog.apply')}</AegovButton>
+      </div>
       </div>
     </AegovCard>
   );
@@ -71,7 +73,7 @@ export function ApplicationJourney({ app }: { app: Application }) {
     ? journey.findIndex(s => s.key === 'journey.review')
     : journey.findIndex(s => s.statuses.includes(app.status));
   return (
-    <AegovTimeline orientation="vertical">
+    <AegovTimeline key={journey.length} orientation="vertical">
       {journey.map((stage, i) => (
         <AegovTimelineStep key={stage.key}
           status={app.status === 'Approved' || i < position ? 'completed' : i === position ? 'active' : 'pending'}>

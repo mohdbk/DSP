@@ -31,13 +31,15 @@ export function Panel({ title, actions, children, className }: {
 }) {
   return (
     <AegovCard appearance="solid" variant="neutral-min" borderWidth={1} className={className}>
-      {(title || actions) && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          {title && <h2 className="text-h6 font-bold text-aeblack-900">{title}</h2>}
-          {actions}
-        </div>
-      )}
-      {children}
+      <div>
+        {(title || actions) && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            {title && <h2 className="text-h6 font-bold text-aeblack-900">{title}</h2>}
+            {actions}
+          </div>
+        )}
+        {children}
+      </div>
     </AegovCard>
   );
 }

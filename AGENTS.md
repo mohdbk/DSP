@@ -123,6 +123,10 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
   `aegov-timeline`; loading is an indeterminate `aegov-progress`; there is no custom spinner.
 - Style only with Tailwind utilities on AEGOV tokens (`text-aeblack-800`, `bg-primary-50`, `text-h3`…). No hex
   colours, no Tailwind default palettes, no arbitrary text sizes. Utilities style the host of an AEGOV element only.
+- AEGOV elements move their slotted children into their own layout. React must never add, remove or reorder the
+  direct children of an AEGOV element in place (that throws `removeChild`/`insertBefore` errors): put changing
+  content inside one stable wrapper element, keep optional slots rendered (hide them), or give the AEGOV element a
+  `key` that changes with its structure so React replaces it whole.
 - Use AEGOV events (`onAegovButtonClick`, `onAegovInputValue`…) rather than React DOM events on AEGOV elements.
   Content inside `aegov-dropdown`/`aegov-popover` moves to `<body>`: React handlers there don't fire.
 - One solid primary button per view; secondary actions are `appearance="outline"`, tertiary `appearance="link"`.
