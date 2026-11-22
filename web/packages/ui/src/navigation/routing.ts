@@ -1,4 +1,5 @@
 import { redirect } from '@tanstack/react-router';
+import { emptyFilters, sanitizeFilters, type FilterState } from '../data/filtering';
 
 /**
  * A route guard for TanStack Router: send people who aren't signed in to the portal's sign-in page,
@@ -11,7 +12,7 @@ export function requireSignedIn(isSignedIn: () => boolean, loginPath: string) {
 }
 
 /** List state (search, page, sort, filters) kept in the URL, so it survives reloads and can be shared. */
-export interface ListSearch { q?: string; page?: number; sort?: string; filter?: Record<string, string> }
+export interface ListSearch { q?: string; page?: number; sort?: string; filter?: Record<string, string>; adv?: FilterState }
 
 export function validateListSearch(search: Record<string, unknown>): ListSearch {
   const page = Number(search.page);
@@ -24,6 +25,7 @@ export function validateListSearch(search: Record<string, unknown>): ListSearch 
     page: Number.isInteger(page) && page > 1 ? page : undefined,
     sort: typeof search.sort === 'string' && search.sort ? search.sort : undefined,
     filter: filter && Object.keys(filter).length > 0 ? filter : undefined,
+    adv: sanitizeFilters(search.adv),
   };
 }
 
@@ -40,6 +42,8 @@ export function listStateProps(search: ListSearch, write: (next: ListSearch) => 
     onPageChange: (page: number) => update({ page: page > 1 ? page : undefined }),
     sort: search.sort,
     onSortChange: (sort: string | undefined) => update({ sort, page: undefined }),
+    advanced: search.adv ?? emptyFilters,
+    onAdvancedChange: (adv: FilterState) => update({ adv: adv.conditions.length ? adv : undefined, filter: undefined, page: undefined }),
     filters: search.filter ?? {},
     onFiltersChange: (filter: Record<string, string>) => {
       const clean = Object.fromEntries(Object.entries(filter).filter(([, v]) => v));

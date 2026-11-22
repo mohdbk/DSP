@@ -2630,21 +2630,189 @@
    "en": "Submitted",
    "ar": "تاريخ التقديم"
   },
+  "table.activeFilters": {
+   "en": "Active filters",
+   "ar": "عوامل التصفية النشطة"
+  },
+  "table.addCondition": {
+   "en": "Add condition",
+   "ar": "إضافة شرط"
+  },
   "table.all": {
    "en": "All",
    "ar": "الكل"
   },
+  "table.apply": {
+   "en": "Apply filters",
+   "ar": "تطبيق التصفية"
+  },
+  "table.betweenValues": {
+   "en": "{from} to {to}",
+   "ar": "{from} إلى {to}"
+  },
+  "table.clearAll": {
+   "en": "Clear all",
+   "ar": "مسح الكل"
+  },
+  "table.column": {
+   "en": "Column",
+   "ar": "العمود"
+  },
+  "table.condition": {
+   "en": "Condition {n}",
+   "ar": "الشرط {n}"
+  },
+  "table.days": {
+   "en": "{n} days",
+   "ar": "{n} يوم"
+  },
+  "table.daysLabel": {
+   "en": "Number of days",
+   "ar": "عدد الأيام"
+  },
+  "table.deleteView": {
+   "en": "Delete view {name}",
+   "ar": "حذف طريقة العرض {name}"
+  },
+  "table.filters": {
+   "en": "Filters",
+   "ar": "عوامل التصفية"
+  },
+  "table.filtersCount": {
+   "en": "Filters ({n})",
+   "ar": "عوامل التصفية ({n})"
+  },
+  "table.from": {
+   "en": "From",
+   "ar": "من"
+  },
+  "table.listSeparator": {
+   "en": ", ",
+   "ar": "، "
+  },
+  "table.match.all": {
+   "en": "All conditions",
+   "ar": "جميع الشروط"
+  },
+  "table.match.allShort": {
+   "en": "All of:",
+   "ar": "جميع ما يلي:"
+  },
+  "table.match.any": {
+   "en": "Any condition",
+   "ar": "أي شرط"
+  },
+  "table.match.anyShort": {
+   "en": "Any of:",
+   "ar": "أي مما يلي:"
+  },
+  "table.match.label": {
+   "en": "Show rows that match",
+   "ar": "اعرض الصفوف التي تطابق"
+  },
+  "table.noViews": {
+   "en": "No saved views yet. Set up search, filters or sorting, then save them here.",
+   "ar": "لا توجد طرق عرض محفوظة بعد. اضبط البحث أو التصفية أو الترتيب ثم احفظها هنا."
+  },
+  "table.nothingToSave": {
+   "en": "Search, filter or sort first.",
+   "ar": "ابحث أو صفِّ أو رتّب أولًا."
+  },
+  "table.op.after": {
+   "en": "is after",
+   "ar": "بعد"
+  },
+  "table.op.anyOf": {
+   "en": "is any of",
+   "ar": "أي من"
+  },
+  "table.op.before": {
+   "en": "is before",
+   "ar": "قبل"
+  },
+  "table.op.between": {
+   "en": "is between",
+   "ar": "بين"
+  },
+  "table.op.contains": {
+   "en": "contains",
+   "ar": "يحتوي على"
+  },
+  "table.op.empty": {
+   "en": "is empty",
+   "ar": "فارغ"
+  },
+  "table.op.eq": {
+   "en": "equals",
+   "ar": "يساوي"
+  },
+  "table.op.equals": {
+   "en": "is exactly",
+   "ar": "يساوي تمامًا"
+  },
+  "table.op.gt": {
+   "en": "is more than",
+   "ar": "أكبر من"
+  },
+  "table.op.lastDays": {
+   "en": "is in the last",
+   "ar": "خلال آخر"
+  },
+  "table.op.lt": {
+   "en": "is less than",
+   "ar": "أقل من"
+  },
+  "table.op.noneOf": {
+   "en": "is none of",
+   "ar": "ليس أيًا من"
+  },
+  "table.op.notContains": {
+   "en": "doesn't contain",
+   "ar": "لا يحتوي على"
+  },
+  "table.op.notEmpty": {
+   "en": "is not empty",
+   "ar": "غير فارغ"
+  },
+  "table.op.on": {
+   "en": "is on",
+   "ar": "في تاريخ"
+  },
+  "table.op.range": {
+   "en": "is between",
+   "ar": "بين"
+  },
+  "table.op.startsWith": {
+   "en": "starts with",
+   "ar": "يبدأ بـ"
+  },
+  "table.operator": {
+   "en": "Condition",
+   "ar": "الشرط"
+  },
+  "table.removeCondition": {
+   "en": "Remove condition",
+   "ar": "إزالة الشرط"
+  },
+  "table.removeFilter": {
+   "en": "Remove filter: {filter}",
+   "ar": "إزالة عامل التصفية: {filter}"
+  },
   "table.results": {
    "en": "{n} result(s)",
    "ar": "{n} نتيجة"
+  },
+  "table.saveView": {
+   "en": "Save view",
+   "ar": "حفظ طريقة العرض"
   },
   "table.search": {
    "en": "Search",
    "ar": "بحث"
   },
   "table.searchHint": {
-   "en": "Search any column",
-   "ar": "ابحث في أي عمود"
+   "en": "Words can be in any column. Use \"quotes\" for an exact phrase.",
+   "ar": "يمكن أن تكون الكلمات في أي عمود. استخدم \"علامات التنصيص\" للعبارة المطابقة."
   },
   "table.sortAscending": {
    "en": "sorted ascending",
@@ -2653,6 +2821,30 @@
   "table.sortDescending": {
    "en": "sorted descending",
    "ar": "مرتب تنازليًا"
+  },
+  "table.to": {
+   "en": "To",
+   "ar": "إلى"
+  },
+  "table.value": {
+   "en": "Value",
+   "ar": "القيمة"
+  },
+  "table.viewName": {
+   "en": "Save the current view as",
+   "ar": "حفظ طريقة العرض الحالية باسم"
+  },
+  "table.viewNameHint": {
+   "en": "Saved in this browser for you.",
+   "ar": "تُحفظ في هذا المتصفح لك."
+  },
+  "table.views": {
+   "en": "Saved views",
+   "ar": "طرق العرض المحفوظة"
+  },
+  "table.viewsCount": {
+   "en": "Saved views ({n})",
+   "ar": "طرق العرض المحفوظة ({n})"
   },
   "task.alreadyDone": {
    "en": "This task was completed ({outcome}).",
@@ -3536,6 +3728,7 @@
    "backoffice"
   ],
   "cancel": [
+   "portal",
    "backoffice"
   ],
   "catalog.agentic": [
@@ -3696,6 +3889,7 @@
    "services"
   ],
   "close": [
+   "portal",
    "backoffice"
   ],
   "comment": [
@@ -4808,11 +5002,176 @@
    "portal",
    "backoffice"
   ],
-  "table.all": [
+  "table.activeFilters": [
+   "portal",
+   "backoffice"
+  ],
+  "table.addCondition": [
+   "portal",
+   "backoffice"
+  ],
+  "table.all": [],
+  "table.apply": [
+   "portal",
+   "backoffice"
+  ],
+  "table.betweenValues": [
+   "portal",
+   "backoffice"
+  ],
+  "table.clearAll": [
+   "portal",
+   "backoffice"
+  ],
+  "table.column": [
+   "portal",
+   "backoffice"
+  ],
+  "table.condition": [
+   "portal",
+   "backoffice"
+  ],
+  "table.days": [
+   "portal",
+   "backoffice"
+  ],
+  "table.daysLabel": [
+   "portal",
+   "backoffice"
+  ],
+  "table.deleteView": [
+   "portal",
+   "backoffice"
+  ],
+  "table.filters": [
+   "portal",
+   "backoffice"
+  ],
+  "table.filtersCount": [
+   "portal",
+   "backoffice"
+  ],
+  "table.from": [
+   "portal",
+   "backoffice"
+  ],
+  "table.listSeparator": [
+   "portal",
+   "backoffice"
+  ],
+  "table.match.all": [
+   "portal",
+   "backoffice"
+  ],
+  "table.match.allShort": [
+   "portal",
+   "backoffice"
+  ],
+  "table.match.any": [
+   "portal",
+   "backoffice"
+  ],
+  "table.match.anyShort": [
+   "portal",
+   "backoffice"
+  ],
+  "table.match.label": [
+   "portal",
+   "backoffice"
+  ],
+  "table.noViews": [
+   "portal",
+   "backoffice"
+  ],
+  "table.nothingToSave": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.after": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.anyOf": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.before": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.between": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.contains": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.empty": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.eq": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.equals": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.gt": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.lastDays": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.lt": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.noneOf": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.notContains": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.notEmpty": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.on": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.range": [
+   "portal",
+   "backoffice"
+  ],
+  "table.op.startsWith": [
+   "portal",
+   "backoffice"
+  ],
+  "table.operator": [
+   "portal",
+   "backoffice"
+  ],
+  "table.removeCondition": [
+   "portal",
+   "backoffice"
+  ],
+  "table.removeFilter": [
    "portal",
    "backoffice"
   ],
   "table.results": [
+   "portal",
+   "backoffice"
+  ],
+  "table.saveView": [
    "portal",
    "backoffice"
   ],
@@ -4829,6 +5188,30 @@
    "backoffice"
   ],
   "table.sortDescending": [
+   "portal",
+   "backoffice"
+  ],
+  "table.to": [
+   "portal",
+   "backoffice"
+  ],
+  "table.value": [
+   "portal",
+   "backoffice"
+  ],
+  "table.viewName": [
+   "portal",
+   "backoffice"
+  ],
+  "table.viewNameHint": [
+   "portal",
+   "backoffice"
+  ],
+  "table.views": [
+   "portal",
+   "backoffice"
+  ],
+  "table.viewsCount": [
    "portal",
    "backoffice"
   ],
