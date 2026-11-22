@@ -131,7 +131,7 @@ public class ApplicationReviewAgentTests
     private sealed class FakeSettings(bool configured, string? reviewPrompt = null) : IAiSettingsProvider
     {
         public Task<AiSettings> GetAsync(CancellationToken ct) => Task.FromResult(new AiSettings("test",
-            configured ? "https://llm.test/v1" : "", configured ? "test-model" : "", null, 0.2, 30, true, true, 6, 30, null, null,
+            configured ? "https://llm.test/v1" : "", configured ? "test-model" : "", null, 0.2, 30, false, 6, 30, null, null,
             ReviewPrompt: reviewPrompt));
     }
 }

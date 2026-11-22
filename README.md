@@ -89,11 +89,13 @@ submit → AI pre-review ─┬─ fixable problem → ask the applicant (at mos
 Back Office → Settings has three pages:
 
 - **Languages**: add a language (code, direction, its name in every language), enable, disable, reorder, make
-  default or delete it. One language is the default; it can't be disabled or deleted.
-- **Translations**: every key with the default text and the chosen language's text; search, filter missing, edit,
-  add keys, import and export JSON. Changes reach both portals and every service within 30 seconds.
+  default or delete it, and choose whether each portal offers it (a new language starts in the back office only,
+  so staff can translate it before citizens see it). One language is the default; it can't be disabled, hidden
+  or deleted.
+- **Translations**: every key with the default text and the chosen language's text, and where it is used (portal,
+  back office, both, or service messages); search, filter, edit, add keys, import and export JSON. Changes reach both portals and every service within 30 seconds.
 - **AI**: provider, address, model, key (write-only, encrypted), temperature, timeout, limits, chat and review
-  switches, the chat and pre-review prompts (with reset to default; `{ministry}` and `{portal}` come from
+  an emergency **Pause AI** (the model is otherwise always used once set up), the chat and pre-review prompts (with reset to default; `{ministry}` and `{portal}` come from
   Translations), extra instructions, and a connection test. The platform's safety rules are always added and
   can't be edited.
 

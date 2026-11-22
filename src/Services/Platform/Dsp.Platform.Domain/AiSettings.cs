@@ -22,11 +22,11 @@ public sealed class AiSettings : Entity
     public double Temperature { get; private set; } = 0.2;
     public int TimeoutSeconds { get; private set; } = 90;
 
-    /// <summary>The chat view uses the model (otherwise the guided assistant).</summary>
-    public bool ChatEnabled { get; private set; } = true;
-
-    /// <summary>The AI pre-review uses the model (otherwise the built-in checks alone).</summary>
-    public bool ReviewEnabled { get; private set; } = true;
+    /// <summary>
+    /// Emergency stop: while paused, the chat uses the guided conversation and the pre-review the built-in checks,
+    /// without losing the model's settings. Otherwise the model is always used when it is configured.
+    /// </summary>
+    public bool Paused { get; private set; }
 
     public int MaxToolIterations { get; private set; } = 6;
     public int MaxHistoryMessages { get; private set; } = 30;
@@ -54,7 +54,7 @@ public sealed class AiSettings : Entity
     public static AiSettings CreateDefault() => new() { Id = SingletonId, UpdatedAt = DateTimeOffset.UtcNow, UpdatedBy = "Platform" };
 
     public void Update(string providerName, string baseUrl, string model, double temperature, int timeoutSeconds,
-        bool chatEnabled, bool reviewEnabled, int maxToolIterations, int maxHistoryMessages,
+        bool paused, int maxToolIterations, int maxHistoryMessages,
         string? chatInstructions, string? reviewInstructions, string? chatPrompt, string? reviewPrompt, string by)
     {
         var url = (baseUrl ?? "").Trim();
@@ -73,8 +73,7 @@ public sealed class AiSettings : Entity
         Model = (model ?? "").Trim();
         Temperature = temperature;
         TimeoutSeconds = timeoutSeconds;
-        ChatEnabled = chatEnabled;
-        ReviewEnabled = reviewEnabled;
+        Paused = paused;
         MaxToolIterations = maxToolIterations;
         MaxHistoryMessages = maxHistoryMessages;
         ChatInstructions = string.IsNullOrWhiteSpace(chatInstructions) ? null : chatInstructions.Trim();

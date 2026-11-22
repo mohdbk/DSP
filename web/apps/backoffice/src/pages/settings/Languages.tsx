@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ApiError, formatDate, loc, refreshI18n, t, type FieldError, type LanguageAdmin, type LocalizedText } from '@dsp/core';
 import {
-  Actions, AegovButton, ChoiceField, DataTable, listStateProps, Loading, MultilingualField, Notice, NumberField,
+  Actions, AegovButton, CheckboxField, ChoiceField, DataTable, listStateProps, Loading, MultilingualField, Notice, NumberField,
   ownName, PageHeader, Panel, Tag, TextField, type ColumnDef,
 } from '@dsp/ui';
 import { api } from '../../session';
@@ -11,7 +11,14 @@ import { SettingsNav } from './SettingsNav';
 const route = getRouteApi('/settings/languages');
 const base = '/api/v1/platform/admin/languages';
 
-interface Draft { code: string; name: LocalizedText | null; direction: 'ltr' | 'rtl'; sortOrder: number }
+interface Draft {
+  code: string; name: LocalizedText | null; direction: 'ltr' | 'rtl'; sortOrder: number;
+  showInPortal: boolean; showInBackoffice: boolean;
+}
+
+/** Where a language is offered, for the table and its filter. */
+const shownIn = (l: LanguageAdmin) =>
+  l.showInPortal && l.showInBackoffice ? 'both' : l.showInPortal ? 'portal' : l.showInBackoffice ? 'backoffice' : 'none';
 
 /** Languages: add, rename (in every language), order, enable, disable, make default and delete. */
 export function LanguagesPage() {
@@ -36,8 +43,8 @@ export function LanguagesPage() {
     setConfirmDelete(false);
     const l = languages?.find(x => x.code === code);
     setDraft(l
-      ? { code: l.code, name: l.name, direction: l.direction, sortOrder: l.sortOrder }
-      : { code: '', name: null, direction: 'ltr', sortOrder: (languages?.length ?? 0) * 10 });
+      ? { code: l.code, name: l.name, direction: l.direction, sortOrder: l.sortOrder, showInPortal: l.showInPortal, showInBackoffice: l.showInBackoffice }
+      : { code: '', name: null, direction: 'ltr', sortOrder: (languages?.length ?? 0) * 10, showInPortal: false, showInBackoffice: true });
   };
 
   async function run(kind: string, action: () => Promise<unknown>, success: string) {
@@ -58,7 +65,10 @@ export function LanguagesPage() {
   }
 
   const err = (field: string) => errors.find(e => e.field === field)?.message;
-  const body = () => ({ code: draft!.code.trim(), name: draft!.name ?? {}, direction: draft!.direction, sortOrder: draft!.sortOrder });
+  const body = () => ({
+    code: draft!.code.trim(), name: draft!.name ?? {}, direction: draft!.direction, sortOrder: draft!.sortOrder,
+    showInPortal: draft!.showInPortal, showInBackoffice: draft!.showInBackoffice,
+  });
 
   const columns = useMemo<ColumnDef<LanguageAdmin, string>[]>(() => [
     {
@@ -75,6 +85,11 @@ export function LanguagesPage() {
       accessorFn: l => (l.isDefault ? 'default' : l.isEnabled ? 'enabled' : 'disabled'),
       cell: c => <Tag variant={c.getValue() === 'disabled' ? 'slate' : c.getValue() === 'default' ? 'aegold' : 'aegreen'}>{t(`settings.lang.${c.getValue()}`)}</Tag>,
       meta: { filter: true, filterLabel: v => t(`settings.lang.${v}`) },
+    },
+    {
+      id: 'shownIn', header: t('settings.shownIn'), accessorFn: shownIn,
+      cell: c => <Tag variant={c.getValue() === 'none' ? 'slate' : 'aegold'}>{t(`settings.shown.${c.getValue()}`)}</Tag>,
+      meta: { filter: true, filterLabel: v => t(`settings.shown.${v}`) },
     },
     {
       id: 'direction', header: t('settings.direction'), accessorFn: l => l.direction,
@@ -110,6 +125,14 @@ export function LanguagesPage() {
           </div>
           <MultilingualField id="name" label={t('settings.languageName')} hint={t('settings.languageNameHint')} value={draft.name}
             error={c => err(`name.${c}`) ?? err('name')} onChange={v => setDraft({ ...draft, name: v })} />
+          <fieldset className="mb-5">
+            <legend className="mb-2 font-semibold text-aeblack-800">{t('settings.shownIn')}</legend>
+            <CheckboxField id="show-portal" label={t('settings.showInPortal')} disabled={current?.isDefault}
+              checked={draft.showInPortal} onChange={v => setDraft({ ...draft, showInPortal: v })} />
+            <CheckboxField id="show-backoffice" label={t('settings.showInBackoffice')} disabled={current?.isDefault}
+              checked={draft.showInBackoffice} onChange={v => setDraft({ ...draft, showInBackoffice: v })} />
+            <p className="text-sm text-aeblack-600">{t(current?.isDefault ? 'settings.visibilityDefault' : 'settings.visibilityHint')}</p>
+          </fieldset>
           {selected === 'new' && draft.code && (
             <TextField id="own-name" lang={draft.code} dir={draft.direction}
               label={t('settings.ownName')} hint={t('settings.ownNameHint')}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ApiError, formatDate, t, type AiSettingsView, type AiTestResult, type FieldError } from '@dsp/core';
 import {
-  Actions, AegovButton, CheckboxField, Loading, Notice, NumberField, PageHeader, Panel, Tag, TextAreaField, TextField,
+  Actions, AegovButton, CheckboxField, Loading, MarkdownEditor, Notice, NumberField, PageHeader, Panel, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { SettingsNav } from './SettingsNav';
@@ -18,7 +18,7 @@ export function AiSettingsPage() {
   const [apiKey, setApiKey] = useState('');
   const [removeKey, setRemoveKey] = useState(false);
   const [errors, setErrors] = useState<FieldError[]>([]);
-  const [busy, setBusy] = useState<'save' | 'test'>();
+  const [busy, setBusy] = useState<'save' | 'test' | 'pause'>();
   const [message, setMessage] = useState<{ kind: 'success' | 'error' | 'info'; text: string }>();
 
   const adopt = (s: AiSettingsView) => { setSettings(s); setForm(s); setApiKey(''); setRemoveKey(false); };
@@ -61,15 +61,34 @@ export function AiSettingsPage() {
     }
   }
 
+  /** The emergency stop acts at once on the saved settings, whatever is being edited on the page. */
+  async function togglePause() {
+    setBusy('pause');
+    setMessage(undefined);
+    try {
+      const saved = await api.put<AiSettingsView>(base, { ...settings, apiKey: null, paused: !settings!.paused });
+      setSettings(saved);
+      setForm({ ...form!, paused: saved.paused, updatedAt: saved.updatedAt, updatedBy: saved.updatedBy });
+      setMessage({ kind: saved.paused ? 'info' : 'success', text: t(saved.paused ? 'ai.settings.pausedDone' : 'ai.settings.resumedDone') });
+    } catch (e) {
+      setMessage({ kind: 'error', text: (e as Error).message });
+    } finally {
+      setBusy(undefined);
+    }
+  }
+
   const dirty = JSON.stringify(form) !== JSON.stringify(settings) || !!apiKey || removeKey;
 
   return (
     <>
       <PageHeader title={t('settings.ai')} intro={t('ai.settings.intro')} actions={<SettingsNav current="ai" />}
-        badges={settings.isConfigured
-          ? <Tag variant="aegreen">{t('ai.settings.configured', { model: settings.model })}</Tag>
-          : <Tag variant="slate">{t('ai.settings.notConfigured')}</Tag>} />
+        badges={settings.paused
+          ? <Tag variant="aered">{t('ai.settings.paused')}</Tag>
+          : settings.isConfigured
+            ? <Tag variant="aegreen">{t('ai.settings.configured', { model: settings.model })}</Tag>
+            : <Tag variant="slate">{t('ai.settings.notConfigured')}</Tag>} />
       {message && <Notice kind={message.kind}>{message.text}</Notice>}
+      {settings.paused && <Notice kind="warning">{t('ai.settings.pausedNotice')}</Notice>}
 
       <Panel className="mb-6 block" title={t('ai.settings.connection')}>
         <div className="grid gap-x-4 md:grid-cols-2">
@@ -89,10 +108,6 @@ export function AiSettingsPage() {
       </Panel>
 
       <Panel className="mb-6 block" title={t('ai.settings.behaviour')}>
-        <CheckboxField id="chat" label={t('ai.settings.chatEnabled')} hint={t('ai.settings.chatEnabledHint')}
-          checked={form.chatEnabled} onChange={v => set('chatEnabled', v)} />
-        <CheckboxField id="review" label={t('ai.settings.reviewEnabled')} hint={t('ai.settings.reviewEnabledHint')}
-          checked={form.reviewEnabled} onChange={v => set('reviewEnabled', v)} />
         <div className="grid gap-x-4 md:grid-cols-4">
           <NumberField id="temperature" label={t('ai.settings.temperature')} hint={t('ai.settings.temperatureHint')}
             value={form.temperature} error={err('temperature')} onChange={v => set('temperature', v ?? 0)} />
@@ -114,10 +129,18 @@ export function AiSettingsPage() {
       </Panel>
 
       <Panel className="mb-6 block" title={t('ai.settings.instructions')}>
-        <TextAreaField id="chatInstructions" label={t('ai.settings.chatInstructions')} hint={t('ai.settings.extraHint')}
-          markOptional value={form.chatInstructions ?? ''} onChange={v => set('chatInstructions', v || null)} />
-        <TextAreaField id="reviewInstructions" label={t('ai.settings.reviewInstructions')} hint={t('ai.settings.extraHint')}
-          markOptional value={form.reviewInstructions ?? ''} onChange={v => set('reviewInstructions', v || null)} />
+        <MarkdownEditor id="chatInstructions" label={t('ai.settings.chatInstructions')} hint={t('ai.settings.extraHint')} rows={6}
+          markOptional maxLength={8000} dir="ltr" value={form.chatInstructions ?? ''} onChange={v => set('chatInstructions', v || null)} />
+        <MarkdownEditor id="reviewInstructions" label={t('ai.settings.reviewInstructions')} hint={t('ai.settings.extraHint')} rows={6}
+          markOptional maxLength={8000} dir="ltr" value={form.reviewInstructions ?? ''} onChange={v => set('reviewInstructions', v || null)} />
+      </Panel>
+
+      <Panel className="mb-6 block" title={t('ai.settings.pauseTitle')}>
+        <p className="mb-4 text-aeblack-700">{t('ai.settings.pauseIntro')}</p>
+        <AegovButton appearance={settings.paused ? 'solid' : 'outline'} variant={settings.paused ? 'primary' : 'danger'}
+          isDisabled={!!busy} isLoading={busy === 'pause'} onAegovButtonClick={togglePause}>
+          {t(settings.paused ? 'ai.settings.resume' : 'ai.settings.pause')}
+        </AegovButton>
       </Panel>
 
       <Actions align="between">
@@ -147,10 +170,8 @@ function PromptField(props: {
           <AegovButton appearance="link" size="sm" onAegovButtonClick={() => props.onChange(null)}>{t('ai.settings.resetPrompt')}</AegovButton>
         )}
       </div>
-      <div dir="ltr">
-        <TextAreaField id={props.id} label={props.label} value={props.value ?? props.fallback} maxLength={8000} error={props.error}
-          onChange={v => props.onChange(v.trim() === props.fallback.trim() ? null : v)} />
-      </div>
+      <MarkdownEditor id={props.id} label={props.label} value={props.value ?? props.fallback} maxLength={8000} error={props.error}
+        dir="ltr" rows={14} onChange={v => props.onChange(v.trim() === props.fallback.trim() ? null : v)} />
     </div>
   );
 }

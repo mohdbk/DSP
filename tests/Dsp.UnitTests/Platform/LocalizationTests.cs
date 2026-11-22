@@ -124,11 +124,38 @@ public class AiPromptTests
     public void Settings_keep_a_custom_prompt_and_refuse_one_that_is_too_long()
     {
         var settings = Dsp.Platform.Domain.AiSettings.CreateDefault();
-        settings.Update("", "", "", 0.2, 90, true, true, 6, 30, null, null, "  Be kind.  ", null, "staff");
+        settings.Update("", "", "", 0.2, 90, false, 6, 30, null, null, "  Be kind.  ", null, "staff");
 
         Assert.Equal("Be kind.", settings.ChatPrompt);
         Assert.Null(settings.ReviewPrompt);
         Assert.Throws<Dsp.SharedKernel.ValidationException>(() =>
-            settings.Update("", "", "", 0.2, 90, true, true, 6, 30, null, null, new string('a', 8001), null, "staff"));
+            settings.Update("", "", "", 0.2, 90, false, 6, 30, null, null, new string('a', 8001), null, "staff"));
+    }
+}
+
+public class LanguageVisibilityTests
+{
+    [Fact]
+    public void A_new_language_is_hidden_from_citizens_until_staff_show_it()
+    {
+        var language = Language.Create("ur", new LocalizedText { ["en"] = "Urdu" }, "rtl", 30, "staff");
+
+        Assert.False(language.ShowInPortal);
+        Assert.True(language.ShowInBackoffice);
+
+        language.SetVisibility(true, false, "staff");
+        Assert.True(language.ShowInPortal);
+        Assert.False(language.ShowInBackoffice);
+    }
+
+    [Fact]
+    public void The_default_language_is_always_shown_in_both_portals()
+    {
+        var en = Language.Create("en", new LocalizedText { ["en"] = "English" }, "ltr", 0, "staff");
+        LanguagePolicy.SetDefault([en], en, "staff");
+
+        Assert.True(en.ShowInPortal);
+        Assert.True(en.ShowInBackoffice);
+        Assert.Throws<DomainException>(() => en.SetVisibility(false, true, "staff"));
     }
 }

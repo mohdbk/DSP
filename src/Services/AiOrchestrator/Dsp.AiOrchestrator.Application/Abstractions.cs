@@ -41,7 +41,7 @@ public interface IEServicesApi
 /// the fallback. Nothing about the model (vendor, address, name, key, limits, instructions) is fixed in code.
 /// </summary>
 public sealed record AiSettings(string ProviderName, string BaseUrl, string Model, string? ApiKey, double Temperature,
-    int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
+    int TimeoutSeconds, bool Paused, int MaxToolIterations, int MaxHistoryMessages,
     string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt = null, string? ReviewPrompt = null)
 {
     public bool IsConfigured => !string.IsNullOrWhiteSpace(BaseUrl) && !string.IsNullOrWhiteSpace(Model);
@@ -52,8 +52,9 @@ public sealed record AiSettings(string ProviderName, string BaseUrl, string Mode
     /// <summary>The editable part of the pre-review prompt in force (placeholders not filled in).</summary>
     public string ReviewPromptOrDefault => string.IsNullOrWhiteSpace(ReviewPrompt) ? AiPrompts.DefaultReview : ReviewPrompt;
 
-    public bool ChatActive => IsConfigured && ChatEnabled;
-    public bool ReviewActive => IsConfigured && ReviewEnabled;
+    /// <summary>The model is used whenever it is configured, unless staff paused the AI (emergency stop).</summary>
+    public bool ChatActive => IsConfigured && !Paused;
+    public bool ReviewActive => IsConfigured && !Paused;
 }
 
 public interface IAiSettingsProvider

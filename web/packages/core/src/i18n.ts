@@ -16,6 +16,22 @@ export interface LanguageInfo {
   isEnabled: boolean;
   isDefault: boolean;
   sortOrder: number;
+  /** Offered in the citizen portal (missing in lists cached by older releases: treated as shown). */
+  showInPortal?: boolean;
+  /** Offered in the back office. */
+  showInBackoffice?: boolean;
+}
+
+/** Which portal is running: each offers only the languages shown in it. */
+export type PortalApp = 'portal' | 'backoffice';
+let app: PortalApp | undefined;
+
+/** Enabled and shown in this portal. */
+function offered(l: LanguageInfo): boolean {
+  if (!l.isEnabled) return false;
+  if (app === 'portal') return l.showInPortal !== false;
+  if (app === 'backoffice') return l.showInBackoffice !== false;
+  return true;
 }
 
 interface Catalog { language: string; defaultLanguage: string; direction: 'ltr' | 'rtl'; strings: Record<string, string> }
@@ -49,7 +65,7 @@ async function fetchJson<T>(path: string, lang?: string): Promise<T> {
 }
 
 function pick(preferred?: string | null): string {
-  const enabled = languages.filter(l => l.isEnabled);
+  const enabled = languages.filter(offered);
   const find = (code?: string | null) => code && enabled.find(l => l.code.toLowerCase() === code.toLowerCase())?.code;
   const neutral = (code?: string | null) => code && enabled.find(l => l.code.toLowerCase() === code.split('-')[0].toLowerCase())?.code;
   return find(preferred) || neutral(preferred)
@@ -87,7 +103,8 @@ async function loadCatalog(code: string): Promise<Catalog> {
  * Loads the enabled languages and the catalogue for the reader's language. Each portal awaits it before rendering
  * (mountApp does). Uses the browser's last good copy when the Platform service can't be reached.
  */
-export async function initI18n(): Promise<void> {
+export async function initI18n(portal: PortalApp | undefined = app): Promise<void> {
+  app = portal;
   try {
     languages = await fetchJson<LanguageInfo[]>('/api/v1/platform/languages');
     write(STORAGE_LANGUAGES, languages);
@@ -115,9 +132,9 @@ export function getDefaultLang(): string {
   return defaultLanguage;
 }
 
-/** The enabled languages, in display order. */
+/** The languages this portal offers (enabled and shown in it), in display order. */
 export function getLanguages(): LanguageInfo[] {
-  return languages.filter(l => l.isEnabled).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code));
+  return languages.filter(offered).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code));
 }
 
 /** The direction of the reader's language (or of another enabled language). */

@@ -174,14 +174,6 @@
    "en": "Behaviour",
    "ar": "السلوك"
   },
-  "ai.settings.chatEnabled": {
-   "en": "Use the model for the chat assistant",
-   "ar": "استخدام النموذج في المساعد"
-  },
-  "ai.settings.chatEnabledHint": {
-   "en": "When off, the chat uses the guided conversation.",
-   "ar": "عند الإيقاف تُستخدم المحادثة الموجهة."
-  },
   "ai.settings.chatInstructions": {
    "en": "For the chat assistant",
    "ar": "للمساعد"
@@ -242,6 +234,30 @@
    "en": "No model",
    "ar": "لا يوجد نموذج"
   },
+  "ai.settings.pause": {
+   "en": "Pause AI",
+   "ar": "إيقاف الذكاء الاصطناعي مؤقتًا"
+  },
+  "ai.settings.pauseIntro": {
+   "en": "The model is always used when it is set up. Pause it only in an emergency, for example if it gives wrong answers or the provider has problems. While paused, the chat uses the guided conversation and the pre-review uses the built-in checks. Nothing else changes and the settings are kept.",
+   "ar": "يُستخدم النموذج دائمًا عند إعداده. أوقفه مؤقتًا في حالات الطوارئ فقط، مثل تقديمه إجابات خاطئة أو وجود مشكلات لدى المزوّد. أثناء الإيقاف تستخدم المحادثة الأسئلة الموجّهة وتستخدم المراجعة المسبقة الفحوصات المدمجة، ولا يتغير شيء آخر وتبقى الإعدادات محفوظة."
+  },
+  "ai.settings.pauseTitle": {
+   "en": "Emergency stop",
+   "ar": "إيقاف طارئ"
+  },
+  "ai.settings.paused": {
+   "en": "Paused",
+   "ar": "متوقف مؤقتًا"
+  },
+  "ai.settings.pausedDone": {
+   "en": "AI paused. It takes up to 30 seconds to reach every service.",
+   "ar": "تم إيقاف الذكاء الاصطناعي مؤقتًا. يصل التغيير إلى جميع الخدمات خلال 30 ثانية."
+  },
+  "ai.settings.pausedNotice": {
+   "en": "The AI is paused. The chat uses the guided conversation and the pre-review uses the built-in checks.",
+   "ar": "الذكاء الاصطناعي متوقف مؤقتًا. تستخدم المحادثة الأسئلة الموجّهة وتستخدم المراجعة المسبقة الفحوصات المدمجة."
+  },
   "ai.settings.promptCustom": {
    "en": "Customised",
    "ar": "مخصّص"
@@ -274,13 +290,13 @@
    "en": "Reset to default",
    "ar": "استعادة الافتراضي"
   },
-  "ai.settings.reviewEnabled": {
-   "en": "Use the model for the AI pre-review",
-   "ar": "استخدام النموذج في المراجعة المسبقة"
+  "ai.settings.resume": {
+   "en": "Resume AI",
+   "ar": "استئناف الذكاء الاصطناعي"
   },
-  "ai.settings.reviewEnabledHint": {
-   "en": "When off, only the built-in checks run.",
-   "ar": "عند الإيقاف تعمل الفحوص المدمجة فقط."
+  "ai.settings.resumedDone": {
+   "en": "AI resumed. It takes up to 30 seconds to reach every service.",
+   "ar": "تم استئناف الذكاء الاصطناعي. يصل التغيير إلى جميع الخدمات خلال 30 ثانية."
   },
   "ai.settings.reviewInstructions": {
    "en": "For the AI pre-review",
@@ -1286,6 +1302,10 @@
    "en": "This language already exists.",
    "ar": "هذه اللغة موجودة بالفعل."
   },
+  "errors.language.hideDefault": {
+   "en": "The default language is always shown in the portal and the back office.",
+   "ar": "تظهر اللغة الافتراضية دائمًا في البوابة والمكتب الخلفي."
+  },
   "errors.language.name": {
    "en": "Enter the language's name in at least one language.",
    "ar": "أدخل اسم اللغة بلغة واحدة على الأقل."
@@ -1642,6 +1662,66 @@
    "en": "Sign in with {name}",
    "ar": "تسجيل الدخول عبر {name}"
   },
+  "md.bold": {
+   "en": "Bold (Ctrl+B)",
+   "ar": "غامق (Ctrl+B)"
+  },
+  "md.boldText": {
+   "en": "bold text",
+   "ar": "نص غامق"
+  },
+  "md.bullets": {
+   "en": "Bulleted list",
+   "ar": "قائمة نقطية"
+  },
+  "md.code": {
+   "en": "Code",
+   "ar": "شيفرة"
+  },
+  "md.empty": {
+   "en": "Nothing to preview yet.",
+   "ar": "لا يوجد ما يُعاين بعد."
+  },
+  "md.heading": {
+   "en": "Heading",
+   "ar": "عنوان"
+  },
+  "md.italic": {
+   "en": "Italic (Ctrl+I)",
+   "ar": "مائل (Ctrl+I)"
+  },
+  "md.italicText": {
+   "en": "italic text",
+   "ar": "نص مائل"
+  },
+  "md.link": {
+   "en": "Link (Ctrl+K)",
+   "ar": "رابط (Ctrl+K)"
+  },
+  "md.linkText": {
+   "en": "link text",
+   "ar": "نص الرابط"
+  },
+  "md.numbers": {
+   "en": "Numbered list",
+   "ar": "قائمة مرقمة"
+  },
+  "md.preview": {
+   "en": "Preview",
+   "ar": "معاينة"
+  },
+  "md.quote": {
+   "en": "Quote",
+   "ar": "اقتباس"
+  },
+  "md.toolbar": {
+   "en": "Formatting",
+   "ar": "التنسيق"
+  },
+  "md.write": {
+   "en": "Write",
+   "ar": "كتابة"
+  },
   "my.browse": {
    "en": "Browse services",
    "ar": "تصفح الخدمات"
@@ -1962,6 +2042,34 @@
    "en": "Saved.",
    "ar": "تم الحفظ."
   },
+  "settings.showInBackoffice": {
+   "en": "Show in the back office",
+   "ar": "إظهار في المكتب الخلفي"
+  },
+  "settings.showInPortal": {
+   "en": "Show in the portal",
+   "ar": "إظهار في البوابة"
+  },
+  "settings.shown.backoffice": {
+   "en": "Back office only",
+   "ar": "المكتب الخلفي فقط"
+  },
+  "settings.shown.both": {
+   "en": "Portal and back office",
+   "ar": "البوابة والمكتب الخلفي"
+  },
+  "settings.shown.none": {
+   "en": "Hidden",
+   "ar": "مخفية"
+  },
+  "settings.shown.portal": {
+   "en": "Portal only",
+   "ar": "البوابة فقط"
+  },
+  "settings.shownIn": {
+   "en": "Shown in",
+   "ar": "يظهر في"
+  },
   "settings.title": {
    "en": "Settings",
    "ar": "الإعدادات"
@@ -2009,6 +2117,14 @@
   "settings.usedInNote": {
    "en": "Used in: where a text appears. Service messages come from the platform's services (errors, notifications, chat, certificates) and can appear in either portal.",
    "ar": "مستخدم في: مكان ظهور النص. رسائل الخدمات تصدر من خدمات المنصة (الأخطاء والإشعارات والمحادثة والشهادات) وقد تظهر في أي من البوابتين."
+  },
+  "settings.visibilityDefault": {
+   "en": "The default language is always shown in both.",
+   "ar": "تظهر اللغة الافتراضية دائمًا في كليهما."
+  },
+  "settings.visibilityHint": {
+   "en": "A hidden language stays available to the services, so staff can prepare its translations before citizens see it.",
+   "ar": "تبقى اللغة المخفية متاحة للخدمات، ليتمكن الموظفون من إعداد ترجماتها قبل أن يراها المتعاملون."
   },
   "signOut": {
    "en": "Sign out",
@@ -2446,12 +2562,6 @@
   "ai.settings.behaviour": [
    "backoffice"
   ],
-  "ai.settings.chatEnabled": [
-   "backoffice"
-  ],
-  "ai.settings.chatEnabledHint": [
-   "backoffice"
-  ],
   "ai.settings.chatInstructions": [
    "backoffice"
   ],
@@ -2497,6 +2607,24 @@
   "ai.settings.notConfigured": [
    "backoffice"
   ],
+  "ai.settings.pause": [
+   "backoffice"
+  ],
+  "ai.settings.pauseIntro": [
+   "backoffice"
+  ],
+  "ai.settings.pauseTitle": [
+   "backoffice"
+  ],
+  "ai.settings.paused": [
+   "backoffice"
+  ],
+  "ai.settings.pausedDone": [
+   "backoffice"
+  ],
+  "ai.settings.pausedNotice": [
+   "backoffice"
+  ],
   "ai.settings.promptCustom": [
    "backoffice"
   ],
@@ -2521,10 +2649,10 @@
   "ai.settings.resetPrompt": [
    "backoffice"
   ],
-  "ai.settings.reviewEnabled": [
+  "ai.settings.resume": [
    "backoffice"
   ],
-  "ai.settings.reviewEnabledHint": [
+  "ai.settings.resumedDone": [
    "backoffice"
   ],
   "ai.settings.reviewInstructions": [
@@ -3271,6 +3399,9 @@
   "errors.language.exists": [
    "services"
   ],
+  "errors.language.hideDefault": [
+   "services"
+  ],
   "errors.language.name": [
    "services"
   ],
@@ -3560,6 +3691,51 @@
   "login.with": [
    "portal"
   ],
+  "md.bold": [
+   "backoffice"
+  ],
+  "md.boldText": [
+   "backoffice"
+  ],
+  "md.bullets": [
+   "backoffice"
+  ],
+  "md.code": [
+   "backoffice"
+  ],
+  "md.empty": [
+   "backoffice"
+  ],
+  "md.heading": [
+   "backoffice"
+  ],
+  "md.italic": [
+   "backoffice"
+  ],
+  "md.italicText": [
+   "backoffice"
+  ],
+  "md.link": [
+   "backoffice"
+  ],
+  "md.linkText": [
+   "backoffice"
+  ],
+  "md.numbers": [
+   "backoffice"
+  ],
+  "md.preview": [
+   "backoffice"
+  ],
+  "md.quote": [
+   "backoffice"
+  ],
+  "md.toolbar": [
+   "backoffice"
+  ],
+  "md.write": [
+   "backoffice"
+  ],
   "my.browse": [
    "portal"
   ],
@@ -3811,6 +3987,27 @@
   "settings.saved": [
    "backoffice"
   ],
+  "settings.showInBackoffice": [
+   "backoffice"
+  ],
+  "settings.showInPortal": [
+   "backoffice"
+  ],
+  "settings.shown.backoffice": [
+   "backoffice"
+  ],
+  "settings.shown.both": [
+   "backoffice"
+  ],
+  "settings.shown.none": [
+   "backoffice"
+  ],
+  "settings.shown.portal": [
+   "backoffice"
+  ],
+  "settings.shownIn": [
+   "backoffice"
+  ],
   "settings.title": [
    "backoffice"
   ],
@@ -3845,6 +4042,12 @@
    "backoffice"
   ],
   "settings.usedInNote": [
+   "backoffice"
+  ],
+  "settings.visibilityDefault": [
+   "backoffice"
+  ],
+  "settings.visibilityHint": [
    "backoffice"
   ],
   "signOut": [

@@ -172,6 +172,9 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   Translations page, and CI fails when it is out of date. Prefer literal keys (`t('a.b')`) or a clear prefix
   (``t(`status.${s}`)``) so the tool can find them.
 - Forms that edit data texts use `MultilingualField` (one input per enabled language, default first and required).
+  Long instructions (AI prompts and the like) use `MarkdownEditor`; show Markdown with `MarkdownView` (never as HTML).
+- Each language says whether the portal and the back office offer it; `mountApp(router, 'portal' | 'backoffice')`
+  makes `getLanguages()` return only the ones the running portal offers. The services accept every enabled language.
 - The language switch names each language in its own name, and sets `lang` and `dir` on `<html>`; AEGOV
   components follow. Use logical utilities only (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`,
   `text-start`/`text-end`), never left/right.

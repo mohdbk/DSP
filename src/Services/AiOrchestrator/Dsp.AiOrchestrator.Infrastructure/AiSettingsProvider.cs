@@ -43,5 +43,5 @@ public sealed class PlatformAiSettingsProvider(HttpClient http, LlmOptions defau
     }
 
     private AiSettings FromEnvironment() => new("OpenAI-compatible", defaults.BaseUrl ?? "", defaults.Model ?? "",
-        defaults.ApiKey, defaults.Temperature, 90, true, true, 6, 30, null, null, AiPrompts.DefaultChat, AiPrompts.DefaultReview);
+        defaults.ApiKey, defaults.Temperature, 90, false, 6, 30, null, null, AiPrompts.DefaultChat, AiPrompts.DefaultReview);
 }

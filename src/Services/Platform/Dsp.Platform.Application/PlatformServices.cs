@@ -50,15 +50,21 @@ public sealed record AiDefaults(string? BaseUrl, string? ApiKey, string? Model);
 
 // ---- DTOs ----
 
-public sealed record LanguageDto(string Code, LocalizedText Name, string Direction, bool IsEnabled, bool IsDefault, int SortOrder)
+/// <param name="ShowInPortal">Offered in the citizen portal's language switch.</param>
+/// <param name="ShowInBackoffice">Offered in the back office's language switch.</param>
+public sealed record LanguageDto(string Code, LocalizedText Name, string Direction, bool IsEnabled, bool IsDefault, int SortOrder,
+    bool ShowInPortal, bool ShowInBackoffice)
 {
-    public static LanguageDto From(Language l) => new(l.Code, l.Name, l.Direction, l.IsEnabled, l.IsDefault, l.SortOrder);
+    public static LanguageDto From(Language l) =>
+        new(l.Code, l.Name, l.Direction, l.IsEnabled, l.IsDefault, l.SortOrder, l.ShowInPortal, l.ShowInBackoffice);
 }
 
 public sealed record LanguageAdminDto(string Code, LocalizedText Name, string Direction, bool IsEnabled, bool IsDefault,
-    int SortOrder, int Translated, int Total, DateTimeOffset UpdatedAt, string UpdatedBy);
+    int SortOrder, bool ShowInPortal, bool ShowInBackoffice, int Translated, int Total, DateTimeOffset UpdatedAt, string UpdatedBy);
 
-public sealed record LanguageRequest(string Code, LocalizedText Name, string Direction, int SortOrder);
+/// <summary>Adding or editing a language. Leave the visibility out to keep it (new languages: back office only).</summary>
+public sealed record LanguageRequest(string Code, LocalizedText Name, string Direction, int SortOrder,
+    bool? ShowInPortal = null, bool? ShowInBackoffice = null);
 
 public sealed record CatalogDto(string Language, string DefaultLanguage, string Direction, IReadOnlyDictionary<string, string> Strings);
 
@@ -71,7 +77,7 @@ public sealed record SetTranslationRequest(string? Text);
 public sealed record ImportResultDto(int Added, int Updated, int Skipped);
 
 public sealed record AiSettingsDto(string ProviderName, string BaseUrl, string Model, bool HasApiKey, double Temperature,
-    int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
+    int TimeoutSeconds, bool Paused, int MaxToolIterations, int MaxHistoryMessages,
     string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt, string? ReviewPrompt,
     string DefaultChatPrompt, string DefaultReviewPrompt, bool IsConfigured, DateTimeOffset UpdatedAt, string UpdatedBy);
 
@@ -80,7 +86,7 @@ public sealed record AiSettingsDto(string ProviderName, string BaseUrl, string M
 /// <c>ChatPrompt</c>/<c>ReviewPrompt</c>: null, empty or the shipped default means "use the default".
 /// </summary>
 public sealed record AiSettingsRequest(string? ProviderName, string? BaseUrl, string? Model, string? ApiKey, double Temperature,
-    int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
+    int TimeoutSeconds, bool Paused, int MaxToolIterations, int MaxHistoryMessages,
     string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt = null, string? ReviewPrompt = null);
 
 /// <summary>
@@ -88,7 +94,7 @@ public sealed record AiSettingsRequest(string? ProviderName, string? BaseUrl, st
 /// The prompts are the ones in force (staff's version or the default), placeholders not yet filled in.
 /// </summary>
 public sealed record AiRuntimeSettingsDto(string ProviderName, string BaseUrl, string Model, string? ApiKey, double Temperature,
-    int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
+    int TimeoutSeconds, bool Paused, int MaxToolIterations, int MaxHistoryMessages,
     string? ChatInstructions, string? ReviewInstructions, string ChatPrompt, string ReviewPrompt)
 {
     public bool IsConfigured => !string.IsNullOrWhiteSpace(BaseUrl) && !string.IsNullOrWhiteSpace(Model);
@@ -120,7 +126,7 @@ public sealed class LanguageService(ILanguageRepository languages, ITranslationR
         var defaultCode = all.FirstOrDefault(l => l.IsDefault)?.Code;
         var keys = allTranslations.Where(t => t.LanguageCode == defaultCode).Select(t => t.Key).ToHashSet();
         return all.OrderBy(l => l.SortOrder).ThenBy(l => l.Code).Select(l => new LanguageAdminDto(
-                l.Code, l.Name, l.Direction, l.IsEnabled, l.IsDefault, l.SortOrder,
+                l.Code, l.Name, l.Direction, l.IsEnabled, l.IsDefault, l.SortOrder, l.ShowInPortal, l.ShowInBackoffice,
                 allTranslations.Count(t => t.LanguageCode == l.Code && keys.Contains(t.Key)), keys.Count, l.UpdatedAt, l.UpdatedBy))
             .ToList();
     }
@@ -131,6 +137,7 @@ public sealed class LanguageService(ILanguageRepository languages, ITranslationR
         if (await languages.GetAsync(request.Code.Trim(), ct) is not null)
             throw new ValidationException([new FieldError("code", "errors.language.exists")]);
         var language = Language.Create(request.Code, request.Name, request.Direction, request.SortOrder, caller.Name);
+        ApplyVisibility(language, request, caller);
         await languages.AddAsync(language, ct);
         await languages.SaveChangesAsync(ct);
         return LanguageDto.From(language);
@@ -141,8 +148,15 @@ public sealed class LanguageService(ILanguageRepository languages, ITranslationR
         EnsureStaff(caller);
         var language = await GetAsync(code, ct);
         language.Update(request.Name, request.Direction, request.SortOrder, caller.Name);
+        ApplyVisibility(language, request, caller);
         await languages.SaveChangesAsync(ct);
         return LanguageDto.From(language);
+    }
+
+    private static void ApplyVisibility(Language language, LanguageRequest request, StaffCaller caller)
+    {
+        if (request.ShowInPortal is null && request.ShowInBackoffice is null) return;
+        language.SetVisibility(request.ShowInPortal ?? language.ShowInPortal, request.ShowInBackoffice ?? language.ShowInBackoffice, caller.Name);
     }
 
     public async Task<LanguageDto> SetEnabledAsync(StaffCaller caller, string code, bool enabled, CancellationToken ct)
@@ -324,7 +338,7 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
         LanguageService.EnsureStaff(caller);
         var current = await settings.GetAsync(ct);
         current.Update(request.ProviderName ?? "", request.BaseUrl ?? "", request.Model ?? "", request.Temperature,
-            request.TimeoutSeconds, request.ChatEnabled, request.ReviewEnabled, request.MaxToolIterations,
+            request.TimeoutSeconds, request.Paused, request.MaxToolIterations,
             request.MaxHistoryMessages, request.ChatInstructions, request.ReviewInstructions,
             Custom(request.ChatPrompt, AiPrompts.DefaultChat), Custom(request.ReviewPrompt, AiPrompts.DefaultReview), caller.Name);
         if (request.ApiKey is not null)
@@ -340,7 +354,7 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
         var key = s.ProtectedApiKey is null ? defaults.ApiKey : protector.Unprotect(s.ProtectedApiKey);
         return new AiRuntimeSettingsDto(s.ProviderName, string.IsNullOrWhiteSpace(s.BaseUrl) ? defaults.BaseUrl ?? "" : s.BaseUrl,
             string.IsNullOrWhiteSpace(s.Model) ? defaults.Model ?? "" : s.Model, key, s.Temperature, s.TimeoutSeconds,
-            s.ChatEnabled, s.ReviewEnabled, s.MaxToolIterations, s.MaxHistoryMessages, s.ChatInstructions, s.ReviewInstructions,
+            s.Paused, s.MaxToolIterations, s.MaxHistoryMessages, s.ChatInstructions, s.ReviewInstructions,
             s.ChatPrompt ?? AiPrompts.DefaultChat, s.ReviewPrompt ?? AiPrompts.DefaultReview);
     }
 
@@ -353,7 +367,7 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
     private AiSettingsDto ToDto(AiSettings s) => new(s.ProviderName,
         string.IsNullOrWhiteSpace(s.BaseUrl) ? defaults.BaseUrl ?? "" : s.BaseUrl,
         string.IsNullOrWhiteSpace(s.Model) ? defaults.Model ?? "" : s.Model,
-        s.HasApiKey || !string.IsNullOrEmpty(defaults.ApiKey), s.Temperature, s.TimeoutSeconds, s.ChatEnabled, s.ReviewEnabled,
+        s.HasApiKey || !string.IsNullOrEmpty(defaults.ApiKey), s.Temperature, s.TimeoutSeconds, s.Paused,
         s.MaxToolIterations, s.MaxHistoryMessages, s.ChatInstructions, s.ReviewInstructions,
         s.ChatPrompt, s.ReviewPrompt, AiPrompts.DefaultChat, AiPrompts.DefaultReview,
         s.IsConfigured || (!string.IsNullOrWhiteSpace(defaults.BaseUrl) && !string.IsNullOrWhiteSpace(defaults.Model)),
@@ -381,6 +395,7 @@ public sealed class PlatformSeeder(ILanguageRepository languages, ITranslationRe
             {
                 var language = Language.Create(s.Code, s.Name, s.Direction, s.SortOrder, "Platform");
                 language.Enable("Platform");
+                language.SetVisibility(true, true, "Platform"); // shipped languages are offered everywhere
                 await languages.AddAsync(language, ct);
             }
             await languages.SaveChangesAsync(ct);

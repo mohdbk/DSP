@@ -216,6 +216,8 @@ export interface LanguageAdmin {
   isEnabled: boolean;
   isDefault: boolean;
   sortOrder: number;
+  showInPortal: boolean;
+  showInBackoffice: boolean;
   translated: number;
   total: number;
   updatedAt: string;
@@ -239,8 +241,8 @@ export interface AiSettingsView {
   hasApiKey: boolean;
   temperature: number;
   timeoutSeconds: number;
-  chatEnabled: boolean;
-  reviewEnabled: boolean;
+  /** Emergency stop: the chat uses the guided conversation and the pre-review the built-in checks. */
+  paused: boolean;
   maxToolIterations: number;
   maxHistoryMessages: number;
   chatInstructions?: string | null;
