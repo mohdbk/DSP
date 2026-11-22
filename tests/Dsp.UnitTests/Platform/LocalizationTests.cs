@@ -209,3 +209,65 @@ public class CurrencyTests
         Assert.True(usd.IsDefault && usd.IsEnabled);
     }
 }
+
+public class ShippedTextUpdateTests
+{
+    private sealed class Languages(List<Language> items) : Dsp.Platform.Application.ILanguageRepository
+    {
+        public Task<IReadOnlyList<Language>> ListAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<Language>>(items);
+        public Task<Language?> GetAsync(string code, CancellationToken ct) => Task.FromResult(items.FirstOrDefault(l => l.Code == code));
+        public Task AddAsync(Language language, CancellationToken ct) { items.Add(language); return Task.CompletedTask; }
+        public void Remove(Language language) => items.Remove(language);
+        public Task SaveChangesAsync(CancellationToken ct) => Task.CompletedTask;
+    }
+
+    private sealed class Translations(List<Translation> items) : Dsp.Platform.Application.ITranslationRepository
+    {
+        public Task<IReadOnlyList<Translation>> ListAsync(string? languageCode, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<Translation>>(items.Where(t => languageCode is null || t.LanguageCode == languageCode).ToList());
+        public Task<Translation?> GetAsync(string key, string languageCode, CancellationToken ct) =>
+            Task.FromResult(items.FirstOrDefault(t => t.Key == key && t.LanguageCode == languageCode));
+        public Task AddAsync(Translation translation, CancellationToken ct) { items.Add(translation); return Task.CompletedTask; }
+        public void Remove(Translation translation) => items.Remove(translation);
+        public Task RemoveLanguageAsync(string languageCode, CancellationToken ct) => Task.CompletedTask;
+        public Task RemoveKeyAsync(string key, CancellationToken ct) => Task.CompletedTask;
+    }
+
+    private sealed class NoAi : Dsp.Platform.Application.IAiSettingsRepository
+    {
+        public Task<AiSettings> GetAsync(CancellationToken ct) => Task.FromResult(AiSettings.CreateDefault());
+        public Task SaveChangesAsync(CancellationToken ct) => Task.CompletedTask;
+    }
+
+    private sealed class SomeCurrencies : Dsp.Platform.Application.ICurrencyRepository
+    {
+        private readonly List<Currency> _items = [Currency.Create("AED", LocalizedText.Of("en", "UAE dirham"), "AED", "before", 2, 0, "Platform")];
+        public Task<IReadOnlyList<Currency>> ListAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<Currency>>(_items);
+        public Task<Currency?> GetAsync(string code, CancellationToken ct) => Task.FromResult(_items.FirstOrDefault(c => c.Code == code));
+        public Task AddAsync(Currency currency, CancellationToken ct) { _items.Add(currency); return Task.CompletedTask; }
+        public void Remove(Currency currency) => _items.Remove(currency);
+        public Task SaveChangesAsync(CancellationToken ct) => Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task Wording_changes_reach_texts_nobody_edited_but_never_texts_staff_edited()
+    {
+        var en = Language.Create("en", LocalizedText.Of("en", "English"), "ltr", 0, "Platform");
+        LanguagePolicy.SetDefault([en], en, "Platform");
+        var shipped = Translation.Create("ai.title", "en", "AI pre-review", "Platform");
+        var edited = Translation.Create("status.AiReview", "en", "Checking by AI", "Fatima");
+        var texts = new List<Translation> { shipped, edited };
+        var seeder = new Dsp.Platform.Application.PlatformSeeder(new Languages([en]), new Translations(texts), new NoAi(), new SomeCurrencies());
+
+        await seeder.SeedAsync(new Dsp.Platform.Application.SeedData([], new Dictionary<string, LocalizedText>
+        {
+            ["ai.title"] = LocalizedText.Of("en", "AI review"),
+            ["status.AiReview"] = LocalizedText.Of("en", "AI review"),
+            ["new.key"] = LocalizedText.Of("en", "New"),
+        }), default);
+
+        Assert.Equal("AI review", shipped.Text);
+        Assert.Equal("Checking by AI", edited.Text);
+        Assert.Contains(texts, t => t.Key == "new.key" && t.Text == "New");
+    }
+}

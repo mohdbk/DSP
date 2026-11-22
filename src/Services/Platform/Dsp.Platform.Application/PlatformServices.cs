@@ -490,6 +490,9 @@ public sealed record SeedData(IReadOnlyList<SeedLanguage> Languages, IReadOnlyDi
 public sealed class PlatformSeeder(ILanguageRepository languages, ITranslationRepository translations, IAiSettingsRepository ai,
     ICurrencyRepository currencies)
 {
+    /// <summary>Recorded as the author of shipped texts; any other author means staff own the text.</summary>
+    public const string ShippedBy = "Platform";
+
     /// <summary>Shipped currencies: the dirham is the default; the others are ready to enable.</summary>
     private static readonly (string Code, string En, string Ar, int Decimals)[] ShippedCurrencies =
     [
@@ -532,11 +535,19 @@ public sealed class PlatformSeeder(ILanguageRepository languages, ITranslationRe
             LanguagePolicy.SetDefault(existing, chosen, "Platform");
         }
 
-        var present = (await translations.ListAsync(null, ct)).Select(t => (t.Key, t.LanguageCode)).ToHashSet();
+        // New keys are added; shipped texts nobody has edited (still by "Platform") follow wording changes in a
+        // release; texts staff changed or imported are never touched.
+        var present = (await translations.ListAsync(null, ct)).ToDictionary(t => (t.Key, t.LanguageCode));
         foreach (var (key, texts) in seed.Strings)
             foreach (var language in existing)
-                if (texts.Has(language.Code) && !present.Contains((key, language.Code)))
-                    await translations.AddAsync(Translation.Create(key, language.Code, texts[language.Code], "Platform"), ct);
+            {
+                if (!texts.Has(language.Code)) continue;
+                var shipped = texts[language.Code];
+                if (!present.TryGetValue((key, language.Code), out var current))
+                    await translations.AddAsync(Translation.Create(key, language.Code, shipped, ShippedBy), ct);
+                else if (current.UpdatedBy == ShippedBy && current.Text != shipped)
+                    current.Change(shipped, ShippedBy);
+            }
 
         await ai.GetAsync(ct); // creates the settings record on first start
         await SeedCurrenciesAsync(ct);
