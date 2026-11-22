@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate, useParams } from '@tanstack/react-router';
 import { formatDate, loc, openDocument, t, type Application, type ApplicationStatus } from '@dsp/core';
 import {
-  AegovButton, ApplicationCase, DataTable, listStateProps, Loading, Notice, PageHeader, StatusBadge, type ColumnDef,
+  AegovButton, ApplicationCase, ArrowLeft, type ColumnDef, DataTable, IconLabel, listStateProps, Loading, Notice, PageHeader, StatusBadge,
 } from '@dsp/ui';
 import { api } from '../session';
 import { useCase } from './useCase';
@@ -72,7 +72,7 @@ export function ApplicationDetailPage() {
           {app.certificateDocumentId && (
             <AegovButton appearance="outline" onAegovButtonClick={() => openDocument(api, app.certificateDocumentId!)}>{t('apps.viewCertificate')}</AegovButton>
           )}
-          <AegovButton appearance="link" onAegovButtonClick={() => navigate({ to: '/applications' })}>{t('apps.back')}</AegovButton>
+          <AegovButton appearance="link" onAegovButtonClick={() => navigate({ to: '/applications' })}><IconLabel icon={ArrowLeft} mirror>{t('apps.back')}</IconLabel></AegovButton>
         </>
       )} />
   );

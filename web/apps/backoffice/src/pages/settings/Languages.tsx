@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ApiError, formatDate, loc, refreshI18n, t, type FieldError, type LanguageAdmin, type LocalizedText } from '@dsp/core';
 import {
-  Actions, AegovButton, CheckboxField, ChoiceField, DataTable, listStateProps, Loading, MultilingualField, Notice, NumberField,
-  ownName, PageHeader, Panel, Tag, TextField, type ColumnDef,
+  Actions, AegovButton, CheckboxField, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, Loading, MultilingualField, Notice, NumberField, ownName, PageHeader, Panel, Plus, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { SettingsNav } from './SettingsNav';
@@ -173,7 +172,7 @@ export function LanguagesPage() {
               <AegovButton isDisabled={!!busy} isLoading={busy === 'save'}
                 onAegovButtonClick={() => run('save', () => (selected === 'new' ? api.post(base, body()) : api.put(`${base}/${draft.code}`, body())),
                   t('settings.saved')).then(() => setSelected(draft.code))}>
-                {selected === 'new' ? t('settings.addLanguage') : t('save')}
+                {selected === 'new' ? <IconLabel icon={Plus}>{t('settings.addLanguage')}</IconLabel> : <IconLabel icon={FloppyDisk}>{t('save')}</IconLabel>}
               </AegovButton>
             </span>
           </Actions>
@@ -183,7 +182,7 @@ export function LanguagesPage() {
 
       {!draft && (
         <Actions align="start">
-          <AegovButton onAegovButtonClick={() => select('new')}>{t('settings.addLanguage')}</AegovButton>
+          <AegovButton onAegovButtonClick={() => select('new')}><IconLabel icon={Plus}>{t('settings.addLanguage')}</IconLabel></AegovButton>
         </Actions>
       )}
 

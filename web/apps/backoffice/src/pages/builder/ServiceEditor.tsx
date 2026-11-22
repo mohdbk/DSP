@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ApiError, loc, t, type BuilderService, type FieldError, type ServiceDefinition } from '@dsp/core';
 import {
-  AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, Loading, Notice, PageHeader, Panel, Tag, useTabsScrollFix,
+  AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, ArrowLeft, IconLabel, Loading, Notice, PageHeader, Panel, PaperPlaneRight, Tag, useTabsScrollFix,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { DetailsSection, FormSection, PreviewSection, ReviewSection, VersionsSection, type EditorProps } from './editor';
@@ -106,7 +106,7 @@ export function ServiceEditorPage() {
   return (
     <>
       <PageHeader overline={<bdi>{def.code}</bdi>} title={loc(def.name, def.code)}
-        actions={<AegovLink href="/services">{t('builder.backToList')}</AegovLink>}
+        actions={<AegovLink href="/services"><IconLabel icon={ArrowLeft} mirror>{t('builder.backToList')}</IconLabel></AegovLink>}
         badges={(
           <>
             {liveVersion ? <Tag variant="aegreen">{t('builder.live', { n: liveVersion })}</Tag> : <Tag variant="slate">{t('builder.notLive')}</Tag>}
@@ -138,7 +138,7 @@ export function ServiceEditorPage() {
               {t('builder.save')}
             </AegovButton>
             <AegovButton isDisabled={!!busy || errors.length > 0 || (!hasDraft && !dirty)} isLoading={busy === 'publish'} onAegovButtonClick={publish}>
-              {t('builder.publish', { n: draftVersion })}
+              <IconLabel icon={PaperPlaneRight} mirror>{t('builder.publish', { n: draftVersion })}</IconLabel>
             </AegovButton>
           </div>
         </div>

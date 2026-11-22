@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ApiError, formatDate, formatMoney, initCurrencies, loc, t, type FieldError, type LocalizedText } from '@dsp/core';
 import {
-  Actions, AegovButton, ChoiceField, DataTable, listStateProps, Loading, Money, MultilingualField, Notice, NumberField,
-  PageHeader, Panel, Tag, TextField, type ColumnDef,
+  Actions, AegovButton, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, Loading, Money, MultilingualField, Notice, NumberField, PageHeader, Panel, Plus, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { SettingsNav } from './SettingsNav';
@@ -155,7 +154,7 @@ export function CurrenciesPage() {
               <AegovButton isDisabled={!!busy} isLoading={busy === 'save'}
                 onAegovButtonClick={() => run('save', () => (selected === 'new' ? api.post(base, body()) : api.put(`${base}/${draft.code}`, body())),
                   t('settings.saved')).then(() => setSelected(draft.code))}>
-                {selected === 'new' ? t('settings.addCurrency') : t('save')}
+                {selected === 'new' ? <IconLabel icon={Plus}>{t('settings.addCurrency')}</IconLabel> : <IconLabel icon={FloppyDisk}>{t('save')}</IconLabel>}
               </AegovButton>
             </span>
           </Actions>
@@ -165,7 +164,7 @@ export function CurrenciesPage() {
 
       {!draft && (
         <Actions align="start">
-          <AegovButton onAegovButtonClick={() => select('new')}>{t('settings.addCurrency')}</AegovButton>
+          <AegovButton onAegovButtonClick={() => select('new')}><IconLabel icon={Plus}>{t('settings.addCurrency')}</IconLabel></AegovButton>
         </Actions>
       )}
 

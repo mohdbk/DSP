@@ -1,5 +1,6 @@
 import { AegovButton, AegovDropdown } from '@aegov/designsystem-react';
 import { getLang, getLanguages, loc, setLang, t, type LanguageInfo } from '@dsp/core';
+import { Globe, Icon } from '../icons';
 
 /** A language in its own name (e.g. "العربية"), as language switches show them. */
 export function ownName(language: LanguageInfo): string {
@@ -23,7 +24,7 @@ export function LanguageSwitch({ onDark = false }: {
       <AegovButton appearance="link" variant={variant} size="sm"
         aria-label={t('lang.switchTo', { language: ownName(l) })}
         onAegovButtonClick={() => { void setLang(l.code); }}>
-        {ownName(l)}
+        <span className="inline-flex items-center gap-2"><Icon icon={Globe} size="size-5" />{ownName(l)}</span>
       </AegovButton>
     </span>
   );
@@ -33,7 +34,9 @@ export function LanguageSwitch({ onDark = false }: {
   // The dropdown moves its content to <body>, so only AEGOV events are used inside it.
   return (
     <AegovDropdown>
-      <AegovButton appearance="link" variant={variant} size="sm">{t('lang.choose')}</AegovButton>
+      <AegovButton appearance="link" variant={variant} size="sm">
+        <span className="inline-flex items-center gap-2"><Icon icon={Globe} size="size-5" />{t('lang.choose')}</span>
+      </AegovButton>
       <div slot="dropdown-content" className="flex w-48 flex-col items-start gap-1 p-2">{others.map(l => (
         <span key={l.code} lang={l.code} dir={l.direction}>
           <AegovButton appearance="link" variant="neutral-max" size="sm"

@@ -11,9 +11,10 @@
     "./styles.css": "./src/styles.css"
   },
   "dependencies": {
-    "@dsp/core": "*",
     "@aegov/designsystem": "^4.0.4",
     "@aegov/designsystem-react": "^4.0.4",
+    "@dsp/core": "*",
+    "@phosphor-icons/react": "2.1.7",
     "@tanstack/react-router": "^1.170.0",
     "@tanstack/react-table": "^8.21.0",
     "react-aria-components": "^1.22.1"

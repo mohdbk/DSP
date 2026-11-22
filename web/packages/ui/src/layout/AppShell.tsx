@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { AegovFooter, AegovHeader, AegovNavbar, AegovNavbarItem } from '@aegov/designsystem-react';
 import { getLang, siteName, t } from '@dsp/core';
 import { LanguageSwitch } from '../navigation/LanguageSwitch';
+import { Icon } from '../icons';
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
 import logoEn from '../assets/moet-logo-en.png';
 import logoAr from '../assets/moet-logo-ar.png';
 
@@ -11,7 +13,7 @@ export const ENTITY_DOMAIN = 'https://www.moet.gov.ae';
 /** The ministry's rating in the Global Star Rating System for Services (shown by the official header badge). */
 export const GSR_STARS = 4;
 
-export interface NavItem { href: string; label: string; active?: boolean }
+export interface NavItem { href: string; label: string; active?: boolean; icon?: PhosphorIcon }
 
 /**
  * The page frame of both portals: the mandatory AEGOV government header and footer around the page.
@@ -42,7 +44,15 @@ export function AppShell({ service, homeLabel, nav = [], account, children }: {
         <div slot="actions"><LanguageSwitch onDark /></div>
         {nav.length > 0 && (
           <AegovNavbar slot="navigation" labelNav={t('nav.main')}>
-            {nav.map(item => <AegovNavbarItem key={item.href} href={item.href} isActive={!!item.active}>{item.label}</AegovNavbarItem>)}
+            {nav.map(item => (
+              <AegovNavbarItem key={item.href} href={item.href} isActive={!!item.active}>
+                {/* Always rendered: AEGOV moves slotted nodes, so React must not add or remove them. */}
+                <span slot="icon-start" className={item.icon ? 'inline-flex' : 'hidden'}>
+                  {item.icon && <Icon icon={item.icon} weight={item.active ? 'fill' : 'regular'} />}
+                </span>
+                {item.label}
+              </AegovNavbarItem>
+            ))}
           </AegovNavbar>
         )}
         {account && <div slot="secondary-actions" className="flex items-center gap-3">{account}</div>}
@@ -51,7 +61,12 @@ export function AppShell({ service, homeLabel, nav = [], account, children }: {
           {nav.length > 0 && (
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
               {nav.map(item => (
-                <li key={item.href}><a href={item.href} aria-current={item.active ? 'page' : undefined}>{item.label}</a></li>
+                <li key={item.href}>
+                  <a href={item.href} aria-current={item.active ? 'page' : undefined} className="inline-flex items-center gap-2">
+                    {item.icon && <Icon icon={item.icon} weight={item.active ? 'fill' : 'regular'} />}
+                    {item.label}
+                  </a>
+                </li>
               ))}
             </ul>
           )}

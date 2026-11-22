@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { formatDate, loc, t, type BuilderServiceSummary } from '@dsp/core';
-import { AegovLink, DataTable, listStateProps, Loading, Notice, PageHeader, Tag, type ColumnDef } from '@dsp/ui';
+import {
+  AegovLink, type ColumnDef, DataTable, IconLabel, listStateProps, Loading, Notice, PageHeader, Plus, Tag,
+} from '@dsp/ui';
 import { api } from '../../session';
 
 const route = getRouteApi('/services');
@@ -63,7 +65,7 @@ export function ServicesPage() {
   return (
     <>
       <PageHeader title={t('builder.pageTitle')} intro={t('builder.intro')}
-        actions={<AegovLink href="/services/new" appearance="solid" variant="primary">{t('builder.new')}</AegovLink>} />
+        actions={<AegovLink href="/services/new" appearance="solid" variant="primary"><IconLabel icon={Plus}>{t('builder.new')}</IconLabel></AegovLink>} />
       {error && <Notice kind="error">{error}</Notice>}
       {!services && !error && <Loading />}
       {services && (

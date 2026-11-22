@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { formatDate, formatMoney, loc, openDocument, t, type Application, type Payment, type ServiceDefinition } from '@dsp/core';
 import {
-  AegovButton, ApplicationJourney, ApplicationSummary, DescriptionList, Money, Notice, Panel, ServiceAnswers, SplitLayout,
+  AegovButton, ApplicationJourney, ApplicationSummary, CreditCard, DescriptionList, IconLabel, Money, Notice, Panel, ServiceAnswers, SplitLayout,
 } from '@dsp/ui';
 import { api } from '../session';
 
@@ -62,7 +62,7 @@ export function StatusView({ app, service, onRefresh }: {
                 { label: t('status.for'), value: loc(payment?.description) || loc(service.name) },
               ]} />
               <div className="mt-5">
-                <AegovButton isLoading={busy} isDisabled={!app.paymentId} onAegovButtonClick={pay}>{t('status.pay', { amount })}</AegovButton>
+                <AegovButton isLoading={busy} isDisabled={!app.paymentId} onAegovButtonClick={pay}><IconLabel icon={CreditCard}>{t('status.pay', { amount })}</IconLabel></AegovButton>
               </div>
               <p className="mt-3 text-sm text-aeblack-600">{t('status.simulated')}</p>
             </Panel>
