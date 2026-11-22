@@ -61,7 +61,14 @@ public class OutboxTests
         var second = SampleEvent();
         await Seed(sp, second, first);
 
-        await RunDispatcherUntil(sp, () => publisher.Sent.Count == 2);
+        // Wait for the messages to be marked too: publishing and marking are separate steps, and stopping in between
+        // made this test flaky.
+        await RunDispatcherUntil(sp, () =>
+        {
+            if (publisher.Sent.Count < 2) return false;
+            using var check = sp.CreateScope();
+            return check.ServiceProvider.GetRequiredService<TestDb>().Set<OutboxMessage>().All(m => m.PublishedAt != null);
+        });
 
         Assert.Equal(new[] { first.EventId, second.EventId }, publisher.Sent.Select(s => s.Id));
         await using var scope = sp.CreateAsyncScope();
