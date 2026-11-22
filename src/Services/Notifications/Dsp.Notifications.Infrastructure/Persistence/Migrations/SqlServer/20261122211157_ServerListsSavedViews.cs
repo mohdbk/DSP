@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,6 +10,9 @@ namespace Dsp.Notifications.Infrastructure.Persistence.Migrations.SqlServer
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // POC data from before message references is wiped (no backwards compatibility).
+            migrationBuilder.Sql("DELETE FROM [notifications].[Notifications];");
+
             migrationBuilder.DropColumn(
                 name: "Body",
                 schema: "notifications",

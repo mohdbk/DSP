@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,6 +10,12 @@ namespace Dsp.EServices.Infrastructure.Persistence.Migrations.Postgres
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // POC data in older formats is wiped (no backwards compatibility); the catalogue seeder adds the sample services again.
+            migrationBuilder.Sql("DELETE FROM eservices.\"AiAssessments\";");
+            migrationBuilder.Sql("DELETE FROM eservices.\"ReviewTasks\";");
+            migrationBuilder.Sql("DELETE FROM eservices.\"Applications\";");
+            migrationBuilder.Sql("DELETE FROM eservices.\"ServiceVersions\";");
+
             migrationBuilder.DropIndex(
                 name: "IX_Applications_ApplicantId",
                 schema: "eservices",
