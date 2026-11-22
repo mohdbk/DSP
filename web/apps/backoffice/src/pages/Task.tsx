@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { formatDate, openDocument, t, type Application, type ReviewTask } from '@dsp/core';
-import { AegovButton, ApplicationCase, Loading, Notice, Panel, TextAreaField } from '@dsp/ui';
+import {
+  AegovButton, ApplicationCase, ArrowLeft, IconLabel, Loading, Notice, Panel, TextAreaField,
+} from '@dsp/ui';
 import { api } from '../session';
 import { useCase } from './useCase';
 
@@ -41,7 +43,7 @@ export function TaskPage() {
   return (
     <ApplicationCase app={app} service={service} assessments={assessments} onOpenFile={docId => openDocument(api, docId)}
       summaryExtra={[{ label: t('slaDue'), value: formatDate(task.dueAt, true) }]}
-      actions={<AegovButton appearance="outline" onAegovButtonClick={() => navigate({ to: '/inbox' })}>{t('task.backToInbox')}</AegovButton>}>
+      actions={<AegovButton appearance="outline" onAegovButtonClick={() => navigate({ to: '/inbox' })}><IconLabel icon={ArrowLeft} mirror>{t('task.backToInbox')}</IconLabel></AegovButton>}>
       <Panel title={t('decision')}>
         {done ? <Notice kind="success">{t('task.recorded')}</Notice>
           : task.status === 'Completed' ? <Notice kind="info">{t('task.alreadyDone', { outcome: task.outcome ?? '' })}</Notice>

@@ -62,11 +62,10 @@
   }
 }
 
-/* AEGOV scrollable tabs scroll sideways (overflow-x: auto), which makes the browser allow vertical scrolling too:
-   on touch screens the tab row moved up and down and hid the active underline. The tabs are light DOM, so the
-   list wrapper is fixed here: no vertical scroll, and room below the tabs for the 2px underline. */
-.tabs__list-wrapper--scrollable {
+/* AEGOV scrollable tabs: the tab list scrolls sideways (overflow-x: auto), which also lets it scroll up and down by
+   the underline's overlap on touch screens, hiding the active underline. Tabs are light DOM, so fix the list here. */
+.tabs__list-wrapper--scrollable .tabs__list {
   overflow-y: hidden;
   overscroll-behavior-x: contain;
-  padding-bottom: 2px;
+  touch-action: pan-x pan-y;
 }
