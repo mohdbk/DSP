@@ -299,6 +299,7 @@ export function PreviewSection({ def }: { def: ServiceDefinition }) {
           {index < def.steps.length - 1 && <AegovButton onAegovButtonClick={() => setCurrent(index + 1)}>{t('form.saveContinue')}</AegovButton>}
         </Actions>
       </Panel>
+    </>
   );
 }
 
