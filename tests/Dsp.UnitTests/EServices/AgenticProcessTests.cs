@@ -79,7 +79,7 @@ public class AgenticProcessStepsTests
         _apps = new ApplicationServiceTests.FakeApplications(_log);
         _steps = new ProcessSteps(_apps, new PaymentCompletedHandlerTests.NoTasks(), new PaymentCompletedHandlerTests.NoPayments(),
             new PaymentCompletedHandlerTests.NoCertificates(), _bus, new StatusNotifier(_bus),
-            NullLogger<ProcessSteps>.Instance, new EmbeddedServiceCatalog(), _assessments, _reviewer);
+            NullLogger<ProcessSteps>.Instance, new EmbeddedServiceCatalog(), _assessments, _reviewer, TestText.Localization);
 
         _app = ServiceApplication.Create("TRADE_NAME_RESERVATION", "Trade Name Reservation", WorkflowVersions.AiAssisted,
             "uaepass:abc", "Fatima", 200, "AED", new Dictionary<string, string?> { ["tradeNameAr"] = "Falcon" });
@@ -92,16 +92,16 @@ public class AgenticProcessStepsTests
     {
         _reviewer.Next = new AiReviewResult(AiRecommendations.RequestInformation, "Arabic name is in Latin letters.",
             [new AiFinding("issue", "tradeNameAr", "Not Arabic.")],
-            [new LocalizedText("Write the Arabic name in Arabic letters.", "اكتب الاسم بالعربية.")], "rules", null);
+            [TestText.Text("Write the Arabic name in Arabic letters.", "اكتب الاسم بالعربية.")], "rules", null);
 
         Assert.True(await _steps.RunAiReviewAsync(_app.Id, default));
         await _steps.RequestInformationAsync(_app.Id, default);
 
         Assert.Equal(ApplicationStatus.InformationRequested, _app.Status);
-        Assert.Equal("اكتب الاسم بالعربية.", Assert.Single(_app.GetInformationRequest()).Ar);
+        Assert.Equal("اكتب الاسم بالعربية.", Assert.Single(_app.GetInformationRequest())["ar"]);
         var notice = _bus.Events.OfType<ApplicationStatusChanged>().Last();
-        Assert.Contains("Arabic letters", notice.Message);
-        Assert.Contains("بالعربية", notice.MessageAr);
+        Assert.Contains("Arabic letters", notice.Message.Render(TestText.Messages("en")));
+        Assert.Contains("بالعربية", notice.Message.Render(TestText.Messages("ar")));
     }
 
     [Fact]
@@ -158,8 +158,13 @@ public class ResubmissionTests
         var bus = new RecordingBus();
         _service = new ApplicationService(new EmbeddedServiceCatalog(), _apps,
             [new TradeNameReservationRules(), new CommercialAgencyRules()], _workflow, new StatusNotifier(bus),
-            new InMemoryAssessments());
+            new InMemoryAssessments(), TestText.Messages());
+        _arabic = new ApplicationService(new EmbeddedServiceCatalog(), _apps,
+            [new TradeNameReservationRules(), new CommercialAgencyRules()], _workflow, new StatusNotifier(bus),
+            new InMemoryAssessments(), TestText.Messages("ar"));
     }
+
+    private readonly ApplicationService _arabic;
 
     [Fact]
     public async Task Trade_name_reservation_runs_the_ai_assisted_process_and_resubmission_resumes_it()
@@ -175,7 +180,7 @@ public class ResubmissionTests
 
         var app = (await _apps.GetAsync(draft.Id, default))!;
         app.StartAiReview();
-        app.RequestInformation([new LocalizedText("Write it in Arabic.", "اكتبه بالعربية.")]);
+        app.RequestInformation([TestText.Text("Write it in Arabic.", "اكتبه بالعربية.")]);
 
         var saved = await _service.SaveDataAsync(Citizen, draft.Id,
             new Dictionary<string, string?> { ["tradeNameAr"] = "الصقر للتجارة" }, default);
@@ -190,10 +195,9 @@ public class ResubmissionTests
     [Fact]
     public async Task Validation_messages_follow_the_callers_language()
     {
-        var arabic = Citizen with { Language = Localized.Arabic };
-        var draft = await _service.CreateDraftAsync(arabic, "TRADE_NAME_RESERVATION", default);
+        var draft = await _arabic.CreateDraftAsync(Citizen, "TRADE_NAME_RESERVATION", default);
 
-        var ex = await Assert.ThrowsAsync<ValidationException>(() => _service.SubmitAsync(arabic, draft.Id, default));
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => _arabic.SubmitAsync(Citizen, draft.Id, default));
 
         Assert.Contains(ex.Errors, e => e.Field == "tradeNameAr" && e.Message == "الاسم التجاري (بالعربية) مطلوب.");
     }

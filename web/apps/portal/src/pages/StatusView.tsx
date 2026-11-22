@@ -59,7 +59,7 @@ export function StatusView({ app, service, onRefresh }: {
               {error && <Notice kind="error">{error}</Notice>}
               <DescriptionList items={[
                 { label: t('status.amount'), value: <Money>{amount}</Money> },
-                { label: t('status.for'), value: payment?.description ?? loc(service.name, service.nameAr) },
+                { label: t('status.for'), value: loc(payment?.description) || loc(service.name) },
               ]} />
               <div className="mt-5">
                 <AegovButton isLoading={busy} isDisabled={!app.paymentId} onAegovButtonClick={pay}>{t('status.pay', { amount })}</AegovButton>

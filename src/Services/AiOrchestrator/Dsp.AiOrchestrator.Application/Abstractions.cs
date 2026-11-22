@@ -1,30 +1,24 @@
+using Dsp.SharedKernel;
+
 namespace Dsp.AiOrchestrator.Application;
 
 // The agent's view of E-Services. It only ever calls the public E-Services API, with the user's own token,
-// so it can do nothing the user could not do in the form view.
+// so it can do nothing the user could not do in the form view. Texts come in every language the service has.
 
-public sealed record FieldOptionView(string Value, string Label, string? LabelAr = null)
-{
-    public string LabelFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(LabelAr) ? LabelAr : Label;
-}
+public sealed record FieldOptionView(string Value, LocalizedText Label);
 
-public sealed record FieldView(string Key, string Label, string Type, bool Required, string? Help,
-    IReadOnlyList<FieldOptionView>? Options, string? LabelAr = null, string? HelpAr = null)
-{
-    public string LabelFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(LabelAr) ? LabelAr : Label;
-    public string? HelpFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(HelpAr) ? HelpAr : Help;
-}
+public sealed record FieldView(string Key, LocalizedText Label, string Type, bool Required, LocalizedText? Help,
+    IReadOnlyList<FieldOptionView>? Options);
 
-public sealed record StepView(string Id, string Title, string? Description, IReadOnlyList<FieldView> Fields);
+public sealed record StepView(string Id, LocalizedText Title, LocalizedText? Description, IReadOnlyList<FieldView> Fields);
 
-public sealed record ServiceView(string Code, string Name, string Description, decimal Fee, string Currency,
-    IReadOnlyList<StepView> Steps, string? NameAr = null)
+public sealed record ServiceView(string Code, LocalizedText Name, LocalizedText Description, decimal Fee, string Currency,
+    IReadOnlyList<StepView> Steps)
 {
     public IEnumerable<FieldView> AllFields => Steps.SelectMany(s => s.Fields);
-    public string NameFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(NameAr) ? NameAr : Name;
 }
 
-public sealed record ApplicationView(Guid Id, string Number, string ServiceCode, string ServiceName, string Status,
+public sealed record ApplicationView(Guid Id, string Number, string ServiceCode, LocalizedText ServiceName, string Status,
     Dictionary<string, string?> Data);
 
 public sealed record FieldErrorView(string Field, string Message);
@@ -41,6 +35,24 @@ public interface IEServicesApi
     Task<SubmitOutcome> SubmitAsync(Guid id, CancellationToken ct);
 }
 
+/// <summary>
+/// The AI settings in force: edited by staff in the back office (Platform service), with environment variables as
+/// the fallback. Nothing about the model (vendor, address, name, key, limits, instructions) is fixed in code.
+/// </summary>
+public sealed record AiSettings(string ProviderName, string BaseUrl, string Model, string? ApiKey, double Temperature,
+    int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
+    string? ChatInstructions, string? ReviewInstructions)
+{
+    public bool IsConfigured => !string.IsNullOrWhiteSpace(BaseUrl) && !string.IsNullOrWhiteSpace(Model);
+    public bool ChatActive => IsConfigured && ChatEnabled;
+    public bool ReviewActive => IsConfigured && ReviewEnabled;
+}
+
+public interface IAiSettingsProvider
+{
+    Task<AiSettings> GetAsync(CancellationToken ct);
+}
+
 // Model-agnostic LLM port. Infrastructure maps it to an OpenAI-compatible endpoint (Net0 in production).
 
 public sealed record LlmToolCall(string Id, string Name, string ArgumentsJson);
@@ -54,7 +66,35 @@ public sealed record LlmReply(string? Content, IReadOnlyList<LlmToolCall> ToolCa
 
 public interface ILlmClient
 {
-    bool IsConfigured { get; }
-    string? Model { get; }
-    Task<LlmReply> CompleteAsync(IReadOnlyList<LlmMessage> messages, IReadOnlyList<LlmTool> tools, CancellationToken ct);
+    Task<LlmReply> CompleteAsync(AiSettings settings, IReadOnlyList<LlmMessage> messages, IReadOnlyList<LlmTool> tools,
+        CancellationToken ct);
+}
+
+/// <summary>Renders a message into every enabled language at once (texts stored for readers of any language).</summary>
+public sealed class MultilingualRenderer
+{
+    private readonly IReadOnlyList<(string Code, IMessages Messages)> _languages;
+
+    private MultilingualRenderer(IReadOnlyList<(string, IMessages)> languages) => _languages = languages;
+
+    public IReadOnlyList<string> Languages => _languages.Select(l => l.Code).ToList();
+
+    public static async Task<MultilingualRenderer> CreateAsync(ILocalization localization, IEnumerable<string>? only,
+        CancellationToken ct)
+    {
+        var settings = await localization.GetSettingsAsync(ct);
+        var codes = settings.Enabled.OrderByDescending(l => l.IsDefault).Select(l => l.Code).ToList();
+        if (only is not null)
+        {
+            var wanted = only.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var filtered = codes.Where(wanted.Contains).ToList();
+            if (filtered.Count > 0) codes = filtered;
+        }
+        var list = new List<(string, IMessages)>();
+        foreach (var code in codes) list.Add((code, await localization.GetMessagesAsync(code, ct)));
+        return new MultilingualRenderer(list);
+    }
+
+    public LocalizedText Render(MessageRef message) =>
+        new(_languages.Select(l => KeyValuePair.Create(l.Code, message.Render(l.Messages))));
 }

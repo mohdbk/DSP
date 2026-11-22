@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate, useParams } from '@tanstack/react-router';
-import { formatDate, openDocument, t, type Application, type ApplicationStatus, type TKey } from '@dsp/core';
+import { formatDate, loc, openDocument, t, type Application, type ApplicationStatus } from '@dsp/core';
 import {
   AegovButton, ApplicationCase, DataTable, listStateProps, Loading, Notice, PageHeader, StatusBadge, type ColumnDef,
 } from '@dsp/ui';
@@ -21,7 +21,7 @@ export function ApplicationsPage() {
 
   const columns = useMemo<ColumnDef<Application, string>[]>(() => [
     { id: 'number', header: t('number'), accessorFn: a => a.number, cell: c => <strong><bdi>{c.getValue()}</bdi></strong> },
-    { id: 'service', header: t('service'), accessorFn: a => a.serviceName, meta: { filter: true } },
+    { id: 'service', header: t('service'), accessorFn: a => loc(a.serviceName), meta: { filter: true } },
     { id: 'applicant', header: t('applicant'), accessorFn: a => a.applicantName },
     { id: 'reference', header: t('reference'), accessorFn: a => a.referenceValue ?? '', cell: c => c.getValue() ? <bdi>{c.getValue()}</bdi> : '—' },
     {
@@ -31,7 +31,7 @@ export function ApplicationsPage() {
     },
     {
       id: 'status', header: t('status'), accessorFn: a => a.status, cell: c => <StatusBadge status={c.getValue() as ApplicationStatus} />,
-      meta: { filter: true, filterLabel: v => t(`status.${v}` as TKey) },
+      meta: { filter: true, filterLabel: v => t(`status.${v}`) },
     },
     { id: 'updated', header: t('updated'), accessorFn: a => a.updatedAt, cell: c => formatDate(c.getValue(), true) },
   ], []);

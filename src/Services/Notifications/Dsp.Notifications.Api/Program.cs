@@ -1,5 +1,6 @@
 using Dsp.SharedKernel;
 using System.Security.Claims;
+using Dsp.BuildingBlocks.Localization;
 using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Web;
 using Dsp.Notifications.Application;
@@ -10,11 +11,13 @@ builder.AddDspDefaults("dsp-notifications");
 builder.Services.AddDspAuthentication(builder.Configuration);
 builder.Services.AddNotificationsApplication();
 builder.Services.AddNotificationsInfrastructure(builder.Configuration);
+builder.Services.AddDspLocalization(builder.Configuration);
 
 var app = builder.Build();
 app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseDspLocalization();
 
 await app.MigrateDatabaseAsync<NotificationsDbContext>();
 

@@ -1,736 +1,176 @@
 import { useSyncExternalStore } from 'react';
 
-// English and Arabic for both portals. The language is kept per browser and sets <html lang dir>,
-// so the whole layout flips to right-to-left in Arabic. API calls send it as Accept-Language,
-// so validation messages and the chat come back in the same language.
+// Languages and texts are data, managed in the back office (Platform service): languages can be added, renamed,
+// enabled, disabled and deleted, and every text edited, without a release. Before the first render each portal
+// loads the enabled languages and the catalogue for the reader's language; the last good copy is kept in the
+// browser so the portal still opens if the Platform service is briefly unavailable. A key with no text shows as is.
 
-export type Lang = 'en' | 'ar';
+/** A text in any number of languages, keyed by language code: { en: "Fee", ar: "الرسوم" }. */
+export type LocalizedText = Record<string, string>;
 
-const STORAGE_KEY = 'dsp.lang';
+export interface LanguageInfo {
+  code: string;
+  /** The language's name in other languages (each language is listed in its own name). */
+  name: LocalizedText;
+  direction: 'ltr' | 'rtl';
+  isEnabled: boolean;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+interface Catalog { language: string; defaultLanguage: string; direction: 'ltr' | 'rtl'; strings: Record<string, string> }
+
+/** Message keys are plain strings: texts live in the Platform catalogue. */
+export type TKey = string;
+export type Lang = string;
+
+const STORAGE_LANG = 'dsp.lang';
+const STORAGE_LANGUAGES = 'dsp.languages';
+const storageCatalog = (code: string) => `dsp.catalog.${code}`;
 const listeners = new Set<() => void>();
 
-function initial(): Lang {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'ar' || saved === 'en') return saved;
-  } catch { /* storage unavailable */ }
-  return navigator.language?.toLowerCase().startsWith('ar') ? 'ar' : 'en';
+let languages: LanguageInfo[] = read<LanguageInfo[]>(STORAGE_LANGUAGES) ?? [];
+let current = '';
+let defaultLanguage = 'en';
+let strings: Record<string, string> = {};
+let version = 0;
+
+function read<T>(key: string): T | undefined {
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : undefined; } catch { return undefined; }
+}
+function write(key: string, value: unknown) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ }
 }
 
-let current: Lang = initial();
-apply();
+async function fetchJson<T>(path: string, lang?: string): Promise<T> {
+  const res = await fetch(path, { headers: lang ? { 'Accept-Language': lang } : {} });
+  if (!res.ok) throw new Error(`${path}: ${res.status}`);
+  return res.json() as Promise<T>;
+}
 
-function apply() {
+function pick(preferred?: string | null): string {
+  const enabled = languages.filter(l => l.isEnabled);
+  const find = (code?: string | null) => code && enabled.find(l => l.code.toLowerCase() === code.toLowerCase())?.code;
+  const neutral = (code?: string | null) => code && enabled.find(l => l.code.toLowerCase() === code.split('-')[0].toLowerCase())?.code;
+  return find(preferred) || neutral(preferred)
+    || find(navigator.language) || neutral(navigator.language)
+    || enabled.find(l => l.isDefault)?.code || enabled[0]?.code || 'en';
+}
+
+function apply(direction: 'ltr' | 'rtl') {
   document.documentElement.lang = current;
-  document.documentElement.dir = current === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.dir = direction;
 }
 
-export function getLang(): Lang {
-  return current;
-}
-
-export function setLang(lang: Lang) {
-  if (lang === current) return;
-  current = lang;
-  try { localStorage.setItem(STORAGE_KEY, lang); } catch { /* storage unavailable */ }
-  apply();
+function adopt(catalog: Catalog) {
+  current = catalog.language;
+  defaultLanguage = catalog.defaultLanguage;
+  strings = catalog.strings;
+  apply(catalog.direction);
+  version++;
   listeners.forEach(l => l());
 }
 
-/** Re-renders the caller when the language changes. Each app calls it once at the root. */
-export function useLang(): Lang {
-  return useSyncExternalStore(
-    cb => { listeners.add(cb); return () => listeners.delete(cb); },
-    () => current,
-  );
+async function loadCatalog(code: string): Promise<Catalog> {
+  try {
+    const catalog = await fetchJson<Catalog>(`/api/v1/platform/catalog/${encodeURIComponent(code)}`);
+    write(storageCatalog(catalog.language), catalog);
+    return catalog;
+  } catch (e) {
+    const cached = read<Catalog>(storageCatalog(code));
+    if (cached) return cached;
+    throw e;
+  }
 }
 
-/** The Arabic text when the language is Arabic and one exists, otherwise the English text. */
-export function loc(en: string, ar?: string | null): string;
-export function loc(en: string | null | undefined, ar?: string | null): string | undefined;
-export function loc(en: string | null | undefined, ar?: string | null) {
-  return current === 'ar' && ar ? ar : en ?? undefined;
+/**
+ * Loads the enabled languages and the catalogue for the reader's language. Each portal awaits it before rendering
+ * (mountApp does). Uses the browser's last good copy when the Platform service can't be reached.
+ */
+export async function initI18n(): Promise<void> {
+  try {
+    languages = await fetchJson<LanguageInfo[]>('/api/v1/platform/languages');
+    write(STORAGE_LANGUAGES, languages);
+  } catch { /* keep the cached list */ }
+  if (languages.length === 0)
+    languages = [{ code: 'en', name: { en: 'English' }, direction: 'ltr', isEnabled: true, isDefault: true, sortOrder: 0 }];
+
+  const code = pick(read<string>(STORAGE_LANG));
+  try {
+    adopt(await loadCatalog(code));
+  } catch {
+    current = code;
+    defaultLanguage = languages.find(l => l.isDefault)?.code ?? code;
+    apply(languages.find(l => l.code === code)?.direction ?? 'ltr');
+  }
+}
+
+/** The reader's language code. */
+export function getLang(): string {
+  return current;
+}
+
+/** The platform's default language (every text has it). */
+export function getDefaultLang(): string {
+  return defaultLanguage;
+}
+
+/** The enabled languages, in display order. */
+export function getLanguages(): LanguageInfo[] {
+  return languages.filter(l => l.isEnabled).sort((a, b) => a.sortOrder - b.sortOrder || a.code.localeCompare(b.code));
+}
+
+/** The direction of the reader's language (or of another enabled language). */
+export function dirOf(code: string = current): 'ltr' | 'rtl' {
+  return languages.find(l => l.code === code)?.direction ?? 'ltr';
+}
+
+/** Switches the language: loads its catalogue, then re-renders and flips the layout if its direction differs. */
+export async function setLang(code: string): Promise<void> {
+  if (code === current) return;
+  write(STORAGE_LANG, code);
+  adopt(await loadCatalog(code));
+}
+
+/** Drops the browser's cached catalogues (after staff edit texts) and reloads the current one. */
+export async function refreshI18n(): Promise<void> {
+  languages.forEach(l => { try { localStorage.removeItem(storageCatalog(l.code)); } catch { /* ignore */ } });
+  await initI18n();
+}
+
+/** Re-renders the caller when the language or its texts change. Each app calls it once at the root. */
+export function useLang(): string {
+  useSyncExternalStore(
+    cb => { listeners.add(cb); return () => listeners.delete(cb); },
+    () => version,
+  );
+  return current;
+}
+
+/** A multilingual value in the reader's language, else the default language, else any language it has. */
+export function loc(text: LocalizedText | null | undefined): string;
+export function loc(text: LocalizedText | null | undefined, fallback: string): string;
+export function loc(text: LocalizedText | null | undefined, fallback = ''): string {
+  if (!text) return fallback;
+  return text[current] || text[current.split('-')[0]] || text[defaultLanguage]
+    || Object.values(text).find(v => v && v.trim()) || fallback;
 }
 
 type Vars = Record<string, string | number>;
 
-/** Translates a UI string by key, filling {placeholders}. Missing keys fall back to English, then the key. */
-export function t(key: keyof typeof en, vars?: Vars): string {
-  const table = current === 'ar' ? ar : en;
-  let text: string = (table as Record<string, string>)[key] ?? en[key] ?? key;
+/** A text by key in the reader's language, with {placeholders} filled. A key with no text is shown as is. */
+export function t(key: TKey, vars?: Vars): string {
+  let text = strings[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) text = text.split(`{${k}}`).join(String(v));
   return text;
+}
+
+/** True when the catalogue has a text for the key (used to show server message keys, e.g. sign-in errors). */
+export function hasText(key: string): boolean {
+  return key in strings;
 }
 
 /** The site's name for a portal: "<portal> | <ministry>" (both parts and the pattern are translatable texts). */
 export function siteName(service: string): string {
   return t('site.name', { service, ministry: t('entity.name') });
 }
-
-const en = {
-  // Entity and shell
-  'entity.name': 'Ministry of Economy & Tourism',
-  'entity.home': 'Ministry of Economy & Tourism home',
-  'site.name': '{service} | {ministry}',
-  'nav.main': 'Main navigation',
-  'nav.menu': 'Menu',
-  'footer.about': 'Government services for businesses, investors and visitors, online.',
-  'footer.services': 'E-Services',
-  'footer.rights': 'All rights reserved.',
-  'lang.switch': 'العربية',
-  'lang.switchLabel': 'Switch to Arabic',
-  'app.portal': 'E-Services',
-  'app.portalHome': 'E-Services home',
-  'app.portalSub': 'Ministry of Economy and Tourism',
-  'app.backoffice': 'Back Office',
-  'app.backofficeHome': 'Back office home',
-  'app.backofficeSub': 'MoET E-Services · staff only',
-  'nav.services': 'Services',
-  'nav.myApplications': 'My applications',
-  'nav.inbox': 'Review inbox',
-  'nav.allApplications': 'All applications',
-  'nav.builder': 'Service builder',
-  'footer.ministry': 'Ministry of Economy and Tourism · Digital Transformation',
-  'footer.platform': 'Digital Services Platform · proof of concept',
-  'signOut': 'Sign out',
-  'notifications': 'Notifications',
-  'notifications.unread': 'Notifications, {n} unread',
-  'loading': 'Loading…',
-  'back': 'Back',
-  'staff': 'Staff',
-  'uaePass': 'UAE PASS',
-  'uaePass.signIn': 'Sign in with UAE PASS',
-
-  // Statuses
-  'status.Draft': 'Draft',
-  'status.Submitted': 'Submitted',
-  'status.AiReview': 'AI pre-review',
-  'status.InformationRequested': 'Information needed',
-  'status.UnderReview': 'Under review',
-  'status.AwaitingPayment': 'Awaiting payment',
-  'status.Paid': 'Paid',
-  'status.Approved': 'Completed',
-  'status.Rejected': 'Rejected',
-
-  // Common fields and labels
-  'number': 'Number',
-  'service': 'Service',
-  'reference': 'Reference',
-  'status': 'Status',
-  'lastUpdate': 'Last update',
-  'updated': 'Updated',
-  'applicant': 'Applicant',
-  'submitted': 'Submitted',
-  'fee': 'Fee',
-  'received': 'Received',
-  'sla': 'SLA',
-  'slaDue': 'SLA due',
-  'due': 'Due {date}',
-  'overdue': 'Overdue',
-  'workflow': 'Process',
-  'decision': 'Decision',
-  'comment': 'Comment',
-  'completed': 'Completed',
-  'approved': 'Approved',
-  'rejected': 'Rejected',
-  'steps': '{n} steps',
-  'process.v1': 'Standard review',
-  'process.v2': 'AI-assisted review',
-
-  // Form rendering
-  'form.optional': '(optional)',
-  'form.allRequired': 'All fields are required unless marked as optional.',
-  'form.uploadedName': 'Uploaded: {name}',
-  'form.fileHint': 'PDF, JPG or PNG, up to 10 MB',
-  'form.select': 'Select…',
-  'form.uploading': 'Uploading…',
-  'form.uploaded': 'File uploaded',
-  'form.notProvided': 'Not provided',
-  'form.confirmed': 'Confirmed',
-  'form.notConfirmed': 'Not confirmed',
-  'form.openFile': 'Open file',
-  'form.attached': 'File attached',
-  'form.uploadFailed': 'Upload failed',
-  'form.review': 'Review',
-
-  // Tables
-  'table.search': 'Search',
-  'table.searchHint': 'Search any column',
-  'table.results': '{n} result(s)',
-  'table.all': 'All',
-  'table.sortAscending': 'sorted ascending',
-  'table.sortDescending': 'sorted descending',
-
-  // Portal: login
-  'login.title': 'Sign in',
-  'login.intro': 'Sign in to apply for ministry services, track your applications and download certificates.',
-  'login.unavailable': 'Sign-in is unavailable right now. Please try again shortly.',
-  'login.none': 'No sign-in method is configured.',
-  'login.with': 'Sign in with {name}',
-  'login.staging': 'This environment uses the UAE PASS staging service. Use a UAE PASS staging account to sign in.',
-  'login.signingIn': 'Signing you in…',
-  'login.failed': 'Sign-in failed',
-
-  // Portal: catalog
-  'catalog.welcome': 'Welcome, {name}',
-  'catalog.intro': 'Choose a service to start. You can fill in a form or chat with the assistant — switch any time.',
-  'catalog.apply': 'Apply',
-  'catalog.starting': 'Starting…',
-  'catalog.aiAssisted': 'Checked by AI before review',
-
-  // Portal: my applications, notifications
-  'my.title': 'My applications',
-  'my.empty': 'No applications yet',
-  'my.browse': 'Browse services',
-  'my.toStart': 'to start one.',
-  'notifications.title': 'Notifications',
-  'notifications.empty': "You're all caught up",
-  'notifications.open': 'View details',
-  'notifications.markRead': 'Mark as read',
-
-  // Portal: application
-  'app.notFound': 'Application not found.',
-  'app.howToApply': 'How do you want to apply?',
-  'app.form': '📝 Form',
-  'app.chat': '💬 Chat',
-  'app.yours': 'Your application',
-  'app.progress': 'Progress',
-  'app.progressValue': '{filled} of {total} required details',
-  'app.sideNote': 'The form and the chat save to the same application. Start in one and finish in the other. The fee is payable only after the ministry approves your application.',
-  'app.infoNeeded': 'We need a little more information',
-  'app.infoNeededIntro': 'Our digital assistant checked your application before sending it to a ministry officer and found something to complete or correct:',
-  'app.infoNeededHow': 'Update your application below, then send it again.',
-  'form.saving': 'Saving…',
-  'form.saveContinue': 'Save and continue',
-  'form.saveReview': 'Save and review',
-  'form.reviewTitle': 'Review your application',
-  'form.change': 'Change',
-  'form.afterSubmit': 'After you submit, a ministry officer reviews your application. If approved, you pay the fee and receive your certificate.',
-  'form.afterSubmitAi': 'After you submit, our digital assistant checks your application first and may ask you to correct something. Then a ministry officer reviews it. If approved, you pay the fee and receive your certificate.',
-  'form.submit': 'Submit application',
-  'form.resubmit': 'Send updated application',
-  'form.submitting': 'Submitting…',
-  'form.attention': 'Some details need your attention.',
-
-  // Portal: chat
-  'chat.ai': 'AI assistant',
-  'chat.guided': 'Guided assistant',
-  'chat.saved': 'answers are saved to your application as you go',
-  'chat.typing': 'Typing…',
-  'chat.placeholder': 'Type your answer…',
-  'chat.message': 'Your message',
-  'chat.send': 'Send',
-
-  // Portal: status
-  'journey.submitted': 'Submitted',
-  'journey.aiReview': 'Digital assistant check',
-  'journey.review': 'Ministry review',
-  'journey.payment': 'Payment',
-  'journey.certificate': 'Certificate issued',
-  'status.notApproved': 'Not approved.',
-  'status.aiChecking': 'Our digital assistant is checking your application. This usually takes less than a minute.',
-  'status.approvedTitle': 'Your application was approved',
-  'status.payToReceive': 'Pay the fee to receive your certificate.',
-  'status.amount': 'Amount',
-  'status.for': 'For',
-  'status.processing': 'Processing…',
-  'status.pay': 'Pay {amount}',
-  'status.simulated': 'Test environment: payment is simulated, no card is charged.',
-  'status.paymentReceived': 'Payment received ({ref}). Issuing your certificate…',
-  'status.certificateReady': 'Your certificate is ready',
-  'status.issued': 'Issued {date}.',
-  'status.download': 'Download certificate',
-  'status.details': 'Application details',
-
-  // Back office: login
-  'staffLogin.title': 'Staff sign in',
-  'staffLogin.intro': 'Use your ministry account.',
-  'staffLogin.username': 'Username',
-  'staffLogin.password': 'Password',
-  'staffLogin.signIn': 'Sign in',
-  'staffLogin.signingIn': 'Signing in…',
-
-  // Back office: inbox, task, applications
-  'inbox.title': 'Review inbox',
-  'inbox.intro': 'Applications waiting for a decision, oldest first.',
-  'inbox.open': '{n} open',
-  'inbox.empty': 'Inbox is clear',
-  'inbox.emptyHint': 'New applications appear here as citizens submit them.',
-  'inbox.application': 'Application',
-  'inbox.ai': 'AI pre-review',
-  'task.backToInbox': '← Back to inbox',
-  'task.application': 'Application',
-  'task.commentLabel': 'Comment',
-  'task.commentHint': '(required to reject)',
-  'task.commentPlaceholder': 'Visible to the applicant',
-  'task.approve': 'Approve',
-  'task.reject': 'Reject',
-  'task.reasonRequired': 'Add a reason before rejecting. The applicant will see it.',
-  'task.recorded': 'Decision recorded. The applicant has been notified.',
-  'task.alreadyDone': 'This task was completed ({outcome}).',
-  'apps.title': 'All applications',
-  'apps.empty': 'No submitted applications yet',
-  'apps.back': '← All applications',
-  'apps.viewCertificate': 'View certificate',
-
-  // AI pre-review panel
-  'ai.title': 'AI pre-review',
-  'ai.none': 'This application used the standard process, without an AI pre-review.',
-  'ai.round': 'Round {n}',
-  'ai.mode.llm': 'AI model · {model}',
-  'ai.mode.rules': 'Built-in checks (no AI model configured)',
-  'ai.mode.unavailable': 'Not available',
-  'ai.rec.approve': 'Recommends approval',
-  'ai.rec.request_information': 'Asked the applicant for information',
-  'ai.rec.reject': 'Recommends rejection',
-  'ai.rec.unavailable': 'No recommendation',
-  'ai.recShort.approve': 'Approve',
-  'ai.recShort.request_information': 'Info requested',
-  'ai.recShort.reject': 'Reject',
-  'ai.recShort.unavailable': '—',
-  'ai.questions': 'Asked the applicant',
-  'ai.advice': 'The AI prepares the case. You make the decision.',
-  'ai.sev.issue': 'Issue',
-  'ai.sev.warning': 'Check',
-  'ai.sev.info': 'Info',
-
-  // Service builder
-  'builder.title': 'Service builder',
-  'builder.intro': 'Create and change e-services without code. Changes are drafts until you publish them; applications already started keep the version they began on.',
-  'builder.new': 'New service',
-  'builder.empty': 'No services yet',
-  'builder.live': 'Live v{n}',
-  'builder.draft': 'Draft v{n}',
-  'builder.notLive': 'Not published',
-  'builder.lastChange': 'Last change',
-  'builder.by': 'by {name}',
-  'builder.backToList': '← All services',
-  'builder.tab.details': 'Details',
-  'builder.tab.form': 'Steps and fields',
-  'builder.tab.review': 'AI review',
-  'builder.tab.preview': 'Preview',
-  'builder.tab.versions': 'Versions',
-  'builder.save': 'Save draft',
-  'builder.saving': 'Saving…',
-  'builder.saved': 'Draft saved.',
-  'builder.publish': 'Publish v{n}',
-  'builder.publishing': 'Publishing…',
-  'builder.published': 'Published. New applications use v{n}.',
-  'builder.discard': 'Discard draft',
-  'builder.discardConfirm': 'Click again to discard',
-  'builder.discarded': 'Draft discarded.',
-  'builder.unsaved': 'Unsaved changes',
-  'builder.editingLive': 'You are viewing the live version. Saving creates draft v{n}; citizens keep seeing v{live} until you publish.',
-  'builder.editingDraft': 'Draft v{n}. Citizens see {live} until you publish.',
-  'builder.liveNone': 'nothing',
-  'builder.errors': '{n} thing(s) to fix before publishing',
-  'builder.ready': 'Ready to publish',
-  'builder.code': 'Service code',
-  'builder.codeHelp': 'Capital letters, digits and underscores. Can’t be changed later.',
-  'builder.nameEn': 'Name (English)',
-  'builder.nameAr': 'Name (Arabic)',
-  'builder.descEn': 'Description (English)',
-  'builder.descAr': 'Description (Arabic)',
-  'builder.category': 'Category',
-  'builder.categoryEn': 'Category (English)',
-  'builder.categoryAr': 'Category (Arabic)',
-  'builder.fee': 'Fee',
-  'builder.currency': 'Currency',
-  'builder.referenceField': 'Reference field',
-  'builder.referenceHelp': 'Identifies the application in lists, and must be unique among active applications (e.g. the trade name).',
-  'builder.none': 'None',
-  'builder.process': 'Process',
-  'builder.processV1': 'Standard: staff review, payment, certificate',
-  'builder.processV2': 'AI-assisted: AI pre-review first (it can ask the applicant to fix things), then staff review',
-  'builder.checklist': 'Review checklist',
-  'builder.checklistHelp': 'What the AI pre-review checks, one item per line. The officer sees the findings next to each application.',
-  'builder.checklistV1': 'The checklist is used by the AI-assisted process. Switch the process on the Details tab to use it.',
-  'builder.addStep': 'Add step',
-  'builder.step': 'Step {n}',
-  'builder.stepId': 'Step ID',
-  'builder.titleEn': 'Title (English)',
-  'builder.titleAr': 'Title (Arabic)',
-  'builder.stepDescEn': 'Intro (English)',
-  'builder.stepDescAr': 'Intro (Arabic)',
-  'builder.addField': 'Add field',
-  'builder.fieldKey': 'Key',
-  'builder.labelEn': 'Label (English)',
-  'builder.labelAr': 'Label (Arabic)',
-  'builder.type': 'Type',
-  'builder.required': 'Required',
-  'builder.helpEn': 'Help (English)',
-  'builder.helpAr': 'Help (Arabic)',
-  'builder.placeholderEn': 'Placeholder (English)',
-  'builder.placeholderAr': 'Placeholder (Arabic)',
-  'builder.minLength': 'Min length',
-  'builder.maxLength': 'Max length',
-  'builder.min': 'Minimum',
-  'builder.max': 'Maximum',
-  'builder.pattern': 'Pattern (regular expression)',
-  'builder.patternMsgEn': 'Pattern message (English)',
-  'builder.patternMsgAr': 'Pattern message (Arabic)',
-  'builder.prefill': 'Pre-fill from UAE PASS',
-  'builder.options': 'Options',
-  'builder.optionValue': 'Value',
-  'builder.addOption': 'Add option',
-  'builder.moveUp': 'Move up',
-  'builder.moveDown': 'Move down',
-  'builder.remove': 'Remove',
-  'builder.more': 'More settings',
-  'builder.less': 'Fewer settings',
-  'builder.steps': 'Steps',
-  'builder.fields': 'Fields in this step',
-  'builder.drag': 'Drag to reorder',
-  'builder.stepSettings': 'Step settings',
-  'builder.fieldSettings': 'Field settings',
-  'builder.previewIntro': 'This is how citizens will see the form. Switch the language at the top to check the Arabic.',
-  'builder.version': 'Version',
-  'builder.created': 'Created',
-  'builder.publishedAt': 'Published',
-  'builder.createTitle': 'New service',
-  'builder.create': 'Create draft',
-  'builder.creating': 'Creating…',
-  'builder.type.text': 'Text',
-  'builder.type.textarea': 'Long text',
-  'builder.type.email': 'Email',
-  'builder.type.phone': 'Phone',
-  'builder.type.number': 'Number',
-  'builder.type.date': 'Date',
-  'builder.type.select': 'Choice list',
-  'builder.type.file': 'File upload',
-  'builder.type.checkbox': 'Confirmation box',
-  'builder.prefill.name': 'Name',
-  'builder.prefill.emirates_id': 'Emirates ID',
-  'builder.prefill.email': 'Email',
-  'builder.prefill.mobile': 'Mobile',
-  'builder.vstatus.Draft': 'Draft',
-  'builder.vstatus.Published': 'Live',
-  'builder.vstatus.Retired': 'Retired',
-} as const;
-
-const ar: Partial<Record<keyof typeof en, string>> = {
-  'entity.name': 'وزارة الاقتصاد والسياحة',
-  'entity.home': 'الصفحة الرئيسية لوزارة الاقتصاد والسياحة',
-  'site.name': '{service} | {ministry}',
-  'nav.main': 'التنقل الرئيسي',
-  'nav.menu': 'القائمة',
-  'footer.about': 'الخدمات الحكومية للشركات والمستثمرين والزوار، إلكترونيًا.',
-  'footer.services': 'الخدمات الإلكترونية',
-  'footer.rights': 'جميع الحقوق محفوظة.',
-  'lang.switch': 'English',
-  'lang.switchLabel': 'التبديل إلى الإنجليزية',
-  'app.portal': 'الخدمات الإلكترونية',
-  'app.portalHome': 'الصفحة الرئيسية للخدمات الإلكترونية',
-  'app.portalSub': 'وزارة الاقتصاد والسياحة',
-  'app.backoffice': 'المكتب الخلفي',
-  'app.backofficeHome': 'الصفحة الرئيسية للمكتب الخلفي',
-  'app.backofficeSub': 'الخدمات الإلكترونية · للموظفين فقط',
-  'nav.services': 'الخدمات',
-  'nav.myApplications': 'طلباتي',
-  'nav.inbox': 'صندوق المراجعة',
-  'nav.allApplications': 'جميع الطلبات',
-  'nav.builder': 'منشئ الخدمات',
-  'footer.ministry': 'وزارة الاقتصاد والسياحة · التحول الرقمي',
-  'footer.platform': 'منصة الخدمات الرقمية · نموذج أولي',
-  'signOut': 'تسجيل الخروج',
-  'notifications': 'الإشعارات',
-  'notifications.unread': 'الإشعارات، {n} غير مقروءة',
-  'loading': 'جارٍ التحميل…',
-  'back': 'رجوع',
-  'staff': 'موظف',
-  'uaePass': 'الهوية الرقمية',
-  'uaePass.signIn': 'تسجيل الدخول بالهوية الرقمية',
-
-  'status.Draft': 'مسودة',
-  'status.Submitted': 'مقدّم',
-  'status.AiReview': 'تدقيق آلي',
-  'status.InformationRequested': 'مطلوب معلومات',
-  'status.UnderReview': 'قيد المراجعة',
-  'status.AwaitingPayment': 'بانتظار الدفع',
-  'status.Paid': 'مدفوع',
-  'status.Approved': 'مكتمل',
-  'status.Rejected': 'مرفوض',
-
-  'number': 'الرقم',
-  'service': 'الخدمة',
-  'reference': 'المرجع',
-  'status': 'الحالة',
-  'lastUpdate': 'آخر تحديث',
-  'updated': 'التحديث',
-  'applicant': 'مقدم الطلب',
-  'submitted': 'تاريخ التقديم',
-  'fee': 'الرسوم',
-  'received': 'تاريخ الاستلام',
-  'sla': 'مدة الإنجاز',
-  'slaDue': 'موعد الإنجاز',
-  'due': 'الموعد {date}',
-  'overdue': 'متأخر',
-  'workflow': 'الإجراء',
-  'decision': 'القرار',
-  'comment': 'الملاحظة',
-  'completed': 'تاريخ الإكمال',
-  'approved': 'موافق عليه',
-  'rejected': 'مرفوض',
-  'steps': '{n} خطوات',
-  'process.v1': 'مراجعة اعتيادية',
-  'process.v2': 'مراجعة بمساعدة الذكاء الاصطناعي',
-
-  'form.optional': '(اختياري)',
-  'form.allRequired': 'جميع الحقول مطلوبة ما لم يُذكر أنها اختيارية.',
-  'form.uploadedName': 'تم الرفع: {name}',
-  'form.fileHint': 'PDF أو JPG أو PNG، حتى 10 ميجابايت',
-  'form.select': 'اختر…',
-  'form.uploading': 'جارٍ الرفع…',
-  'form.uploaded': 'تم رفع الملف',
-  'form.notProvided': 'غير مُدخل',
-  'form.confirmed': 'مؤكد',
-  'form.notConfirmed': 'غير مؤكد',
-  'form.openFile': 'فتح الملف',
-  'form.attached': 'ملف مرفق',
-  'form.uploadFailed': 'تعذر الرفع',
-  'form.review': 'المراجعة',
-
-  'table.search': 'بحث',
-  'table.searchHint': 'ابحث في أي عمود',
-  'table.results': '{n} نتيجة',
-  'table.all': 'الكل',
-  'table.sortAscending': 'مرتب تصاعديًا',
-  'table.sortDescending': 'مرتب تنازليًا',
-
-  'login.title': 'تسجيل الدخول',
-  'login.intro': 'سجّل الدخول للتقدم بطلبات خدمات الوزارة ومتابعة طلباتك وتنزيل الشهادات.',
-  'login.unavailable': 'تسجيل الدخول غير متاح حاليًا. يرجى المحاولة بعد قليل.',
-  'login.none': 'لم يتم إعداد أي طريقة لتسجيل الدخول.',
-  'login.with': 'تسجيل الدخول عبر {name}',
-  'login.staging': 'تستخدم هذه البيئة خدمة الهوية الرقمية التجريبية. استخدم حسابًا تجريبيًا لتسجيل الدخول.',
-  'login.signingIn': 'جارٍ تسجيل دخولك…',
-  'login.failed': 'تعذر تسجيل الدخول',
-
-  'catalog.welcome': 'مرحبًا، {name}',
-  'catalog.intro': 'اختر خدمة للبدء. يمكنك تعبئة النموذج أو المحادثة مع المساعد، والتبديل بينهما في أي وقت.',
-  'catalog.apply': 'تقديم طلب',
-  'catalog.starting': 'جارٍ البدء…',
-  'catalog.aiAssisted': 'يُدقق آليًا قبل المراجعة',
-
-  'my.title': 'طلباتي',
-  'my.empty': 'لا توجد طلبات بعد',
-  'my.browse': 'تصفح الخدمات',
-  'my.toStart': 'لبدء طلب.',
-  'notifications.title': 'الإشعارات',
-  'notifications.empty': 'لا توجد إشعارات جديدة',
-  'notifications.open': 'عرض التفاصيل',
-  'notifications.markRead': 'تحديد كمقروء',
-
-  'app.notFound': 'الطلب غير موجود.',
-  'app.howToApply': 'كيف تريد تقديم الطلب؟',
-  'app.form': '📝 النموذج',
-  'app.chat': '💬 المحادثة',
-  'app.yours': 'طلبك',
-  'app.progress': 'التقدم',
-  'app.progressValue': '{filled} من {total} من البيانات المطلوبة',
-  'app.sideNote': 'يحفظ النموذج والمحادثة في الطلب نفسه. ابدأ بأحدهما وأكمل بالآخر. تُدفع الرسوم فقط بعد موافقة الوزارة على طلبك.',
-  'app.infoNeeded': 'نحتاج إلى بعض المعلومات الإضافية',
-  'app.infoNeededIntro': 'تحقق المساعد الرقمي من طلبك قبل إحالته إلى موظف الوزارة ووجد ما يلزم إكماله أو تصحيحه:',
-  'app.infoNeededHow': 'حدّث طلبك أدناه ثم أرسله مرة أخرى.',
-  'form.saving': 'جارٍ الحفظ…',
-  'form.saveContinue': 'حفظ ومتابعة',
-  'form.saveReview': 'حفظ ومراجعة',
-  'form.reviewTitle': 'راجع طلبك',
-  'form.change': 'تعديل',
-  'form.afterSubmit': 'بعد التقديم، يراجع موظف الوزارة طلبك. عند الموافقة تدفع الرسوم وتستلم شهادتك.',
-  'form.afterSubmitAi': 'بعد التقديم، يتحقق المساعد الرقمي من طلبك أولًا وقد يطلب منك تصحيح شيء ما، ثم يراجعه موظف الوزارة. عند الموافقة تدفع الرسوم وتستلم شهادتك.',
-  'form.submit': 'تقديم الطلب',
-  'form.resubmit': 'إرسال الطلب المحدّث',
-  'form.submitting': 'جارٍ التقديم…',
-  'form.attention': 'بعض البيانات تحتاج إلى انتباهك.',
-
-  'chat.ai': 'المساعد الذكي',
-  'chat.guided': 'المساعد الموجّه',
-  'chat.saved': 'تُحفظ الإجابات في طلبك أولًا بأول',
-  'chat.typing': 'يكتب…',
-  'chat.placeholder': 'اكتب إجابتك…',
-  'chat.message': 'رسالتك',
-  'chat.send': 'إرسال',
-
-  'journey.submitted': 'تم التقديم',
-  'journey.aiReview': 'تدقيق المساعد الرقمي',
-  'journey.review': 'مراجعة الوزارة',
-  'journey.payment': 'الدفع',
-  'journey.certificate': 'إصدار الشهادة',
-  'status.notApproved': 'لم تتم الموافقة.',
-  'status.aiChecking': 'يتحقق المساعد الرقمي من طلبك. يستغرق ذلك عادة أقل من دقيقة.',
-  'status.approvedTitle': 'تمت الموافقة على طلبك',
-  'status.payToReceive': 'ادفع الرسوم لاستلام شهادتك.',
-  'status.amount': 'المبلغ',
-  'status.for': 'مقابل',
-  'status.processing': 'جارٍ المعالجة…',
-  'status.pay': 'ادفع {amount}',
-  'status.simulated': 'بيئة تجريبية: الدفع محاكاة ولا تُخصم أي مبالغ.',
-  'status.paymentReceived': 'تم استلام الدفعة ({ref}). جارٍ إصدار شهادتك…',
-  'status.certificateReady': 'شهادتك جاهزة',
-  'status.issued': 'صدرت في {date}.',
-  'status.download': 'تنزيل الشهادة',
-  'status.details': 'تفاصيل الطلب',
-
-  'staffLogin.title': 'دخول الموظفين',
-  'staffLogin.intro': 'استخدم حسابك في الوزارة.',
-  'staffLogin.username': 'اسم المستخدم',
-  'staffLogin.password': 'كلمة المرور',
-  'staffLogin.signIn': 'تسجيل الدخول',
-  'staffLogin.signingIn': 'جارٍ تسجيل الدخول…',
-
-  'inbox.title': 'صندوق المراجعة',
-  'inbox.intro': 'الطلبات بانتظار القرار، الأقدم أولًا.',
-  'inbox.open': '{n} مفتوحة',
-  'inbox.empty': 'لا توجد طلبات للمراجعة',
-  'inbox.emptyHint': 'تظهر الطلبات الجديدة هنا عند تقديمها.',
-  'inbox.application': 'الطلب',
-  'inbox.ai': 'التدقيق الآلي',
-  'task.backToInbox': '→ العودة إلى الصندوق',
-  'task.application': 'الطلب',
-  'task.commentLabel': 'ملاحظة',
-  'task.commentHint': '(مطلوبة عند الرفض)',
-  'task.commentPlaceholder': 'تظهر لمقدم الطلب',
-  'task.approve': 'موافقة',
-  'task.reject': 'رفض',
-  'task.reasonRequired': 'أضف سبب الرفض. سيظهر لمقدم الطلب.',
-  'task.recorded': 'تم تسجيل القرار وإشعار مقدم الطلب.',
-  'task.alreadyDone': 'اكتملت هذه المهمة ({outcome}).',
-  'apps.title': 'جميع الطلبات',
-  'apps.empty': 'لا توجد طلبات مقدمة بعد',
-  'apps.back': '→ جميع الطلبات',
-  'apps.viewCertificate': 'عرض الشهادة',
-
-  'ai.title': 'التدقيق الآلي',
-  'ai.none': 'اتبع هذا الطلب الإجراء الاعتيادي دون تدقيق آلي.',
-  'ai.round': 'الجولة {n}',
-  'ai.mode.llm': 'نموذج ذكاء اصطناعي · {model}',
-  'ai.mode.rules': 'فحوصات مدمجة (لم يُعدّ نموذج ذكاء اصطناعي)',
-  'ai.mode.unavailable': 'غير متاح',
-  'ai.rec.approve': 'يوصي بالموافقة',
-  'ai.rec.request_information': 'طلب معلومات من مقدم الطلب',
-  'ai.rec.reject': 'يوصي بالرفض',
-  'ai.rec.unavailable': 'لا توجد توصية',
-  'ai.recShort.approve': 'موافقة',
-  'ai.recShort.request_information': 'طُلبت معلومات',
-  'ai.recShort.reject': 'رفض',
-  'ai.questions': 'ما طُلب من مقدم الطلب',
-  'ai.advice': 'يُعدّ الذكاء الاصطناعي الملف، والقرار لك.',
-  'ai.sev.issue': 'مشكلة',
-  'ai.sev.warning': 'للتحقق',
-  'ai.sev.info': 'معلومة',
-
-  'builder.title': 'منشئ الخدمات',
-  'builder.intro': 'أنشئ الخدمات الإلكترونية وعدّلها دون برمجة. تبقى التغييرات مسودة حتى تنشرها، وتحتفظ الطلبات القائمة بالإصدار الذي بدأت عليه.',
-  'builder.new': 'خدمة جديدة',
-  'builder.empty': 'لا توجد خدمات بعد',
-  'builder.live': 'منشور · الإصدار {n}',
-  'builder.draft': 'مسودة · الإصدار {n}',
-  'builder.notLive': 'غير منشور',
-  'builder.lastChange': 'آخر تعديل',
-  'builder.by': 'بواسطة {name}',
-  'builder.backToList': '→ جميع الخدمات',
-  'builder.tab.details': 'التفاصيل',
-  'builder.tab.form': 'الخطوات والحقول',
-  'builder.tab.review': 'التدقيق الآلي',
-  'builder.tab.preview': 'المعاينة',
-  'builder.tab.versions': 'الإصدارات',
-  'builder.save': 'حفظ المسودة',
-  'builder.saving': 'جارٍ الحفظ…',
-  'builder.saved': 'تم حفظ المسودة.',
-  'builder.publish': 'نشر الإصدار {n}',
-  'builder.publishing': 'جارٍ النشر…',
-  'builder.published': 'تم النشر. تستخدم الطلبات الجديدة الإصدار {n}.',
-  'builder.discard': 'تجاهل المسودة',
-  'builder.discardConfirm': 'انقر مرة أخرى للتجاهل',
-  'builder.discarded': 'تم تجاهل المسودة.',
-  'builder.unsaved': 'تغييرات غير محفوظة',
-  'builder.editingLive': 'تعرض الإصدار المنشور. يؤدي الحفظ إلى إنشاء المسودة {n}، ويستمر المتعاملون في رؤية الإصدار {live} حتى النشر.',
-  'builder.editingDraft': 'المسودة {n}. يرى المتعاملون {live} حتى النشر.',
-  'builder.liveNone': 'لا شيء',
-  'builder.errors': '{n} ملاحظة يجب إصلاحها قبل النشر',
-  'builder.ready': 'جاهز للنشر',
-  'builder.code': 'رمز الخدمة',
-  'builder.codeHelp': 'أحرف إنجليزية كبيرة وأرقام وشرطة سفلية. لا يمكن تغييره لاحقًا.',
-  'builder.nameEn': 'الاسم (بالإنجليزية)',
-  'builder.nameAr': 'الاسم (بالعربية)',
-  'builder.descEn': 'الوصف (بالإنجليزية)',
-  'builder.descAr': 'الوصف (بالعربية)',
-  'builder.category': 'الفئة',
-  'builder.categoryEn': 'الفئة (بالإنجليزية)',
-  'builder.categoryAr': 'الفئة (بالعربية)',
-  'builder.fee': 'الرسوم',
-  'builder.currency': 'العملة',
-  'builder.referenceField': 'حقل المرجع',
-  'builder.referenceHelp': 'يميّز الطلب في القوائم ويجب أن يكون فريدًا بين الطلبات النشطة (مثل الاسم التجاري).',
-  'builder.none': 'لا يوجد',
-  'builder.process': 'الإجراء',
-  'builder.processV1': 'اعتيادي: مراجعة الموظف ثم الدفع ثم الشهادة',
-  'builder.processV2': 'بمساعدة الذكاء الاصطناعي: تدقيق آلي أولًا (قد يطلب من مقدم الطلب التصحيح) ثم مراجعة الموظف',
-  'builder.checklist': 'قائمة التدقيق',
-  'builder.checklistHelp': 'ما يتحقق منه التدقيق الآلي، بندًا في كل سطر. يرى الموظف النتائج بجانب كل طلب.',
-  'builder.checklistV1': 'تُستخدم قائمة التدقيق في الإجراء المدعوم بالذكاء الاصطناعي. غيّر الإجراء من تبويب التفاصيل لاستخدامها.',
-  'builder.addStep': 'إضافة خطوة',
-  'builder.step': 'الخطوة {n}',
-  'builder.stepId': 'معرّف الخطوة',
-  'builder.titleEn': 'العنوان (بالإنجليزية)',
-  'builder.titleAr': 'العنوان (بالعربية)',
-  'builder.stepDescEn': 'مقدمة (بالإنجليزية)',
-  'builder.stepDescAr': 'مقدمة (بالعربية)',
-  'builder.addField': 'إضافة حقل',
-  'builder.fieldKey': 'المفتاح',
-  'builder.labelEn': 'التسمية (بالإنجليزية)',
-  'builder.labelAr': 'التسمية (بالعربية)',
-  'builder.type': 'النوع',
-  'builder.required': 'إلزامي',
-  'builder.helpEn': 'مساعدة (بالإنجليزية)',
-  'builder.helpAr': 'مساعدة (بالعربية)',
-  'builder.placeholderEn': 'نص توضيحي (بالإنجليزية)',
-  'builder.placeholderAr': 'نص توضيحي (بالعربية)',
-  'builder.minLength': 'أقل طول',
-  'builder.maxLength': 'أقصى طول',
-  'builder.min': 'الحد الأدنى',
-  'builder.max': 'الحد الأقصى',
-  'builder.pattern': 'النمط (تعبير نمطي)',
-  'builder.patternMsgEn': 'رسالة النمط (بالإنجليزية)',
-  'builder.patternMsgAr': 'رسالة النمط (بالعربية)',
-  'builder.prefill': 'تعبئة مسبقة من الهوية الرقمية',
-  'builder.options': 'الخيارات',
-  'builder.optionValue': 'القيمة',
-  'builder.addOption': 'إضافة خيار',
-  'builder.moveUp': 'نقل لأعلى',
-  'builder.moveDown': 'نقل لأسفل',
-  'builder.remove': 'حذف',
-  'builder.more': 'إعدادات إضافية',
-  'builder.less': 'إعدادات أقل',
-  'builder.steps': 'الخطوات',
-  'builder.fields': 'حقول هذه الخطوة',
-  'builder.drag': 'اسحب لإعادة الترتيب',
-  'builder.stepSettings': 'إعدادات الخطوة',
-  'builder.fieldSettings': 'إعدادات الحقل',
-  'builder.previewIntro': 'هكذا سيرى المتعاملون النموذج. بدّل اللغة من الأعلى لمراجعة النسخة العربية.',
-  'builder.version': 'الإصدار',
-  'builder.created': 'الإنشاء',
-  'builder.publishedAt': 'النشر',
-  'builder.createTitle': 'خدمة جديدة',
-  'builder.create': 'إنشاء مسودة',
-  'builder.creating': 'جارٍ الإنشاء…',
-  'builder.type.text': 'نص',
-  'builder.type.textarea': 'نص طويل',
-  'builder.type.email': 'بريد إلكتروني',
-  'builder.type.phone': 'هاتف',
-  'builder.type.number': 'رقم',
-  'builder.type.date': 'تاريخ',
-  'builder.type.select': 'قائمة خيارات',
-  'builder.type.file': 'رفع ملف',
-  'builder.type.checkbox': 'مربع تأكيد',
-  'builder.prefill.name': 'الاسم',
-  'builder.prefill.emirates_id': 'رقم الهوية',
-  'builder.prefill.email': 'البريد الإلكتروني',
-  'builder.prefill.mobile': 'الهاتف المتحرك',
-  'builder.vstatus.Draft': 'مسودة',
-  'builder.vstatus.Published': 'منشور',
-  'builder.vstatus.Retired': 'مؤرشف',
-};
-
-export type TKey = keyof typeof en;

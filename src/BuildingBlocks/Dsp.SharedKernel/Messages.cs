@@ -2,7 +2,7 @@ namespace Dsp.SharedKernel;
 
 /// <summary>
 /// Human-facing messages by key, in one language (e.g. "validation.required" → "{field} is required.").
-/// The texts are data in the Localization service; domain and application code only ever use keys and arguments.
+/// The texts are data in the Platform service; domain and application code only ever use keys and arguments.
 /// </summary>
 public interface IMessages
 {
@@ -28,6 +28,7 @@ public static class MessagesExtensions
 
 /// <summary>A message to show later, in whatever language the reader uses: a key plus its arguments.</summary>
 /// <param name="Args">Argument values; a value may itself be in several languages.</param>
+[System.Text.Json.Serialization.JsonConverter(typeof(MessageRefConverter))]
 public sealed record MessageRef(string Key, IReadOnlyDictionary<string, LocalizedText>? Args = null)
 {
     public static MessageRef Of(string key, params (string Name, object? Value)[] args) =>
@@ -52,5 +53,43 @@ public static class MessageTemplate
         var result = template;
         foreach (var (name, value) in args) result = result.Replace("{" + name + "}", value, StringComparison.Ordinal);
         return result;
+    }
+}
+
+/// <summary>Reads a message reference; a plain string (data written before messages were keys) becomes a key that renders as itself.</summary>
+public sealed class MessageRefConverter : System.Text.Json.Serialization.JsonConverter<MessageRef>
+{
+    public override MessageRef? Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert,
+        System.Text.Json.JsonSerializerOptions options)
+    {
+        if (reader.TokenType == System.Text.Json.JsonTokenType.Null) return null;
+        if (reader.TokenType == System.Text.Json.JsonTokenType.String) return new MessageRef(reader.GetString() ?? "");
+
+        string key = "";
+        Dictionary<string, LocalizedText>? args = null;
+        while (reader.Read() && reader.TokenType != System.Text.Json.JsonTokenType.EndObject)
+        {
+            var name = reader.GetString();
+            reader.Read();
+            if (string.Equals(name, "key", StringComparison.OrdinalIgnoreCase)) key = reader.GetString() ?? "";
+            else if (string.Equals(name, "args", StringComparison.OrdinalIgnoreCase) &&
+                     reader.TokenType != System.Text.Json.JsonTokenType.Null)
+                args = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, LocalizedText>>(ref reader, options);
+            else reader.Skip();
+        }
+        return new MessageRef(key, args);
+    }
+
+    public override void Write(System.Text.Json.Utf8JsonWriter writer, MessageRef value,
+        System.Text.Json.JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("key", value.Key);
+        if (value.Args is { Count: > 0 })
+        {
+            writer.WritePropertyName("args");
+            System.Text.Json.JsonSerializer.Serialize(writer, value.Args, options);
+        }
+        writer.WriteEndObject();
     }
 }

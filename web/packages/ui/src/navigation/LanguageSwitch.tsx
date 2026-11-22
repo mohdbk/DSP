@@ -1,15 +1,36 @@
-import { AegovButton } from '@aegov/designsystem-react';
-import { getLang, setLang, t } from '@dsp/core';
+import { AegovButton, AegovDropdown } from '@aegov/designsystem-react';
+import { getLang, getLanguages, loc, setLang, t, type LanguageInfo } from '@dsp/core';
 
-/** Switches between English and Arabic; the whole layout flips to right-to-left. */
+/** A language in its own name (e.g. "العربية"), as language switches show them. */
+export function ownName(language: LanguageInfo): string {
+  return language.name[language.code] || loc(language.name, language.code);
+}
+
+/**
+ * Switches language. Languages are data: with one or two other enabled languages they are links in the top bar,
+ * each in its own name; with more, a menu. The layout flips when the direction changes.
+ */
 export function LanguageSwitch() {
-  const next = getLang() === 'ar' ? 'en' : 'ar';
-  return (
-    <span lang={next}>
-      <AegovButton appearance="link" variant="neutral-max" size="sm" aria-label={t('lang.switchLabel')}
-        onAegovButtonClick={() => setLang(next)}>
-        {t('lang.switch')}
+  const others = getLanguages().filter(l => l.code !== getLang());
+  if (others.length === 0) return null;
+
+  const button = (l: LanguageInfo) => (
+    <span key={l.code} lang={l.code} dir={l.direction}>
+      <AegovButton appearance="link" variant="neutral-max" size="sm"
+        aria-label={t('lang.switchTo', { language: ownName(l) })}
+        onAegovButtonClick={() => { void setLang(l.code); }}>
+        {ownName(l)}
       </AegovButton>
     </span>
+  );
+
+  if (others.length <= 2) return <span className="inline-flex items-center gap-2">{others.map(button)}</span>;
+
+  // The dropdown moves its content to <body>, so only AEGOV events are used inside it.
+  return (
+    <AegovDropdown>
+      <AegovButton appearance="link" variant="neutral-max" size="sm">{t('lang.choose')}</AegovButton>
+      <div slot="dropdown-content" className="flex w-48 flex-col items-start gap-1 p-2">{others.map(button)}</div>
+    </AegovDropdown>
   );
 }

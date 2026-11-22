@@ -21,8 +21,8 @@ export function ServiceField({ field, value, error, onChange, onUpload, fileName
 }) {
   const common = {
     id: `f-${field.key}`,
-    label: loc(field.label, field.labelAr),
-    hint: loc(field.help, field.helpAr),
+    label: loc(field.label),
+    hint: loc(field.help),
     error,
     required: field.required,
     markOptional: true,
@@ -34,12 +34,12 @@ export function ServiceField({ field, value, error, onChange, onUpload, fileName
       return <CheckboxField {...common} markOptional={false} checked={value === 'true'} onChange={c => onChange(c ? 'true' : '')} />;
     case 'select':
       return <ChoiceField {...common} value={value} onChange={onChange}
-        choices={(field.options ?? []).map(o => ({ value: o.value, label: loc(o.label, o.labelAr) }))} />;
+        choices={(field.options ?? []).map(o => ({ value: o.value, label: loc(o.label) }))} />;
     case 'date':
       return <DateField {...common} value={value} onChange={onChange} />;
     case 'textarea':
       return <TextAreaField {...common} value={value} onChange={onChange} maxLength={field.maxLength}
-        placeholder={loc(field.placeholder, field.placeholderAr)} />;
+        placeholder={loc(field.placeholder)} />;
     case 'file':
       return <FileField {...common} value={value} fileName={fileName}
         onUpload={onUpload ?? (async () => { throw new Error(t('form.uploadFailed')); })}
@@ -47,7 +47,7 @@ export function ServiceField({ field, value, error, onChange, onUpload, fileName
     default:
       return <TextField {...common} value={value} onChange={onChange}
         type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : field.type === 'number' ? 'number' : 'text'}
-        placeholder={loc(field.placeholder, field.placeholderAr)} />;
+        placeholder={loc(field.placeholder)} />;
   }
 }
 
@@ -63,7 +63,7 @@ export function StepFields({ step, values, errors = [], onChange, onUpload, file
 }) {
   return (
     <div>
-      {step.description && <p className="mb-5 text-aeblack-600">{loc(step.description, step.descriptionAr)}</p>}
+      {step.description && <p className="mb-5 text-aeblack-600">{loc(step.description)}</p>}
       {step.fields.map(field => (
         <ServiceField key={field.key} field={field} value={values[field.key] ?? ''}
           error={errors.find(e => e.field.toLowerCase() === field.key.toLowerCase())?.message}
@@ -81,7 +81,7 @@ export function displayValue(field: FieldDefinition, value: string | null | unde
   if (field.type === 'checkbox') return value === 'true' ? t('form.confirmed') : t('form.notConfirmed');
   if (field.type === 'select') {
     const option = field.options?.find(o => o.value === value);
-    return option ? loc(option.label, option.labelAr) : value;
+    return option ? loc(option.label) : value;
   }
   if (field.type === 'file') {
     return onOpenFile
@@ -100,7 +100,7 @@ export function StepAnswers({ step, values, fileNames = {}, onOpenFile }: {
 }) {
   return (
     <DescriptionList items={step.fields.map(f => ({
-      label: loc(f.label, f.labelAr),
+      label: loc(f.label),
       value: displayValue(f, values[f.key], fileNames[f.key], onOpenFile),
     }))} />
   );
@@ -119,7 +119,7 @@ export function ServiceAnswers({ steps, values, fileNames, onOpenFile, stepActio
       {steps.map((s, i) => (
         <section key={s.id}>
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-h6 font-bold text-aeblack-900">{loc(s.title, s.titleAr)}</h3>
+            <h3 className="text-h6 font-bold text-aeblack-900">{loc(s.title)}</h3>
             {stepAction?.(i)}
           </div>
           <StepAnswers step={s} values={values} fileNames={fileNames} onOpenFile={onOpenFile} />

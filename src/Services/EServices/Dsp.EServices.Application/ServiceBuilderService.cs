@@ -7,7 +7,7 @@ namespace Dsp.EServices.Application;
 /// The no-code service builder: staff create and edit e-services as data, preview them and publish
 /// numbered versions. Publishing affects new applications only; those in flight keep their version.
 /// </summary>
-public sealed class ServiceBuilderService(IServiceVersionRepository versions)
+public sealed class ServiceBuilderService(IServiceVersionRepository versions, IMessages messages)
 {
     public async Task<IReadOnlyList<BuilderServiceSummaryDto>> ListAsync(Caller caller, CancellationToken ct)
     {
@@ -20,10 +20,10 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
                 var draft = g.FirstOrDefault(v => v.Status == ServiceVersionStatus.Draft);
                 var latest = (draft ?? published ?? g.OrderByDescending(v => v.Version).First()).ToDefinition();
                 var updated = g.MaxBy(v => v.UpdatedAt)!;
-                return new BuilderServiceSummaryDto(g.Key, latest.Name, latest.NameAr, latest.Category,
+                return new BuilderServiceSummaryDto(g.Key, latest.Name, latest.Category,
                     published?.Version, draft?.Version, latest.WorkflowVersion, updated.UpdatedAt, updated.UpdatedBy);
             })
-            .OrderBy(s => s.Name)
+            .OrderBy(s => messages.Pick(s.Name), StringComparer.CurrentCultureIgnoreCase)
             .ToList();
     }
 
@@ -39,9 +39,9 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
     public async Task<BuilderServiceDto> CreateAsync(Caller caller, ServiceDefinition definition, CancellationToken ct)
     {
         EnsureStaff(caller);
-        if (string.IsNullOrWhiteSpace(definition.Code)) throw new ValidationException([new FieldError("code", "Enter a service code.")]);
+        if (string.IsNullOrWhiteSpace(definition.Code)) throw new ValidationException([new FieldError("code", messages.Format("builder.rule.code"))]);
         if ((await versions.ListForCodeAsync(definition.Code, ct)).Count > 0)
-            throw new ValidationException([new FieldError("code", "A service with this code already exists.")]);
+            throw new ValidationException([new FieldError("code", messages.Format("builder.rule.codeExists"))]);
 
         await versions.AddAsync(ServiceVersion.NewDraft(definition, 1, caller.Name), ct);
         await versions.SaveChangesAsync(ct);
@@ -78,7 +78,7 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
                     ?? throw new DomainException("errors.service.noDraftToPublish");
 
         var previous = list.Where(v => v.Status == ServiceVersionStatus.Published).ToList();
-        draft.Publish(caller.Name); // throws ValidationException while the definition has errors
+        draft.Publish(caller.Name, messages); // throws ValidationException while the definition has errors
         foreach (var live in previous) live.Retire();
         await versions.SaveChangesAsync(ct);
         return await GetAsync(caller, code, ct);
@@ -100,15 +100,15 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
     public IReadOnlyList<FieldError> Validate(Caller caller, ServiceDefinition definition)
     {
         EnsureStaff(caller);
-        return ServiceDefinitionRules.Validate(definition);
+        return ServiceDefinitionRules.Validate(definition, messages);
     }
 
-    private static BuilderServiceDto ToDto(string code, IReadOnlyList<ServiceVersion> list)
+    private BuilderServiceDto ToDto(string code, IReadOnlyList<ServiceVersion> list)
     {
         var published = list.FirstOrDefault(v => v.Status == ServiceVersionStatus.Published)?.ToDefinition();
         var draft = list.FirstOrDefault(v => v.Status == ServiceVersionStatus.Draft)?.ToDefinition();
         return new BuilderServiceDto(code, published, draft,
-            draft is null ? [] : ServiceDefinitionRules.Validate(draft),
+            draft is null ? [] : ServiceDefinitionRules.Validate(draft, messages),
             list.OrderByDescending(v => v.Version).Select(ServiceVersionDto.From).ToList());
     }
 
@@ -119,16 +119,17 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
 }
 
 /// <summary>Imports the service definitions shipped with the platform when the catalog is empty.</summary>
-public sealed class CatalogSeeder(IServiceVersionRepository versions)
+public sealed class CatalogSeeder(IServiceVersionRepository versions, ILocalization localization)
 {
     public async Task<int> SeedAsync(IEnumerable<ServiceDefinition> definitions, CancellationToken ct)
     {
         if (await versions.AnyAsync(ct)) return 0;
+        var messages = await localization.GetMessagesAsync(null, ct);
         var count = 0;
         foreach (var definition in definitions)
         {
             var version = ServiceVersion.NewDraft(definition, 1, "Platform");
-            version.Publish("Platform");
+            version.Publish("Platform", messages);
             await versions.AddAsync(version, ct);
             count++;
         }

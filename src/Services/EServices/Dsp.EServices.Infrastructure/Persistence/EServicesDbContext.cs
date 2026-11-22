@@ -1,4 +1,5 @@
 using Dsp.BuildingBlocks.Messaging;
+using Dsp.BuildingBlocks.Persistence;
 using Dsp.EServices.Application;
 using Dsp.EServices.Domain.Applications;
 using Dsp.EServices.Domain.Catalog;
@@ -28,7 +29,7 @@ public abstract class EServicesDbContext(DbContextOptions options) : DbContext(o
             e.HasIndex(x => new { x.ServiceCode, x.ReferenceValue });
             e.Property(x => x.Number).HasMaxLength(32);
             e.Property(x => x.ServiceCode).HasMaxLength(64);
-            e.Property(x => x.ServiceName).HasMaxLength(200);
+            e.Property(x => x.ServiceName).IsLocalizedText().HasMaxLength(2000);
             e.Property(x => x.ApplicantId).HasMaxLength(200);
             e.Property(x => x.ApplicantName).HasMaxLength(200);
             e.Property(x => x.ReferenceValue).HasMaxLength(200);
@@ -48,7 +49,7 @@ public abstract class EServicesDbContext(DbContextOptions options) : DbContext(o
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(32);
             e.Property(x => x.ApplicationNumber).HasMaxLength(32);
             e.Property(x => x.ServiceCode).HasMaxLength(64);
-            e.Property(x => x.ServiceName).HasMaxLength(200);
+            e.Property(x => x.ServiceName).IsLocalizedText().HasMaxLength(2000);
             e.Property(x => x.ApplicantName).HasMaxLength(200);
             e.Property(x => x.ReferenceValue).HasMaxLength(200);
             e.Property(x => x.CompletedBy).HasMaxLength(200);
@@ -76,7 +77,7 @@ public abstract class EServicesDbContext(DbContextOptions options) : DbContext(o
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.ApplicationId, x.Round });
             e.Property(x => x.Recommendation).HasMaxLength(32);
-            e.Property(x => x.Summary).HasMaxLength(2000);
+            e.Property(x => x.Summary).HasMaxLength(4000);
             e.Property(x => x.Mode).HasMaxLength(16);
             e.Property(x => x.Model).HasMaxLength(100);
             e.Ignore(x => x.AsksForInformation);
@@ -175,7 +176,7 @@ public sealed class ServiceVersionRepository(EServicesDbContext db) : IServiceVe
     public async Task<IReadOnlyList<ServiceDefinition>> ListPublishedAsync(CancellationToken ct) =>
         (await db.ServiceVersions.AsNoTracking().Where(v => v.Status == ServiceVersionStatus.Published).ToListAsync(ct))
             .Select(v => v.ToDefinition())
-            .OrderBy(d => d.Name)
+            .OrderBy(d => d.Name.Get(null), StringComparer.OrdinalIgnoreCase)
             .ToList();
 
     public async Task<ServiceDefinition?> FindPublishedAsync(string code, CancellationToken ct) =>

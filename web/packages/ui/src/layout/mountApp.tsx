@@ -1,13 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider, type AnyRouter } from '@tanstack/react-router';
+import { initI18n } from '@dsp/core';
 import '../styles.css';
 
-/** Starts a portal: the design system styles and the portal's router in #root. */
+/**
+ * Starts a portal: loads the enabled languages and the reader's texts from the Platform service, then renders the
+ * portal's router in #root with the design system styles.
+ */
 export function mountApp(router: AnyRouter) {
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <RouterProvider router={router} />
-    </StrictMode>,
-  );
+  void initI18n().finally(() => {
+    createRoot(document.getElementById('root')!).render(
+      <StrictMode>
+        <RouterProvider router={router} />
+      </StrictMode>,
+    );
+  });
 }

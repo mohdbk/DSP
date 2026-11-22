@@ -7,29 +7,29 @@ namespace Dsp.UnitTests.EServices;
 
 public class ServiceDefinitionRulesTests
 {
+    internal static readonly IMessages M = TestText.Messages();
+
     internal static ServiceDefinition Valid(string code = "BUSINESS_PERMIT", int workflowVersion = 1) => new()
     {
         Code = code,
-        Name = "Business Permit",
-        NameAr = "تصريح تجاري",
-        Description = "Apply for a business permit.",
-        DescriptionAr = "تقدم بطلب تصريح تجاري.",
+        Name = TestText.Text("Business Permit", "تصريح تجاري"),
+        Description = TestText.Text("Apply for a business permit.", "تقدم بطلب تصريح تجاري."),
         Fee = 150,
         ReferenceField = "businessName",
         WorkflowVersion = workflowVersion,
-        ReviewChecklist = ["The business name is appropriate."],
+        ReviewChecklist = [TestText.Text("The business name is appropriate.")],
         Steps =
         [
             new FormStep
             {
-                Id = "details", Title = "Details", TitleAr = "التفاصيل",
+                Id = "details", Title = TestText.Text("Details", "التفاصيل"),
                 Fields =
                 [
-                    new FieldDefinition { Key = "businessName", Label = "Business name", LabelAr = "اسم النشاط", Required = true },
+                    new FieldDefinition { Key = "businessName", Label = TestText.Text("Business name", "اسم النشاط"), Required = true },
                     new FieldDefinition
                     {
-                        Key = "emirate", Label = "Emirate", LabelAr = "الإمارة", Type = FieldTypes.Select, Required = true,
-                        Options = [new FieldOption { Value = "DXB", Label = "Dubai", LabelAr = "دبي" }],
+                        Key = "emirate", Label = TestText.Text("Emirate", "الإمارة"), Type = FieldTypes.Select, Required = true,
+                        Options = [new FieldOption { Value = "DXB", Label = TestText.Text("Dubai", "دبي") }],
                     },
                 ],
             },
@@ -37,13 +37,25 @@ public class ServiceDefinitionRulesTests
     };
 
     [Fact]
-    public void A_complete_bilingual_definition_is_valid() => Assert.Empty(ServiceDefinitionRules.Validate(Valid()));
+    public void A_complete_bilingual_definition_is_valid() => Assert.Empty(ServiceDefinitionRules.Validate(Valid(), M));
+
+    [Fact]
+    public void Only_the_default_language_is_required()
+    {
+        var d = Valid();
+        var englishOnly = new ServiceDefinition
+        {
+            Code = d.Code, Name = "Business Permit", Description = "Apply for a business permit.", Fee = d.Fee,
+            Steps = [new FormStep { Id = "details", Title = "Details", Fields = [new FieldDefinition { Key = "businessName", Label = "Business name" }] }],
+        };
+        Assert.Empty(ServiceDefinitionRules.Validate(englishOnly, M));
+    }
 
     [Fact]
     public void The_shipped_services_are_publishable()
     {
         foreach (var service in new EmbeddedServiceCatalog().GetAll())
-            Assert.Empty(ServiceDefinitionRules.Validate(service));
+            Assert.Empty(ServiceDefinitionRules.Validate(service, M));
     }
 
     [Fact]
@@ -52,47 +64,49 @@ public class ServiceDefinitionRulesTests
         var d = Valid("bad code");
         var broken = new ServiceDefinition
         {
-            Code = d.Code, Name = d.Name, NameAr = null, Description = d.Description, DescriptionAr = d.DescriptionAr,
+            Code = d.Code, Name = new LocalizedText([new("ar", "تصريح تجاري")]), Description = d.Description,
             Fee = 0, ReferenceField = "nope", WorkflowVersion = 7,
             Steps =
             [
                 new FormStep
                 {
-                    Id = "details", Title = "Details", TitleAr = "التفاصيل",
+                    Id = "details", Title = TestText.Text("Details", "التفاصيل"),
                     Fields =
                     [
-                        new FieldDefinition { Key = "name", Label = "Name", LabelAr = "الاسم" },
-                        new FieldDefinition { Key = "NAME", Label = "Name again", LabelAr = "الاسم" },
-                        new FieldDefinition { Key = "kind", Label = "Kind", LabelAr = "النوع", Type = FieldTypes.Select },
-                        new FieldDefinition { Key = "code", Label = "Code", LabelAr = "الرمز", Pattern = "([a-z" },
-                        new FieldDefinition { Key = "who", Label = "Who", Type = FieldTypes.Text, PrefillFrom = "salary" },
+                        new FieldDefinition { Key = "name", Label = TestText.Text("Name", "الاسم") },
+                        new FieldDefinition { Key = "NAME", Label = TestText.Text("Name again", "الاسم") },
+                        new FieldDefinition { Key = "kind", Label = TestText.Text("Kind", "النوع"), Type = FieldTypes.Select },
+                        new FieldDefinition { Key = "code", Label = TestText.Text("Code", "الرمز"), Pattern = "([a-z" },
+                        new FieldDefinition { Key = "who", Label = new LocalizedText([new("ar", "من")]), Type = FieldTypes.Text, PrefillFrom = "salary" },
                     ],
                 },
             ],
         };
 
-        var at = ServiceDefinitionRules.Validate(broken).Select(e => e.Field).ToList();
+        var at = ServiceDefinitionRules.Validate(broken, M).Select(e => e.Field).ToList();
 
         Assert.Contains("code", at);
-        Assert.Contains("nameAr", at);
+        Assert.Contains("name.en", at);           // the default language is missing
         Assert.Contains("fee", at);
         Assert.Contains("workflowVersion", at);
         Assert.Contains("referenceField", at);
         Assert.Contains("steps[0].fields[1].key", at);      // duplicate key (case-insensitive)
         Assert.Contains("steps[0].fields[2].options", at);  // select without options
         Assert.Contains("steps[0].fields[3].pattern", at);  // invalid regular expression
-        Assert.Contains("steps[0].fields[4].labelAr", at);
+        Assert.Contains("steps[0].fields[4].label.en", at);
         Assert.Contains("steps[0].fields[4].prefillFrom", at);
     }
 }
 
 public class ServiceVersionTests
 {
+    private static readonly IMessages M = TestText.Messages();
+
     [Fact]
     public void A_draft_is_published_and_keeps_its_version_number()
     {
         var draft = ServiceVersion.NewDraft(ServiceDefinitionRulesTests.Valid(), 3, "Khalid");
-        draft.Publish("Khalid");
+        draft.Publish("Khalid", M);
 
         Assert.Equal(ServiceVersionStatus.Published, draft.Status);
         Assert.Equal(3, draft.ToDefinition().Version);
@@ -105,12 +119,12 @@ public class ServiceVersionTests
         var incomplete = ServiceDefinitionRulesTests.Valid();
         var draft = ServiceVersion.NewDraft(new ServiceDefinition
         {
-            Code = incomplete.Code, Name = incomplete.Name, Description = incomplete.Description, Fee = incomplete.Fee,
+            Code = incomplete.Code, Name = new LocalizedText([new("ar", "تصريح")]), Description = incomplete.Description, Fee = incomplete.Fee,
             Steps = incomplete.Steps,
         }, 1, "Khalid");
 
-        var ex = Assert.Throws<ValidationException>(() => draft.Publish("Khalid"));
-        Assert.Contains(ex.Errors, e => e.Field == "nameAr");
+        var ex = Assert.Throws<ValidationException>(() => draft.Publish("Khalid", M));
+        Assert.Contains(ex.Errors, e => e.Field == "name.en");
         Assert.Equal(ServiceVersionStatus.Draft, draft.Status);
     }
 
@@ -118,7 +132,7 @@ public class ServiceVersionTests
     public void A_published_version_never_changes()
     {
         var version = ServiceVersion.NewDraft(ServiceDefinitionRulesTests.Valid(), 1, "Khalid");
-        version.Publish("Khalid");
+        version.Publish("Khalid", M);
 
         Assert.Throws<DomainException>(() => version.UpdateDraft(ServiceDefinitionRulesTests.Valid(), "Khalid"));
     }
@@ -140,7 +154,7 @@ public class ServiceBuilderServiceTests
     private readonly InMemoryVersions _versions = new();
     private readonly ServiceBuilderService _builder;
 
-    public ServiceBuilderServiceTests() => _builder = new ServiceBuilderService(_versions);
+    public ServiceBuilderServiceTests() => _builder = new ServiceBuilderService(_versions, TestText.Messages());
 
     [Fact]
     public async Task A_new_service_is_a_draft_until_published()
@@ -199,7 +213,7 @@ public class ServiceBuilderServiceTests
     [Fact]
     public async Task The_shipped_services_are_seeded_once()
     {
-        var seeder = new CatalogSeeder(_versions);
+        var seeder = new CatalogSeeder(_versions, TestText.Localization);
         var shipped = new EmbeddedServiceCatalog().GetAll();
 
         Assert.Equal(shipped.Count, await seeder.SeedAsync(shipped, default));

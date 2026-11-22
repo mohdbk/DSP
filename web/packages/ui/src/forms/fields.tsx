@@ -18,6 +18,8 @@ interface BaseProps {
   markOptional?: boolean;
   /** Text direction of the value, e.g. "rtl" for an Arabic-only field. */
   dir?: 'ltr' | 'rtl';
+  /** Language of the value (multilingual inputs), so screen readers and fonts follow it. */
+  lang?: string;
   disabled?: boolean;
 }
 
@@ -27,7 +29,7 @@ function labelText({ label, required, markOptional }: BaseProps) {
 
 function Framed({ props, children }: { props: BaseProps; children: ReactNode }) {
   return (
-    <div className="mb-5" dir={props.dir} lang={props.dir === 'rtl' ? 'ar' : undefined}>
+    <div className="mb-5" dir={props.dir} lang={props.lang}>
       <AegovFormField>
         <AegovLabel>{labelText(props)}</AegovLabel>
         {children}
@@ -147,6 +149,8 @@ export function FileField(props: BaseProps & {
   fileName?: string;
   onUpload: (file: File) => Promise<{ id: string; fileName: string }>;
   onChange: (documentId: string, fileName: string) => void;
+  /** Accepted file types (default: PDF and images). */
+  accept?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [uploadError, setUploadError] = useState<string>();
@@ -156,7 +160,7 @@ export function FileField(props: BaseProps & {
   return (
     <div className="mb-5">
       <AegovFileupload fieldId={props.id} name={props.id} label={labelText(props)} appearance="dropzone"
-        accept=".pdf,.jpg,.jpeg,.png" maxFileSize={10 * 1024 * 1024} isRequired={!!props.required && !props.value}
+        accept={props.accept ?? '.pdf,.jpg,.jpeg,.png'} maxFileSize={10 * 1024 * 1024} isRequired={!!props.required && !props.value}
         isDisabled={busy || !!props.disabled} isInvalid={!!error} errorMessage={error}
         hint={[props.hint, status ?? t('form.fileHint')].filter(Boolean).join(' · ')}
         onAegovFileuploadChange={async e => {

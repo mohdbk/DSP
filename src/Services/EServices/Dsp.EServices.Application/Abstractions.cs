@@ -1,3 +1,4 @@
+using Dsp.SharedKernel;
 using Dsp.EServices.Domain.Applications;
 using Dsp.EServices.Domain.Catalog;
 
@@ -72,7 +73,7 @@ public interface IWorkflowEngine
 public interface IPaymentsGateway
 {
     Task<Guid> CreatePaymentAsync(Guid applicationId, string payerId, decimal amount, string currency,
-        string description, CancellationToken ct);
+        LocalizedText description, CancellationToken ct);
 }
 
 /// <summary>Produces and stores the certificate document for a completed application.</summary>
@@ -88,9 +89,10 @@ public sealed record AiReviewRequest(
     IReadOnlyList<string> SimilarReferences,
     int Round);
 
+/// <summary>The pre-review's outcome; every text is in all the platform's enabled languages.</summary>
 public sealed record AiReviewResult(
     string Recommendation,
-    string Summary,
+    LocalizedText Summary,
     IReadOnlyList<AiFinding> Findings,
     IReadOnlyList<LocalizedText> Questions,
     string Mode,
@@ -102,6 +104,5 @@ public interface IAiReviewer
     Task<AiReviewResult> ReviewAsync(AiReviewRequest request, CancellationToken ct);
 }
 
-/// <summary>The signed-in caller, as passed in from the API layer.</summary>
-public sealed record Caller(string UserId, string Name, bool IsStaff, IReadOnlyDictionary<string, string?> Profile,
-    string Language = Localized.English);
+/// <summary>The signed-in caller, as passed in from the API layer. Their language comes with <see cref="IMessages"/>.</summary>
+public sealed record Caller(string UserId, string Name, bool IsStaff, IReadOnlyDictionary<string, string?> Profile);

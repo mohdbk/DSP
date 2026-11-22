@@ -19,7 +19,7 @@ export function ApplicationCase({ app, service, assessments, actions, summaryExt
 }) {
   return (
     <>
-      <PageHeader overline={<bdi>{app.number}</bdi>} title={loc(service.name, service.nameAr)}
+      <PageHeader overline={<bdi>{app.number}</bdi>} title={loc(service.name)}
         badges={<StatusBadge status={app.status} />} actions={actions} />
       <SplitLayout
         main={(

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Dsp.AiOrchestrator.Infrastructure;
 
+/// <summary>Environment defaults (Llm__BaseUrl, Llm__ApiKey, Llm__Model), used until staff save AI settings.</summary>
 public sealed class LlmOptions
 {
     /// <summary>OpenAI-compatible base URL, e.g. https://api.example.com/v1 (Net0 in production).</summary>
@@ -16,20 +17,20 @@ public sealed class LlmOptions
     public double Temperature { get; set; } = 0.2;
 }
 
-/// <summary>Chat completions with tool calling over any OpenAI-compatible endpoint.</summary>
-public sealed class OpenAiCompatibleLlmClient(HttpClient http, LlmOptions options, ILogger<OpenAiCompatibleLlmClient> logger)
-    : ILlmClient
+/// <summary>Chat completions with tool calling over any OpenAI-compatible endpoint, with the settings in force.</summary>
+public sealed class OpenAiCompatibleLlmClient(HttpClient http, ILogger<OpenAiCompatibleLlmClient> logger) : ILlmClient
 {
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(options.BaseUrl) && !string.IsNullOrWhiteSpace(options.Model);
-    public string? Model => options.Model;
-
-    public async Task<LlmReply> CompleteAsync(IReadOnlyList<LlmMessage> messages, IReadOnlyList<LlmTool> tools,
-        CancellationToken ct)
+    public async Task<LlmReply> CompleteAsync(AiSettings settings, IReadOnlyList<LlmMessage> messages,
+        IReadOnlyList<LlmTool> tools, CancellationToken ct)
     {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(settings.TimeoutSeconds, 5, 600)));
+        ct = timeout.Token;
+
         var body = new JsonObject
         {
-            ["model"] = options.Model,
-            ["temperature"] = options.Temperature,
+            ["model"] = settings.Model,
+            ["temperature"] = settings.Temperature,
             ["messages"] = new JsonArray(messages.Select(ToJson).ToArray<JsonNode?>()),
         };
         if (tools.Count > 0)
@@ -48,12 +49,12 @@ public sealed class OpenAiCompatibleLlmClient(HttpClient http, LlmOptions option
             body["tool_choice"] = "auto";
         }
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{options.BaseUrl!.TrimEnd('/')}/chat/completions")
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{settings.BaseUrl.TrimEnd('/')}/chat/completions")
         {
             Content = new StringContent(body.ToJsonString(), Encoding.UTF8, "application/json"),
         };
-        if (!string.IsNullOrWhiteSpace(options.ApiKey))
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", options.ApiKey);
+        if (!string.IsNullOrWhiteSpace(settings.ApiKey))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
 
         using var response = await http.SendAsync(request, ct);
         var text = await response.Content.ReadAsStringAsync(ct);

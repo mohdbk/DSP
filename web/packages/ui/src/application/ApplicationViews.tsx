@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { AegovButton, AegovCard, AegovTimeline, AegovTimelineStep } from '@aegov/designsystem-react';
 import {
-  formatDate, formatMoney, loc, t, type Application, type ApplicationStatus, type Notification, type ServiceSummary, type TKey,
+  formatDate, formatMoney, loc, t, type Application, type ApplicationStatus, type Notification, type ServiceSummary,
 } from '@dsp/core';
 import { DescriptionList } from '../data/DescriptionList';
 import { Money, Tag } from '../feedback/Feedback';
@@ -17,11 +17,11 @@ export function ServiceCard({ service, busy, disabled, onApply }: {
     <AegovCard appearance="solid" variant="neutral-min" borderWidth={1} hover="standard" className="flex h-full flex-col">
       <div className="flex h-full flex-col">
       <div className="flex flex-wrap gap-2">
-        <Tag variant="aegold">{loc(service.category, service.categoryAr)}</Tag>
+        <Tag variant="aegold">{loc(service.category)}</Tag>
         {service.workflowVersion === 2 && <Tag variant="techblue">{t('catalog.aiAssisted')}</Tag>}
       </div>
-      <h2 className="mt-3 text-h5 font-bold text-aeblack-900">{loc(service.name, service.nameAr)}</h2>
-      <p className="mt-2 flex-1 text-aeblack-600">{loc(service.description, service.descriptionAr)}</p>
+      <h2 className="mt-3 text-h5 font-bold text-aeblack-900">{loc(service.name)}</h2>
+      <p className="mt-2 flex-1 text-aeblack-600">{loc(service.description)}</p>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-aeblack-100 pt-4">
         <span>
           <strong><Money>{formatMoney(service.fee, service.currency)}</Money></strong>
@@ -51,7 +51,7 @@ export function ApplicationSummary({ app, extra = [] }: {
   );
 }
 
-interface Stage { key: TKey; statuses: ApplicationStatus[] }
+interface Stage { key: string; statuses: ApplicationStatus[] }
 
 const standardJourney: Stage[] = [
   { key: 'journey.submitted', statuses: ['Submitted'] },
@@ -93,8 +93,8 @@ export function NotificationList({ items, onOpen }: { items: Notification[]; onO
           <AegovCard appearance="solid" variant={n.isRead ? 'neutral-min' : 'primary'} borderWidth={1} hover="standard">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="font-bold text-aeblack-900">{loc(n.title, n.titleAr)}</p>
-                <p className="text-aeblack-700">{loc(n.body, n.bodyAr)}</p>
+                <p className="font-bold text-aeblack-900">{n.title}</p>
+                <p className="text-aeblack-700">{n.body}</p>
               </div>
               <span className="text-sm text-aeblack-500">{formatDate(n.createdAt, true)}</span>
             </div>

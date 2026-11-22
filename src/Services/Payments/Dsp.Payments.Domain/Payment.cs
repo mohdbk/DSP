@@ -15,7 +15,8 @@ public sealed class Payment : Entity
 
     public Guid ReferenceId { get; private set; }
     public string PayerId { get; private set; } = "";
-    public string Description { get; private set; } = "";
+    /// <summary>What the payment is for, in every language the service has.</summary>
+    public LocalizedText Description { get; private set; } = new();
     public decimal Amount { get; private set; }
     public string Currency { get; private set; } = "AED";
     public PaymentStatus Status { get; private set; }
@@ -24,7 +25,7 @@ public sealed class Payment : Entity
     public string? Method { get; private set; }
     public string? TransactionReference { get; private set; }
 
-    public static Payment Create(Guid referenceId, string payerId, decimal amount, string currency, string description)
+    public static Payment Create(Guid referenceId, string payerId, decimal amount, string currency, LocalizedText description)
     {
         if (amount <= 0) throw new DomainException("errors.payment.amount");
         if (string.IsNullOrWhiteSpace(payerId)) throw new DomainException("errors.payment.payer");
@@ -34,7 +35,7 @@ public sealed class Payment : Entity
             PayerId = payerId,
             Amount = amount,
             Currency = currency,
-            Description = description,
+            Description = new LocalizedText(description),
             Status = PaymentStatus.Pending,
             CreatedAt = DateTimeOffset.UtcNow,
         };

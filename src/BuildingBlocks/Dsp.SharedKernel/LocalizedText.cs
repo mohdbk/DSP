@@ -5,7 +5,7 @@ namespace Dsp.SharedKernel;
 
 /// <summary>
 /// A text in any number of languages, keyed by language code: <c>{ "en": "Fee", "ar": "الرسوم", "ur": "فیس" }</c>.
-/// Languages are data (managed in the Localization service); only the default language is required and
+/// Languages are data (managed in the Platform service); only the default language is required and
 /// every reader falls back to it. Used for all human-facing content: service definitions, names, messages.
 /// </summary>
 [JsonConverter(typeof(LocalizedTextConverter))]
@@ -20,6 +20,9 @@ public sealed class LocalizedText : Dictionary<string, string>
     }
 
     public static LocalizedText Of(string language, string text) => new() { [language] = text };
+
+    /// <summary>English text (convenient for code and tests that only have English).</summary>
+    public static implicit operator LocalizedText(string text) => Of("en", text);
 
     /// <summary>The text in <paramref name="language"/>, else in <paramref name="fallback"/>, else any text there is.</summary>
     public string Get(string? language, string? fallback = null)

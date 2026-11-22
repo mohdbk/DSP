@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
-import { ApiError, getLang, loc, t, type Application, type ServiceDefinition } from '@dsp/core';
+import { ApiError, loc, t, type Application, type ServiceDefinition } from '@dsp/core';
 import {
   AegovTab, AegovTabPanel, AegovTabs, ApplicationSummary, Loading, Notice, PageHeader, Panel, SplitLayout, StatusBadge,
 } from '@dsp/ui';
@@ -38,7 +38,7 @@ export function ApplicationPage() {
   const filled = required.filter(f => !!app.data[f.key]).length;
 
   const header = (
-    <PageHeader overline={<bdi>{app.number}</bdi>} title={loc(service.name, service.nameAr)} badges={<StatusBadge status={app.status} />} />
+    <PageHeader overline={<bdi>{app.number}</bdi>} title={loc(service.name)} badges={<StatusBadge status={app.status} />} />
   );
 
   if (!isDraft && !infoRequested) {
@@ -51,7 +51,7 @@ export function ApplicationPage() {
       {infoRequested && (
         <Notice kind="warning" title={t('app.infoNeeded')}>
           <p>{t('app.infoNeededIntro')}</p>
-          <ul className="my-2 ps-5">{app.informationRequest.map((q, i) => <li key={i}>{getLang() === 'ar' ? q.ar : q.en}</li>)}</ul>
+          <ul className="my-2 ps-5">{app.informationRequest.map((q, i) => <li key={i}>{loc(q)}</li>)}</ul>
           <p>{t('app.infoNeededHow')}</p>
         </Notice>
       )}

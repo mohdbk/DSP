@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Dsp.EServices.Application;
 using Dsp.EServices.Domain.Catalog;
 
@@ -11,7 +10,6 @@ namespace Dsp.EServices.Infrastructure.Catalog;
 /// </summary>
 public sealed class EmbeddedServiceCatalog : IServiceCatalog
 {
-    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     private readonly IReadOnlyList<ServiceDefinition> _services;
 
     public EmbeddedServiceCatalog()
@@ -22,10 +20,9 @@ public sealed class EmbeddedServiceCatalog : IServiceCatalog
             .Select(n =>
             {
                 using var stream = assembly.GetManifestResourceStream(n)!;
-                return JsonSerializer.Deserialize<ServiceDefinition>(stream, Json)
-                       ?? throw new InvalidOperationException($"Invalid service definition {n}");
+                return ServiceDefinitionJson.Deserialize(stream);
             })
-            .OrderBy(s => s.Name)
+            .OrderBy(s => s.Name.Get(null), StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
 

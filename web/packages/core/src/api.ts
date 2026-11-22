@@ -2,7 +2,7 @@ import type { FieldError, PagedList } from './types';
 
 /** The largest page the APIs return in one response. */
 export const MAX_PAGE_SIZE = 500;
-import { getLang, loc } from './i18n';
+import { getLang, t } from './i18n';
 
 /** Error raised for non-2xx responses, carrying RFC 7807 problem details from the services. */
 export class ApiError extends Error {
@@ -48,12 +48,12 @@ export function createApi(storageKey: string, onUnauthorized: () => void): ApiCl
     if (res.status === 401) {
       setToken(null);
       onUnauthorized();
-      throw new ApiError(401, loc('Your session has ended. Please sign in again.', 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.'));
+      throw new ApiError(401, t('errors.sessionEnded'));
     }
     if (!res.ok) {
       let problem: { title?: string; detail?: string; errors?: FieldError[]; correlationId?: string } = {};
       try { problem = await res.json(); } catch { /* not JSON */ }
-      throw new ApiError(res.status, problem.detail || problem.title || loc(`Request failed (${res.status})`, `تعذر تنفيذ الطلب (${res.status})`),
+      throw new ApiError(res.status, problem.detail || problem.title || t('errors.requestFailed', { status: res.status }),
         problem.errors ?? [], problem.correlationId);
     }
     if (res.status === 204) return undefined as T;

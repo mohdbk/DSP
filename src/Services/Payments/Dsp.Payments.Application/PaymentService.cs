@@ -21,9 +21,9 @@ public interface IPaymentProcessor
 }
 
 public sealed record CreatePaymentRequest(Guid ReferenceId, string PayerId, decimal Amount, string Currency,
-    string Description);
+    LocalizedText Description);
 
-public sealed record PaymentDto(Guid Id, Guid ReferenceId, string Description, decimal Amount, string Currency,
+public sealed record PaymentDto(Guid Id, Guid ReferenceId, LocalizedText Description, decimal Amount, string Currency,
     string Status, DateTimeOffset CreatedAt, DateTimeOffset? PaidAt, string? Method, string? TransactionReference)
 {
     public static PaymentDto From(Payment p) => new(p.Id, p.ReferenceId, p.Description, p.Amount, p.Currency,
