@@ -5,8 +5,11 @@ Publicly the platform is **MoET E-Services**; DSP is the internal name.
 
 ## What it shows
 
-- E-services defined as **data** (steps, fields, validation) — the shape the OutSystems extraction pipeline produces.
-- One **workflow** (Elsa) for the core process: submit → staff review → payment → certificate, or rejection.
+- E-services defined as **data** (steps, fields, validation) — the shape the OutSystems extraction pipeline produces —
+  and built without code in the back-office **service builder**, published as numbered versions.
+- Two **process versions** side by side (Elsa): v1 standard (submit → staff review → payment → certificate) and
+  v2 **agentic** (an AI pre-review first, which can ask the applicant to fix things, then staff review with the AI's findings).
+- **English and Arabic** everywhere: right-to-left layout, bilingual service definitions, validation messages, chat and notifications.
 - Two **portals**: the citizen E-Service Portal and the staff Back Office, sharing one form renderer.
 - Two **views** of every service, from day one: a form view and a chat view. Both save to the same application through the same API.
 - **Common services** used by every e-service: identity, payments, documents, notifications, workflow.
@@ -42,25 +45,55 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | Service | Responsibility | Database |
 |---|---|---|
 | Identity | Citizen sign-in through pluggable providers (UAE PASS now), staff sign-in (local accounts now, AD later), platform tokens | `DspIdentity` |
-| E-Services | Service catalog, applications, validation, business rules, review tasks, Elsa workflow | `DspEServices`, `DspWorkflows` |
+| E-Services | Service catalog and builder (versioned definitions), applications, validation, business rules, review tasks, AI pre-review records, Elsa workflows v1 and v2 | `DspEServices`, `DspWorkflows` |
 | Payments | Payment requests and (simulated) processing; publishes `PaymentCompleted` | `DspPayments` |
 | Documents | Uploads and generated certificates in SeaweedFS, SHA-256, owner-scoped access | `DspDocuments` |
 | Notifications | In-app notifications from `ApplicationStatusChanged` events | `DspNotifications` |
-| AI Orchestrator | Chat view: an LLM with tools over the E-Services API using the user's own token, or a guided mode when no model is configured | — |
+| AI Orchestrator | Chat view (an LLM with tools over the E-Services API using the user's own token, or a guided mode) and the AI pre-review for the agentic process (model review when configured, built-in checks always) | — |
 | Gateway | YARP routing and rate limiting; `/internal/**` is never exposed | — |
 
 ## Adding an e-service
 
-1. Add a definition to `src/Services/EServices/Dsp.EServices.Infrastructure/Catalog/Definitions/` (steps, fields, fee).
-2. If it has rules beyond field validation, add an `IServiceRules` class in `Dsp.EServices.Domain/Rules` and register it.
-3. Both portals, the chat view and validation pick it up automatically.
+**Without code (service builder).** Back Office → Service builder → New service. Define steps, fields, options and
+validation in English and Arabic, choose the process (standard or AI-assisted) and the AI review checklist, preview the
+form in both languages, and publish. Every save is a draft; publishing makes it the next version. Applications keep the
+version they started on, so changing a live service never affects applications in flight.
+
+**From the extraction pipeline.** Shipped definitions in
+`src/Services/EServices/Dsp.EServices.Infrastructure/Catalog/Definitions/` seed the catalog on first start. Rules beyond
+field validation go in an `IServiceRules` class in `Dsp.EServices.Domain/Rules`.
+
+Both portals, the chat view, validation and the AI pre-review pick a service up automatically.
+
+## Agentic process (workflow v2)
+
+```
+submit → AI pre-review ─┬─ fixable problem → ask the applicant (at most twice) → applicant edits and resends ─┐
+                        │                                                                                  │
+                        └──────────────────────────────── ok ─────────────────────────────────────────────┴→ staff review → payment → certificate
+```
+
+- The AI **never approves or rejects**. It prepares the case: a recommendation, findings for the officer and, when the
+  applicant can fix something, short questions in English and Arabic.
+- With a model configured (`Llm__BaseUrl`, `Llm__Model`, Net0 in production) the model reviews against the service's
+  checklist; the built-in checks (missing fields, Arabic fields not in Arabic, English fields in Arabic, placeholder
+  values, similar existing names, old start dates) always run as guardrails. Without a model, the built-in checks alone run.
+- If the AI service is unavailable, the application goes to staff as usual. Every round is stored (`AiAssessments`).
+- v1 and v2 run side by side: a service moves to v2 by publishing a new version with the AI-assisted process.
+
+## Arabic
+
+The language switch in both portals flips the layout to right-to-left and sends `Accept-Language` with every call, so
+validation messages, the guided chat and the LLM chat answer in Arabic. Service definitions carry Arabic for every label,
+help text, option and pattern message; the builder won't publish a service without them. Notifications store both languages.
 
 ## Configuration
 
 | Variable | Used by | Notes |
 |---|---|---|
 | `Jwt__Key` | all APIs | Shared signing key for platform tokens (≥ 32 bytes) |
-| `Internal__ApiKey` | E-Services, Payments, Documents | Service-to-service calls under `/internal` |
+| `Internal__ApiKey` | E-Services, Payments, Documents, AI Orchestrator | Service-to-service calls under `/internal` |
+| `Services__AiOrchestrator` | E-Services | AI pre-review endpoint (private network) |
 | `RabbitMq__Url` | E-Services, Payments, Notifications | `amqp://user:pass@host:5672` |
 | `Database__Provider` | services with a database | `SqlServer` (default, FedNet) or `Postgres` (Railway POC) |
 | `ConnectionStrings__<Service>` | each service | One database and one login per service ([deploy/database](deploy/database/README.md)) |
@@ -70,7 +103,7 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | `Identity__PublicBaseUrl` | Identity | Citizen portal URL (UAE PASS redirect) |
 | `Staff__InitialPassword` | Identity | Seeds the first staff accounts on an empty database |
 | `Storage__ServiceUrl` | Documents | SeaweedFS S3 endpoint |
-| `Llm__BaseUrl`, `Llm__ApiKey`, `Llm__Model` | AI Orchestrator | Any OpenAI-compatible endpoint (Net0 in FedNet). Empty = guided mode |
+| `Llm__BaseUrl`, `Llm__ApiKey`, `Llm__Model` | AI Orchestrator | Any OpenAI-compatible endpoint (Net0 in FedNet). Empty = guided chat and built-in review checks |
 
 ## Running locally
 
@@ -89,6 +122,13 @@ cd web && npm install && npm run dev:portal   # http://localhost:5173, proxies /
 - **Idempotent consumers.** Each handled event ID is recorded in `InboxMessages`; redeliveries are skipped.
   Handlers also check current state, so a retry after a partial failure is safe.
 - **Dead-letter queues.** A message that fails twice goes to `dsp.<service>.dead-letter` instead of being dropped.
+
+## Database migrations
+
+Each service owns its EF Core migrations (SQL Server and PostgreSQL). After changing a model on a feature branch, put a
+migration name in `tools/migrations/REQUEST` and push: the **Generate migrations** workflow adds migrations for every
+database whose model changed, refreshes the idempotent scripts in `deploy/database/scripts` and commits them to the branch.
+CI fails if a model changes without a migration.
 
 ## Tests and CI
 
