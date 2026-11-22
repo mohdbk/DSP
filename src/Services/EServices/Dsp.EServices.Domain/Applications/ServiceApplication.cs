@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Dsp.EServices.Domain.Catalog;
 using Dsp.SharedKernel;
 
 namespace Dsp.EServices.Domain.Applications;
@@ -12,6 +13,12 @@ public enum ApplicationStatus
     Paid,
     Approved,
     Rejected,
+
+    /// <summary>AI-assisted process: the AI pre-review is checking the application.</summary>
+    AiReview,
+
+    /// <summary>AI-assisted process: the applicant was asked for more information and can edit and resubmit.</summary>
+    InformationRequested,
 }
 
 /// <summary>An application for one e-service, from draft to certificate.</summary>
@@ -22,6 +29,10 @@ public sealed class ServiceApplication : Entity
     public string Number { get; private set; } = "";
     public string ServiceCode { get; private set; } = "";
     public string ServiceName { get; private set; } = "";
+
+    /// <summary>Version of the service definition the application started on (validation and display use it).</summary>
+    public int ServiceVersion { get; private set; } = 1;
+
     public int WorkflowVersion { get; private set; }
     public string ApplicantId { get; private set; } = "";
     public string ApplicantName { get; private set; } = "";
@@ -43,9 +54,18 @@ public sealed class ServiceApplication : Entity
     public Guid? PaymentId { get; private set; }
     public Guid? CertificateDocumentId { get; private set; }
 
+    /// <summary>Questions the applicant must answer (AI-assisted process), as JSON; null when nothing is asked.</summary>
+    public string? InformationRequestJson { get; private set; }
+
+    /// <summary>How many times the applicant was asked for more information.</summary>
+    public int InformationRequestCount { get; private set; }
+
+    /// <summary>The AI pre-review may ask the applicant this many times before handing over to staff.</summary>
+    public const int MaxInformationRequests = 2;
+
     public static ServiceApplication Create(string serviceCode, string serviceName, int workflowVersion,
         string applicantId, string applicantName, decimal fee, string currency,
-        IReadOnlyDictionary<string, string?> prefill)
+        IReadOnlyDictionary<string, string?> prefill, int serviceVersion = 1)
     {
         var now = DateTimeOffset.UtcNow;
         var app = new ServiceApplication
@@ -53,6 +73,7 @@ public sealed class ServiceApplication : Entity
             Number = $"DSP-{now:yyyy}-{Random.Shared.Next(100000, 999999)}",
             ServiceCode = serviceCode,
             ServiceName = serviceName,
+            ServiceVersion = serviceVersion,
             WorkflowVersion = workflowVersion,
             ApplicantId = applicantId,
             ApplicantName = applicantName,
@@ -72,9 +93,17 @@ public sealed class ServiceApplication : Entity
 
     public bool IsOwnedBy(string userId) => ApplicantId == userId;
 
+    /// <summary>Draft applications are editable, and so are applications the AI pre-review asked to complete.</summary>
+    public bool IsEditable => Status is ApplicationStatus.Draft or ApplicationStatus.InformationRequested;
+
+    public IReadOnlyList<LocalizedText> GetInformationRequest() =>
+        InformationRequestJson is null
+            ? []
+            : JsonSerializer.Deserialize<List<LocalizedText>>(InformationRequestJson) ?? [];
+
     public void UpdateData(IReadOnlyDictionary<string, string?> values)
     {
-        EnsureStatus(ApplicationStatus.Draft, "Only draft applications can be edited.");
+        if (!IsEditable) throw new DomainException("Only draft applications can be edited.");
         var data = GetData();
         foreach (var (key, value) in values) data[key] = value?.Trim();
         DataJson = JsonSerializer.Serialize(data);
@@ -89,9 +118,41 @@ public sealed class ServiceApplication : Entity
         SubmittedAt = UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>AI-assisted process: the pre-review starts (or starts again after the applicant answered).</summary>
+    public void StartAiReview()
+    {
+        EnsureStatus(ApplicationStatus.Submitted, "Only submitted applications can go to the AI pre-review.");
+        Status = ApplicationStatus.AiReview;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>AI-assisted process: ask the applicant to complete or correct something before staff review.</summary>
+    public void RequestInformation(IReadOnlyList<LocalizedText> questions)
+    {
+        EnsureStatus(ApplicationStatus.AiReview, "Information can only be requested during the AI pre-review.");
+        if (questions.Count == 0) throw new DomainException("Say what information is needed.");
+        if (InformationRequestCount >= MaxInformationRequests)
+            throw new DomainException("The applicant was already asked the maximum number of times.");
+        Status = ApplicationStatus.InformationRequested;
+        InformationRequestJson = JsonSerializer.Serialize(questions);
+        InformationRequestCount++;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>The applicant updated the application and sent it back.</summary>
+    public void ProvideInformation(string? referenceValue)
+    {
+        EnsureStatus(ApplicationStatus.InformationRequested, "No information was requested for this application.");
+        Status = ApplicationStatus.Submitted;
+        ReferenceValue = referenceValue;
+        InformationRequestJson = null;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void StartReview()
     {
-        EnsureStatus(ApplicationStatus.Submitted, "Only submitted applications can go to review.");
+        if (Status is not (ApplicationStatus.Submitted or ApplicationStatus.AiReview))
+            throw new DomainException("Only submitted applications can go to review.");
         Status = ApplicationStatus.UnderReview;
         UpdatedAt = DateTimeOffset.UtcNow;
     }

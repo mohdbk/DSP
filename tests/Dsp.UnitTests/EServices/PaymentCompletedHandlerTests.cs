@@ -78,6 +78,8 @@ public class PaymentCompletedHandlerTests
         public Task<IReadOnlyList<ServiceApplication>> ListForApplicantAsync(string applicantId, CancellationToken ct) => throw new NotSupportedException();
         public Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct) => throw new NotSupportedException();
         public Task<bool> ReferenceInUseAsync(string s, string r, Guid e, CancellationToken ct) => Task.FromResult(false);
+        public Task<IReadOnlyList<string>> ListActiveReferencesAsync(string s, Guid e, int take, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<string>>([]);
         public Task AddAsync(ServiceApplication application, CancellationToken ct) => Task.CompletedTask;
         public Task SaveChangesAsync(CancellationToken ct) => Task.CompletedTask;
     }
@@ -85,12 +87,13 @@ public class PaymentCompletedHandlerTests
     private sealed class Workflow : IWorkflowEngine
     {
         public List<Guid> Resumed { get; } = [];
-        public Task StartApplicationProcessAsync(Guid id, CancellationToken ct) => Task.CompletedTask;
+        public Task StartApplicationProcessAsync(Guid id, int version, CancellationToken ct) => Task.CompletedTask;
+        public Task SignalInformationProvidedAsync(Guid id, CancellationToken ct) => Task.CompletedTask;
         public Task SignalStaffDecisionAsync(Guid id, CancellationToken ct) => Task.CompletedTask;
         public Task SignalPaymentCompletedAsync(Guid id, CancellationToken ct) { Resumed.Add(id); return Task.CompletedTask; }
     }
 
-    private sealed class NoTasks : IReviewTaskRepository
+    internal sealed class NoTasks : IReviewTaskRepository
     {
         public Task<ReviewTask?> GetAsync(Guid id, CancellationToken ct) => Task.FromResult<ReviewTask?>(null);
         public Task<IReadOnlyList<ReviewTask>> ListOpenAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<ReviewTask>>([]);
@@ -99,13 +102,13 @@ public class PaymentCompletedHandlerTests
         public Task SaveChangesAsync(CancellationToken ct) => Task.CompletedTask;
     }
 
-    private sealed class NoPayments : IPaymentsGateway
+    internal sealed class NoPayments : IPaymentsGateway
     {
         public Task<Guid> CreatePaymentAsync(Guid a, string p, decimal amount, string c, string d, CancellationToken ct) =>
             Task.FromResult(Guid.NewGuid());
     }
 
-    private sealed class NoCertificates : ICertificateIssuer
+    internal sealed class NoCertificates : ICertificateIssuer
     {
         public Task<Guid> IssueAsync(ServiceApplication application, CancellationToken ct) => Task.FromResult(Guid.NewGuid());
     }

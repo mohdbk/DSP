@@ -9,6 +9,8 @@ public static class DependencyInjection
     {
         services.AddScoped<ApplicationService>();
         services.AddScoped<ReviewService>();
+        services.AddScoped<ServiceBuilderService>();
+        services.AddScoped<CatalogSeeder>();
         services.AddScoped<ProcessSteps>();
         services.AddScoped<StatusNotifier>();
 

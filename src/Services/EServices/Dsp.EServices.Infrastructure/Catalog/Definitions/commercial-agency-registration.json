@@ -3,52 +3,68 @@
   "name": "Commercial Agency Registration",
   "nameAr": "تسجيل وكالة تجارية",
   "description": "Register a commercial agency agreement between a UAE agent and a foreign principal.",
+  "descriptionAr": "سجّل اتفاقية وكالة تجارية بين وكيل إماراتي وموكّل أجنبي.",
   "category": "Business",
+  "categoryAr": "الأعمال",
   "fee": 500,
   "currency": "AED",
   "referenceField": "agentCompany",
   "workflowVersion": 1,
+  "reviewChecklist": [
+    "The agreement names the same agent and principal as the application.",
+    "The agreement is signed by both parties and covers the products listed.",
+    "The agreement runs for at least one year."
+  ],
   "steps": [
     {
       "id": "agent",
       "title": "Agent (UAE company)",
+      "titleAr": "الوكيل (شركة إماراتية)",
       "fields": [
-        { "key": "agentCompany", "label": "Agent company name", "type": "text", "required": true, "maxLength": 150 },
-        { "key": "tradeLicenseNumber", "label": "Trade licence number", "type": "text", "required": true, "pattern": "^[A-Za-z0-9-]{4,20}$", "patternMessage": "Enter the licence number as shown on the licence." },
-        { "key": "contactEmail", "label": "Contact email", "type": "email", "required": true, "prefillFrom": "email" },
-        { "key": "contactMobile", "label": "Contact mobile", "type": "phone", "required": true, "pattern": "^(\\+?971|0)?5\\d{8}$", "patternMessage": "Enter a UAE mobile number, e.g. 971501234567.", "prefillFrom": "mobile" }
+        { "key": "agentCompany", "label": "Agent company name", "labelAr": "اسم شركة الوكيل", "type": "text", "required": true, "maxLength": 150 },
+        { "key": "tradeLicenseNumber", "label": "Trade licence number", "labelAr": "رقم الرخصة التجارية", "type": "text", "required": true, "pattern": "^[A-Za-z0-9-]{4,20}$", "patternMessage": "Enter the licence number as shown on the licence.", "patternMessageAr": "أدخل رقم الرخصة كما يظهر في الرخصة." },
+        { "key": "contactEmail", "label": "Contact email", "labelAr": "البريد الإلكتروني للتواصل", "type": "email", "required": true, "prefillFrom": "email" },
+        { "key": "contactMobile", "label": "Contact mobile", "labelAr": "رقم الهاتف المتحرك للتواصل", "type": "phone", "required": true, "pattern": "^(\\+?971|0)?5\\d{8}$", "patternMessage": "Enter a UAE mobile number, e.g. 971501234567.", "patternMessageAr": "أدخل رقم هاتف متحرك إماراتي، مثل 971501234567.", "prefillFrom": "mobile" }
       ]
     },
     {
       "id": "principal",
       "title": "Foreign principal",
+      "titleAr": "الموكّل الأجنبي",
       "fields": [
-        { "key": "principalName", "label": "Principal company name", "type": "text", "required": true, "maxLength": 150 },
+        { "key": "principalName", "label": "Principal company name", "labelAr": "اسم شركة الموكّل", "type": "text", "required": true, "maxLength": 150 },
         {
-          "key": "principalCountry", "label": "Principal country", "type": "select", "required": true,
+          "key": "principalCountry", "label": "Principal country", "labelAr": "دولة الموكّل", "type": "select", "required": true,
           "options": [
-            { "value": "DE", "label": "Germany" }, { "value": "FR", "label": "France" }, { "value": "IT", "label": "Italy" },
-            { "value": "JP", "label": "Japan" }, { "value": "KR", "label": "South Korea" }, { "value": "US", "label": "United States" },
-            { "value": "GB", "label": "United Kingdom" }, { "value": "CN", "label": "China" }
+            { "value": "DE", "label": "Germany", "labelAr": "ألمانيا" },
+            { "value": "FR", "label": "France", "labelAr": "فرنسا" },
+            { "value": "IT", "label": "Italy", "labelAr": "إيطاليا" },
+            { "value": "JP", "label": "Japan", "labelAr": "اليابان" },
+            { "value": "KR", "label": "South Korea", "labelAr": "كوريا الجنوبية" },
+            { "value": "US", "label": "United States", "labelAr": "الولايات المتحدة" },
+            { "value": "GB", "label": "United Kingdom", "labelAr": "المملكة المتحدة" },
+            { "value": "CN", "label": "China", "labelAr": "الصين" }
           ]
         },
-        { "key": "productLines", "label": "Products or services covered", "type": "textarea", "required": true, "minLength": 10, "maxLength": 1000 }
+        { "key": "productLines", "label": "Products or services covered", "labelAr": "المنتجات أو الخدمات المشمولة", "type": "textarea", "required": true, "minLength": 10, "maxLength": 1000 }
       ]
     },
     {
       "id": "agreement",
       "title": "Agency agreement",
+      "titleAr": "اتفاقية الوكالة",
       "fields": [
-        { "key": "agreementStart", "label": "Agreement start date", "type": "date", "required": true },
-        { "key": "agreementEnd", "label": "Agreement end date", "type": "date", "required": true, "help": "Agreements must run for at least one year." },
-        { "key": "agreementFile", "label": "Signed agency agreement (PDF)", "type": "file", "required": true }
+        { "key": "agreementStart", "label": "Agreement start date", "labelAr": "تاريخ بدء الاتفاقية", "type": "date", "required": true },
+        { "key": "agreementEnd", "label": "Agreement end date", "labelAr": "تاريخ انتهاء الاتفاقية", "type": "date", "required": true, "help": "Agreements must run for at least one year.", "helpAr": "يجب ألا تقل مدة الاتفاقية عن سنة واحدة." },
+        { "key": "agreementFile", "label": "Signed agency agreement (PDF)", "labelAr": "اتفاقية الوكالة الموقعة (PDF)", "type": "file", "required": true }
       ]
     },
     {
       "id": "declaration",
       "title": "Declaration",
+      "titleAr": "الإقرار",
       "fields": [
-        { "key": "declaration", "label": "I confirm the information provided is correct and complete", "type": "checkbox", "required": true }
+        { "key": "declaration", "label": "I confirm the information provided is correct and complete", "labelAr": "أقر بأن المعلومات المقدمة صحيحة وكاملة", "type": "checkbox", "required": true }
       ]
     }
   ]

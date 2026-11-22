@@ -150,7 +150,7 @@ public class ApplicationServiceTests
 
     // ---- fakes ----
 
-    private sealed class FakeApplications(List<string> log) : IApplicationRepository
+    internal sealed class FakeApplications(List<string> log) : IApplicationRepository
     {
         private readonly List<ServiceApplication> _items = [];
 
@@ -170,6 +170,12 @@ public class ApplicationServiceTests
                                             a.ReferenceValue == referenceValue && a.Status != ApplicationStatus.Draft &&
                                             a.Status != ApplicationStatus.Rejected));
 
+        public Task<IReadOnlyList<string>> ListActiveReferencesAsync(string serviceCode, Guid excludeId, int take,
+            CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<string>>(_items
+                .Where(a => a.ServiceCode == serviceCode && a.Id != excludeId && a.ReferenceValue is not null)
+                .Select(a => a.ReferenceValue!).Take(take).ToList());
+
         public Task AddAsync(ServiceApplication application, CancellationToken ct)
         {
             _items.Add(application);
@@ -183,10 +189,22 @@ public class ApplicationServiceTests
         }
     }
 
-    private sealed class FakeWorkflow : IWorkflowEngine
+    internal sealed class FakeWorkflow : IWorkflowEngine
     {
         public List<Guid> Started { get; } = [];
-        public Task StartApplicationProcessAsync(Guid applicationId, CancellationToken ct) { Started.Add(applicationId); return Task.CompletedTask; }
+        public List<int> StartedVersions { get; } = [];
+        public List<Guid> InformationProvided { get; } = [];
+        public Task StartApplicationProcessAsync(Guid applicationId, int workflowVersion, CancellationToken ct)
+        {
+            Started.Add(applicationId);
+            StartedVersions.Add(workflowVersion);
+            return Task.CompletedTask;
+        }
+        public Task SignalInformationProvidedAsync(Guid applicationId, CancellationToken ct)
+        {
+            InformationProvided.Add(applicationId);
+            return Task.CompletedTask;
+        }
         public Task SignalStaffDecisionAsync(Guid applicationId, CancellationToken ct) => Task.CompletedTask;
         public Task SignalPaymentCompletedAsync(Guid applicationId, CancellationToken ct) => Task.CompletedTask;
     }

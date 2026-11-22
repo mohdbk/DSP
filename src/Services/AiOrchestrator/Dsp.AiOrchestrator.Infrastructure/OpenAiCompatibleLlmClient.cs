@@ -31,7 +31,11 @@ public sealed class OpenAiCompatibleLlmClient(HttpClient http, LlmOptions option
             ["model"] = options.Model,
             ["temperature"] = options.Temperature,
             ["messages"] = new JsonArray(messages.Select(ToJson).ToArray<JsonNode?>()),
-            ["tools"] = new JsonArray(tools.Select(t => (JsonNode?)new JsonObject
+        };
+        if (tools.Count > 0)
+        {
+            // Some OpenAI-compatible servers reject an empty tools list, so only send it when there are tools.
+            body["tools"] = new JsonArray(tools.Select(t => (JsonNode?)new JsonObject
             {
                 ["type"] = "function",
                 ["function"] = new JsonObject
@@ -40,9 +44,9 @@ public sealed class OpenAiCompatibleLlmClient(HttpClient http, LlmOptions option
                     ["description"] = t.Description,
                     ["parameters"] = JsonNode.Parse(t.ParametersJsonSchema),
                 },
-            }).ToArray()),
-            ["tool_choice"] = "auto",
-        };
+            }).ToArray());
+            body["tool_choice"] = "auto";
+        }
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{options.BaseUrl!.TrimEnd('/')}/chat/completions")
         {

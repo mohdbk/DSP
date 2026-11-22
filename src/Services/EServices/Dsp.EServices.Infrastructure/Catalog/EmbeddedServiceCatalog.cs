@@ -5,8 +5,9 @@ using Dsp.EServices.Domain.Catalog;
 namespace Dsp.EServices.Infrastructure.Catalog;
 
 /// <summary>
-/// Loads service definitions shipped with the service (Catalog/Definitions/*.json).
-/// Each file is one e-service, as produced by the OutSystems extraction pipeline.
+/// The service definitions shipped with the platform (Catalog/Definitions/*.json), as produced by the
+/// OutSystems extraction pipeline. They seed the database catalog on first start; after that the
+/// service builder owns them. Also usable as a read-only catalog in tests.
 /// </summary>
 public sealed class EmbeddedServiceCatalog : IServiceCatalog
 {
@@ -32,4 +33,11 @@ public sealed class EmbeddedServiceCatalog : IServiceCatalog
 
     public ServiceDefinition? Find(string code) =>
         _services.FirstOrDefault(s => string.Equals(s.Code, code, StringComparison.OrdinalIgnoreCase));
+
+    public Task<IReadOnlyList<ServiceDefinition>> ListPublishedAsync(CancellationToken ct) => Task.FromResult(_services);
+
+    public Task<ServiceDefinition?> FindPublishedAsync(string code, CancellationToken ct) => Task.FromResult(Find(code));
+
+    public Task<ServiceDefinition?> FindVersionAsync(string code, int version, CancellationToken ct) =>
+        Task.FromResult(Find(code) is { } s && s.Version == version ? s : null);
 }

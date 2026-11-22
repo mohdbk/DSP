@@ -13,10 +13,11 @@ public interface INotificationRepository
     Task SaveChangesAsync(CancellationToken ct);
 }
 
-public sealed record NotificationDto(Guid Id, string Title, string Body, string? Link, DateTimeOffset CreatedAt,
-    bool IsRead)
+public sealed record NotificationDto(Guid Id, string Title, string Body, string? TitleAr, string? BodyAr, string? Link,
+    DateTimeOffset CreatedAt, bool IsRead)
 {
-    public static NotificationDto From(Notification n) => new(n.Id, n.Title, n.Body, n.Link, n.CreatedAt, n.ReadAt.HasValue);
+    public static NotificationDto From(Notification n) =>
+        new(n.Id, n.Title, n.Body, n.TitleAr, n.BodyAr, n.Link, n.CreatedAt, n.ReadAt.HasValue);
 }
 
 public sealed class NotificationService(INotificationRepository notifications)
@@ -44,13 +45,13 @@ public sealed class ApplicationStatusChangedHandler(INotificationRepository noti
     public async Task HandleAsync(ApplicationStatusChanged e, CancellationToken ct)
     {
         await notifications.AddAsync(Notification.Create(e.ApplicantId, $"{e.ServiceName} · {e.ApplicationNumber}",
-            e.Message, $"/applications/{e.ApplicationId}"), ct);
+            e.Message, $"/applications/{e.ApplicationId}", $"{e.ServiceName} · {e.ApplicationNumber}", e.MessageAr), ct);
 
         if (e.Status == "UnderReview")
         {
             await notifications.AddAsync(Notification.Create(Notification.StaffAudience,
                 $"New application to review · {e.ApplicationNumber}", $"{e.ServiceName} is waiting for a decision.",
-                "/inbox"), ct);
+                "/inbox", $"طلب جديد للمراجعة · {e.ApplicationNumber}", $"{e.ServiceName} بانتظار القرار."), ct);
         }
 
         await notifications.SaveChangesAsync(ct);

@@ -13,6 +13,11 @@ app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Service-to-service: the AI pre-review of a submitted application (agentic process). Not exposed by the gateway.
+app.MapPost("/internal/ai/review", async (ApplicationReviewRequest request, ApplicationReviewAgent agent,
+        CancellationToken ct) => await agent.ReviewAsync(request, ct))
+    .RequireInternalKey().AllowAnonymous();
+
 var api = app.MapGroup("/api/ai").RequireAuthorization();
 
 api.MapGet("/status", (ILlmClient llm) => new

@@ -1,0 +1,86 @@
+name: Generate migrations
+
+# Adds EF Core migrations for every database whose model changed, then commits them to the branch.
+# To use it on a feature branch, put the migration name in tools/migrations/REQUEST and push.
+# The request file is removed in the same commit. Never runs on main.
+
+on:
+  push:
+    branches-ignore: [main]
+    paths: [tools/migrations/REQUEST]
+  workflow_dispatch:
+    inputs:
+      name:
+        description: Migration name (PascalCase)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: migrations-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version "10.*"
+
+      - name: Generate
+        run: |
+          set -euo pipefail
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          NAME="${{ github.event.inputs.name }}"
+          if [ -z "$NAME" ] && [ -f tools/migrations/REQUEST ]; then NAME="$(tr -cd 'A-Za-z0-9' < tools/migrations/REQUEST)"; fi
+          if [ -z "$NAME" ]; then echo "::error::No migration name given"; exit 1; fi
+          echo "Migration name: $NAME"
+
+          dotnet build Dsp.sln -c Debug -v q -nologo
+
+          changed=()
+          for svc in Identity EServices Payments Documents Notifications; do
+            proj="src/Services/$svc/Dsp.$svc.Infrastructure"
+            lower="$(echo "$svc" | tr '[:upper:]' '[:lower:]')"
+            pending=0
+            for prov in SqlServer Postgres; do
+              if ! dotnet ef migrations has-pending-model-changes --no-build \
+                   --project "$proj" --startup-project "$proj" --context "${svc}${prov}DbContext"; then
+                pending=1
+              fi
+            done
+            if [ "$pending" = "1" ]; then
+              echo "== $svc has model changes"
+              for prov in SqlServer Postgres; do
+                dotnet ef migrations add "$NAME" --no-build \
+                  --project "$proj" --startup-project "$proj" \
+                  --context "${svc}${prov}DbContext" --output-dir "Persistence/Migrations/$prov"
+              done
+              dotnet build "$proj" -v q -nologo
+              for prov in SqlServer Postgres; do
+                dotnet ef migrations script --idempotent --no-build \
+                  --project "$proj" --startup-project "$proj" \
+                  --context "${svc}${prov}DbContext" --output "deploy/database/scripts/$prov/$lower.sql"
+              done
+              changed+=("$svc")
+            fi
+          done
+          echo "CHANGED=${changed[*]:-none}" >> "$GITHUB_ENV"
+
+      - name: Commit
+        run: |
+          git config user.name "dsp-migrations[bot]"
+          git config user.email "dsp-migrations@users.noreply.github.com"
+          git rm -q --ignore-unmatch tools/migrations/REQUEST
+          git add -A src deploy/database/scripts
+          if git diff --cached --quiet; then echo "Nothing to commit"; exit 0; fi
+          git commit -m "Add migration for: ${CHANGED}"
+          git push

@@ -50,13 +50,18 @@ public sealed class EServicesApiClient(HttpClient http) : IEServicesApi
     private sealed record ValidationProblem(string? Detail, List<FieldErrorView>? Errors);
 }
 
-/// <summary>Forwards the caller's Authorization header so the agent acts with the user's permissions only.</summary>
+/// <summary>Forwards the caller's Authorization (and language) so the agent acts with the user's permissions only.</summary>
 public sealed class BearerForwardingHandler(IHttpContextAccessor accessor) : DelegatingHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
-        var auth = accessor.HttpContext?.Request.Headers.Authorization.ToString();
+        var headers = accessor.HttpContext?.Request.Headers;
+        var auth = headers?.Authorization.ToString();
         if (!string.IsNullOrEmpty(auth)) request.Headers.TryAddWithoutValidation("Authorization", auth);
+
+        // So E-Services returns validation messages in the user's language.
+        var language = headers?.AcceptLanguage.ToString();
+        if (!string.IsNullOrEmpty(language)) request.Headers.TryAddWithoutValidation("Accept-Language", language);
         return base.SendAsync(request, ct);
     }
 }

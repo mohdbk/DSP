@@ -3,17 +3,25 @@ namespace Dsp.AiOrchestrator.Application;
 // The agent's view of E-Services. It only ever calls the public E-Services API, with the user's own token,
 // so it can do nothing the user could not do in the form view.
 
-public sealed record FieldOptionView(string Value, string Label);
+public sealed record FieldOptionView(string Value, string Label, string? LabelAr = null)
+{
+    public string LabelFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(LabelAr) ? LabelAr : Label;
+}
 
 public sealed record FieldView(string Key, string Label, string Type, bool Required, string? Help,
-    IReadOnlyList<FieldOptionView>? Options);
+    IReadOnlyList<FieldOptionView>? Options, string? LabelAr = null, string? HelpAr = null)
+{
+    public string LabelFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(LabelAr) ? LabelAr : Label;
+    public string? HelpFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(HelpAr) ? HelpAr : Help;
+}
 
 public sealed record StepView(string Id, string Title, string? Description, IReadOnlyList<FieldView> Fields);
 
 public sealed record ServiceView(string Code, string Name, string Description, decimal Fee, string Currency,
-    IReadOnlyList<StepView> Steps)
+    IReadOnlyList<StepView> Steps, string? NameAr = null)
 {
     public IEnumerable<FieldView> AllFields => Steps.SelectMany(s => s.Fields);
+    public string NameFor(string lang) => lang == "ar" && !string.IsNullOrWhiteSpace(NameAr) ? NameAr : Name;
 }
 
 public sealed record ApplicationView(Guid Id, string Number, string ServiceCode, string ServiceName, string Status,
