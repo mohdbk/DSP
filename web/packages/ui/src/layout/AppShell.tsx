@@ -73,7 +73,7 @@ export function AppShell({ service, homeLabel, nav = [], account, children }: {
             <li><a href="/">{homeLabel}</a></li>
           </ul>
         </div>
-        <p slot="copyright">© {new Date().getFullYear()} {siteName(service)}. {t('footer.rights')}</p>
+        <p slot="copyright">© {new Date().getFullYear()} {t('entity.name')}. {t('footer.rights')}</p>
       </AegovFooter>
     </div>
   );
