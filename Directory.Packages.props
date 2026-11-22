@@ -23,7 +23,7 @@
 
     <!-- Messaging, storage, gateway -->
     <PackageVersion Include="RabbitMQ.Client" Version="7.*" />
-    <PackageVersion Include="AWSSDK.S3" Version="3.7.*" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.1.*" />
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.*" />
 
     <!-- Testing -->
