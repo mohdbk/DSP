@@ -35,12 +35,14 @@ public sealed record ApplicationDto(
     Guid? PaymentId,
     Guid? CertificateDocumentId,
     IReadOnlyList<LocalizedText> InformationRequest,
-    int InformationRequestCount)
+    int InformationRequestCount,
+    bool DecidedByAi)
 {
     public static ApplicationDto From(ServiceApplication a) => new(a.Id, a.Number, a.ServiceCode, a.ServiceName,
         a.ServiceVersion, a.WorkflowVersion, a.ApplicantId, a.ApplicantName, a.Status.ToString(), a.GetData(),
         a.ReferenceValue, a.Fee, a.Currency, a.CreatedAt, a.UpdatedAt, a.SubmittedAt, a.CompletedAt, a.Approved,
-        a.DecisionComment, a.PaymentId, a.CertificateDocumentId, a.GetInformationRequest(), a.InformationRequestCount);
+        a.DecisionComment, a.PaymentId, a.CertificateDocumentId, a.GetInformationRequest(), a.InformationRequestCount,
+        a.DecidedByAi);
 }
 
 public sealed record ReviewTaskDto(Guid Id, Guid ApplicationId, string ApplicationNumber, string ServiceCode,

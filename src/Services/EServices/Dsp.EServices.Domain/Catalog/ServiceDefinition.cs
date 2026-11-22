@@ -32,6 +32,15 @@ public sealed class ServiceDefinition
     /// <summary>What the AI pre-review checks for this service (agentic process only), in plain language.</summary>
     public IReadOnlyList<LocalizedText>? ReviewChecklist { get; init; }
 
+    /// <summary>
+    /// Agentic process only: the AI approves clear cases itself (see <see cref="Applications.AutoApprovalPolicy"/>).
+    /// Anything unclear, any rejection, and a random audit sample still go to a case officer.
+    /// </summary>
+    public bool AutoApproval { get; init; }
+
+    /// <summary>Share of clear cases (0–100) sent to an officer anyway, to audit the AI. Ignored without auto-approval.</summary>
+    public int AuditSamplePercent { get; init; } = 10;
+
     public required IReadOnlyList<FormStep> Steps { get; init; }
 
     [JsonIgnore]
@@ -46,7 +55,10 @@ public static class WorkflowVersions
     /// <summary>v1, the traditional journey: staff review, payment, certificate.</summary>
     public const int Standard = 1;
 
-    /// <summary>v2, agentic: an AI pre-review first (it can ask the applicant for more information), then staff decide.</summary>
+    /// <summary>
+    /// v2, agentic: an AI pre-review first (it can ask the applicant for more information); clear cases are approved
+    /// automatically when the service allows it, everything else goes to staff.
+    /// </summary>
     public const int AiAssisted = 2;
 
     public static bool IsKnown(int version) => version is Standard or AiAssisted;

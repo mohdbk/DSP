@@ -49,17 +49,20 @@ public sealed class ApplicationProcessWorkflow : WorkflowBase
             new CheckDecision { Result = new(approved) },
             new If(context => approved.Get(context))
             {
-                Then = new Sequence
-                {
-                    Activities =
-                    {
-                        new RequestPayment(),
-                        new Event(ProcessEvents.PaymentCompleted),
-                        new IssueCertificate(),
-                    },
-                },
+                Then = PaymentAndCertificate(),
                 Else = new RejectApplication(),
             },
+        },
+    };
+
+    /// <summary>After approval, by an officer or automatically.</summary>
+    internal static IActivity PaymentAndCertificate() => new Sequence
+    {
+        Activities =
+        {
+            new RequestPayment(),
+            new Event(ProcessEvents.PaymentCompleted),
+            new IssueCertificate(),
         },
     };
 }
@@ -68,8 +71,9 @@ public sealed class ApplicationProcessWorkflow : WorkflowBase
 /// The agentic process (workflow version 2), side by side with version 1: services move to it by publishing
 /// a new service version, while applications already in flight finish on the version they started.
 /// submitted → AI pre-review ⟲ (ask the applicant for missing or inconsistent information, at most twice)
-/// → staff review with the AI's findings → decision → payment → certificate.
-/// The AI never approves or rejects: it prepares the case, staff decide.
+/// → clear case and the service allows it: approved automatically → payment → certificate;
+///   otherwise: staff review with the AI's findings → decision → payment → certificate.
+/// The AI never rejects; it approves only clear cases (AutoApprovalPolicy), and an audit sample still goes to staff.
 /// </summary>
 public sealed class AgenticApplicationProcessWorkflow : WorkflowBase
 {
@@ -79,6 +83,7 @@ public sealed class AgenticApplicationProcessWorkflow : WorkflowBase
     {
         builder.WithDefinitionId(DefinitionId);
         var needsInformation = builder.WithVariable<bool>();
+        var autoApproved = builder.WithVariable<bool>();
         var approved = builder.WithVariable<bool>();
 
         builder.Root = new Sequence
@@ -99,8 +104,19 @@ public sealed class AgenticApplicationProcessWorkflow : WorkflowBase
                         },
                     },
                 },
-                new StartReview(),
-                ApplicationProcessWorkflow.DecisionPaymentAndCertificate(approved),
+                new TryAutoApprove { Result = new(autoApproved) },
+                new If(context => autoApproved.Get(context))
+                {
+                    Then = ApplicationProcessWorkflow.PaymentAndCertificate(),
+                    Else = new Sequence
+                    {
+                        Activities =
+                        {
+                            new StartReview(),
+                            ApplicationProcessWorkflow.DecisionPaymentAndCertificate(approved),
+                        },
+                    },
+                },
             },
         };
     }

@@ -63,6 +63,7 @@ export function ApplicationDetailPage() {
     <ApplicationCase app={app} service={service} assessments={assessments} onOpenFile={docId => openDocument(api, docId)}
       summaryExtra={[
         { label: t('decision'), value: app.approved == null ? '—' : app.approved ? t('approved') : t('rejected') },
+        ...(app.decidedByAi ? [{ label: t('apps.decidedBy'), value: t('apps.decidedByAi') }] : []),
         ...(app.decisionComment ? [{ label: t('comment'), value: app.decisionComment }] : []),
         { label: t('completed'), value: formatDate(app.completedAt, true) || '—' },
       ]}

@@ -50,6 +50,10 @@ export interface ServiceDefinition {
   version?: number;
   workflowVersion: number;
   reviewChecklist?: LocalizedText[] | null;
+  /** Agentic process: the AI approves clear cases itself; the rest, and an audit sample, go to an officer. */
+  autoApproval?: boolean;
+  /** Share of clear cases (0–100) sent to an officer anyway. */
+  auditSamplePercent?: number;
   steps: FormStep[];
 }
 
@@ -95,6 +99,8 @@ export interface Application {
   certificateDocumentId?: string | null;
   informationRequest: LocalizedText[];
   informationRequestCount: number;
+  /** Approved automatically by the AI (agentic process), not by an officer. */
+  decidedByAi?: boolean;
 }
 
 export interface FieldError { field: string; message: string }

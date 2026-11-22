@@ -67,6 +67,25 @@ public sealed class ProcessSteps(
         return askApplicant;
     }
 
+    /// <summary>
+    /// AI-assisted process, after the pre-review: approves a clear case automatically when the service allows it.
+    /// Returns true when approved (the process goes straight to payment); false sends it to a case officer.
+    /// </summary>
+    public async Task<bool> TryAutoApproveAsync(Guid applicationId, CancellationToken ct)
+    {
+        var app = await LoadAsync(applicationId, ct);
+        if (app.Status != ApplicationStatus.AiReview) return false;
+        var service = await DefinitionAsync(app, ct);
+        var latest = (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault();
+        var outcome = AutoApprovalPolicy.Evaluate(service, latest, app.Id);
+        logger.LogInformation("Automatic approval for {Number}: {Approve} ({Reason})", app.Number, outcome.Approve, outcome.Reason);
+        if (!outcome.Approve) return false;
+
+        app.ApproveAutomatically(); // the payment request that follows tells the applicant it was approved
+        await applications.SaveChangesAsync(ct);
+        return true;
+    }
+
     /// <summary>AI-assisted process: asks the applicant the questions from the latest pre-review.</summary>
     public async Task RequestInformationAsync(Guid applicationId, CancellationToken ct)
     {

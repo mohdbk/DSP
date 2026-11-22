@@ -49,7 +49,7 @@ export function DetailsSection({ def, change, err }: EditorProps) {
           { value: '1', label: t('process.v1'), hint: t('builder.processV1') },
           { value: '2', label: t('process.v2'), hint: t('builder.processV2') },
         ]}
-        onChange={v => change(d => { d.workflowVersion = Number(v); })} />
+        onChange={v => change(d => { d.workflowVersion = Number(v); if (d.workflowVersion !== 2) d.autoApproval = false; })} />
     </Panel>
   );
 }
@@ -69,6 +69,18 @@ export function ReviewSection({ def, change, err, hasErr }: EditorProps) {
     d.reviewChecklist = next.filter(item => Object.keys(item).length > 0);
   });
   return (
+    <>
+    {def.workflowVersion === 2 && (
+      <Panel className="mb-6 block" title={t('builder.autoTitle')}>
+        <CheckboxField id="autoApproval" label={t('builder.autoApproval')} hint={t('builder.autoApprovalHint')}
+          error={err('autoApproval')} checked={!!def.autoApproval} onChange={v => change(d => { d.autoApproval = v; })} />
+        <div className={def.autoApproval ? 'max-w-xs' : 'hidden'}>
+          <NumberField id="auditSample" label={t('builder.auditSample')} hint={t('builder.auditSampleHint')}
+            error={err('auditSamplePercent')} value={def.auditSamplePercent ?? 10}
+            onChange={v => change(d => { d.auditSamplePercent = Math.max(0, Math.min(100, Math.round(v ?? 0))); })} />
+        </div>
+      </Panel>
+    )}
     <Panel>
       {def.workflowVersion !== 2 && <Notice kind="info">{t('builder.checklistV1')}</Notice>}
       {listError && <Notice kind="error">{listError}</Notice>}
@@ -81,6 +93,7 @@ export function ReviewSection({ def, change, err, hasErr }: EditorProps) {
         ))}
       </div>
     </Panel>
+    </>
   );
 }
 

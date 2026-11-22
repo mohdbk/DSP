@@ -99,7 +99,7 @@ public class ApplicationReviewAgentTests
         Assert.StartsWith("You review applications for Ministry of Economy", system);
         Assert.DoesNotContain("{ministry}", system);
         Assert.Contains("Be strict.", system);
-        Assert.Contains("You never decide: the officer does.", system);
+        Assert.Contains("You never reject: an officer does.", system);
         Assert.Contains("Answer with JSON only", system);
     }
 
