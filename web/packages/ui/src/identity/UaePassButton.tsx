@@ -1,51 +1,27 @@
-import { getLang, t } from '@dsp/core';
-import enActive from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Active.svg';
-import enFocus from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Focus.svg';
-import enPressed from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Pressed.svg';
-import enDisabled from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Disabled.svg';
-import arActive from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Active.svg';
-import arFocus from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Focus.svg';
-import arPressed from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Pressed.svg';
-import arDisabled from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Disabled.svg';
+import { t } from '@dsp/core';
+import logo from '../assets/uaepass/uaepass-logo.svg';
+import logoDisabled from '../assets/uaepass/uaepass-logo-disabled.svg';
 
-// The official UAE PASS "Sign in with UAE PASS" button (UAE PASS Buttons Guidelines, version 2), used unmodified as
-// the guidelines and the UAE Design System require. Black style with the default corner radius, for light
-// backgrounds. UAE PASS publishes English and Arabic artwork; every other language uses the English artwork.
-// Each state (active, focus, pressed, disabled) is its own official artwork, shown by CSS state. We use the official
-// SVGs (sharp at any screen density; the official PNGs exist only at 1x and blur on phones). The SVGs set the title
-// as live text in SF Pro Text Semibold (English) and GE SS Two Medium (Arabic); devices without those fonts use
-// their own sans-serif. See assets/uaepass/README.md.
-
-const art = {
-  en: { active: enActive, focus: enFocus, pressed: enPressed, disabled: enDisabled },
-  ar: { active: arActive, focus: arFocus, pressed: arPressed, disabled: arDisabled },
-};
-
-/** Native size of the artwork (it is scaled down on narrow screens, keeping its aspect ratio). */
-const WIDTH = 310;
-const HEIGHT = 54;
+// "Sign in with UAE PASS", built as the UAE PASS Buttons Guidelines (version 2) describe under "Text format": the
+// title centred in the button and the official UAE PASS logo beside it, vertically aligned. Black style, white
+// title, official logo colours. Sizes, gap, corner radius and the focus, pressed and disabled states are measured
+// from the official artwork (see .uaepass-button in styles.css and assets/uaepass/README.md). The title is the
+// official wording in the page language, drawn in the portal's font so the spacing holds in every language.
 
 export function UaePassButton({ href, disabled }: { href: string; disabled?: boolean }) {
-  const images = getLang() === 'ar' ? art.ar : art.en;
-  const label = t('uaePass.signIn');
-  const img = (src: string, className: string) => (
-    <img src={src} alt="" width={WIDTH} height={HEIGHT} draggable={false} className={`h-auto max-w-full ${className}`} />
-  );
-
+  const title = t('uaePass.signIn');
   if (disabled) {
     return (
-      <span role="link" aria-disabled="true" aria-label={label} className="inline-block cursor-not-allowed">
-        {img(images.disabled, 'block')}
+      <span role="link" aria-disabled="true" className="uaepass-button">
+        <img src={logoDisabled} alt="" className="uaepass-button__logo" />
+        <span>{title}</span>
       </span>
     );
   }
-
   return (
-    <a href={href} aria-label={label}
-      className="group inline-block rounded-xl outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600">
-      {img(images.active, 'block group-focus-visible:hidden group-active:hidden')}
-      {img(images.focus, 'hidden group-focus-visible:block group-active:hidden')}
-      {img(images.pressed, 'hidden group-active:block')}
+    <a href={href} className="uaepass-button">
+      <img src={logo} alt="" className="uaepass-button__logo" />
+      <span>{title}</span>
     </a>
   );
 }

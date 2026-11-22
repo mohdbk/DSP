@@ -62,10 +62,16 @@ export function t(key: keyof typeof en, vars?: Vars): string {
   return text;
 }
 
+/** The site's name for a portal: "<portal> | <ministry>" (both parts and the pattern are translatable texts). */
+export function siteName(service: string): string {
+  return t('site.name', { service, ministry: t('entity.name') });
+}
+
 const en = {
   // Entity and shell
-  'entity.name': 'Ministry of Economy and Tourism',
-  'entity.home': 'Ministry of Economy and Tourism home',
+  'entity.name': 'Ministry of Economy & Tourism',
+  'entity.home': 'Ministry of Economy & Tourism home',
+  'site.name': '{service} | {ministry}',
   'nav.main': 'Main navigation',
   'nav.menu': 'Menu',
   'footer.about': 'Government services for businesses, investors and visitors, online.',
@@ -73,7 +79,7 @@ const en = {
   'footer.rights': 'All rights reserved.',
   'lang.switch': 'العربية',
   'lang.switchLabel': 'Switch to Arabic',
-  'app.portal': 'MoET E-Services',
+  'app.portal': 'E-Services',
   'app.portalHome': 'E-Services home',
   'app.portalSub': 'Ministry of Economy and Tourism',
   'app.backoffice': 'Back Office',
@@ -405,6 +411,7 @@ const en = {
 const ar: Partial<Record<keyof typeof en, string>> = {
   'entity.name': 'وزارة الاقتصاد والسياحة',
   'entity.home': 'الصفحة الرئيسية لوزارة الاقتصاد والسياحة',
+  'site.name': '{service} | {ministry}',
   'nav.main': 'التنقل الرئيسي',
   'nav.menu': 'القائمة',
   'footer.about': 'الخدمات الحكومية للشركات والمستثمرين والزوار، إلكترونيًا.',
