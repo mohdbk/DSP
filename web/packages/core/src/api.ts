@@ -35,10 +35,15 @@ export interface ApiClient {
  * Same-origin client: each portal's web server forwards /api to the gateway.
  * The platform token is kept in sessionStorage under a key per portal.
  */
+/** Fired on window whenever a portal's token is set or cleared (sign-in, sign-out, session ended). */
+export const SESSION_EVENT = 'dsp:session';
+
 export function createApi(storageKey: string, onUnauthorized: () => void): ApiClient {
   const token = () => sessionStorage.getItem(storageKey);
-  const setToken = (t: string | null) =>
-    t ? sessionStorage.setItem(storageKey, t) : sessionStorage.removeItem(storageKey);
+  const setToken = (t: string | null) => {
+    if (t) sessionStorage.setItem(storageKey, t); else sessionStorage.removeItem(storageKey);
+    window.dispatchEvent(new CustomEvent(SESSION_EVENT, { detail: storageKey }));
+  };
 
   async function request<T>(method: string, path: string, body?: BodyInit, json = true): Promise<T> {
     const headers: Record<string, string> = { 'Accept-Language': getLang() };

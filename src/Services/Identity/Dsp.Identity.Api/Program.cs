@@ -32,8 +32,8 @@ string BaseUrl(HttpContext ctx) =>
     string.IsNullOrEmpty(publicBaseUrl) ? $"{ctx.Request.Scheme}://{ctx.Request.Host}" : publicBaseUrl;
 
 string CallbackUri(HttpContext ctx, string provider) =>
-    // Registered with UAE PASS; the gateway forwards this unversioned path to the current version.
-    $"{BaseUrl(ctx)}/api/identity/citizen/{provider}/callback";
+    // The redirect URI registered with the provider.
+    $"{BaseUrl(ctx)}/api/{ApiVersions.Current}/identity/citizen/{provider}/callback";
 
 static string SafeReturnUrl(string? returnUrl) =>
     !string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith('/') && !returnUrl.StartsWith("//") ? returnUrl : "/";

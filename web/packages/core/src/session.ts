@@ -1,4 +1,5 @@
-import { createApi, readClaims, type ApiClient } from './api';
+import { useMemo, useSyncExternalStore } from 'react';
+import { createApi, readClaims, SESSION_EVENT, type ApiClient } from './api';
 
 /** A signed-in user as the portals see them: the platform token's claims. */
 export type Claims = Record<string, string>;
@@ -6,6 +7,8 @@ export type Claims = Record<string, string>;
 export interface Session<TUser> {
   api: ApiClient;
   currentUser(): TUser | null;
+  /** The signed-in user as React state: components re-render when someone signs in or out. */
+  useCurrentUser(): TUser | null;
   signOut(): void;
 }
 
@@ -31,11 +34,22 @@ export function createSession<TUser>(options: {
     return claims && claims.role === options.role ? options.mapUser(claims) : null;
   }
 
+  const subscribe = (notify: () => void) => {
+    window.addEventListener(SESSION_EVENT, notify);
+    window.addEventListener('storage', notify);
+    return () => { window.removeEventListener(SESSION_EVENT, notify); window.removeEventListener('storage', notify); };
+  };
+
+  function useCurrentUser(): TUser | null {
+    const token = useSyncExternalStore(subscribe, api.token, () => null);
+    return useMemo(() => currentUser(), [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
+
   function signOut() {
     const user = currentUser();
     api.setToken(null);
     location.assign(options.signOutUrl(user));
   }
 
-  return { api, currentUser, signOut };
+  return { api, currentUser, useCurrentUser, signOut };
 }

@@ -63,11 +63,10 @@ public class LocalizedTextTests
     }
 
     [Fact]
-    public void Plain_text_stored_before_languages_were_dynamic_reads_as_english()
+    public void Stored_texts_are_language_maps()
     {
-        Assert.Equal("Trade Name Reservation", LocalizedText.Parse("Trade Name Reservation")["en"]);
         Assert.Equal("حجز", LocalizedText.Parse("""{"en":"Reserve","ar":"حجز"}""")["ar"]);
-        Assert.Equal("x", JsonSerializer.Deserialize<LocalizedText>("\"x\"")!["en"]);
+        Assert.True(LocalizedText.Parse(null).IsEmpty);
     }
 
     [Fact]
@@ -79,24 +78,21 @@ public class LocalizedTextTests
 
         Assert.Equal("Your application was not approved. Reason: Name taken", back.Render(TestText.Messages("en")));
         Assert.StartsWith("لم تتم الموافقة", back.Render(TestText.Messages("ar")));
-        Assert.Equal("Old text", JsonSerializer.Deserialize<MessageRef>("\"Old text\"")!.Render(TestText.Messages()));
     }
 }
 
 public class ServiceDefinitionJsonTests
 {
     [Fact]
-    public void Definitions_saved_with_separate_arabic_fields_are_upgraded()
+    public void Definitions_round_trip_with_language_maps()
     {
-        var old = """
-            {"code":"X","name":"Permit","nameAr":"تصريح","description":"D","steps":[{"id":"a","title":"A","titleAr":"أ",
-             "fields":[{"key":"k","label":"Label","labelAr":"تسمية","options":[{"value":"1","label":"One","labelAr":"واحد"}]}]}]}
-            """;
-        var d = ServiceDefinitionJson.Deserialize(old);
+        var d = ServiceDefinitionJson.Deserialize("""
+            {"code":"X","name":{"en":"Permit","ar":"تصريح"},"description":{"en":"D"},
+             "steps":[{"id":"a","title":{"en":"A","ar":"أ"},"fields":[{"key":"k","label":{"en":"Label"},"type":"text",
+             "options":[{"value":"1","label":{"en":"One","ar":"واحد"}}]}]}]}
+            """);
 
         Assert.Equal("تصريح", d.Name["ar"]);
-        Assert.Equal("Permit", d.Name["en"]);
-        Assert.Equal("أ", d.Steps[0].Title["ar"]);
         Assert.Equal("واحد", d.Steps[0].Fields[0].Options![0].Label["ar"]);
         Assert.Equal("تصريح", ServiceDefinitionJson.Deserialize(ServiceDefinitionJson.Serialize(d)).Name["ar"]);
     }

@@ -36,7 +36,7 @@ public sealed class AiAssessment : Entity
     public Guid ApplicationId { get; private set; }
     public int Round { get; private set; }
     public string Recommendation { get; private set; } = AiRecommendations.Unavailable;
-    /// <summary>The summary in every enabled language, stored as a JSON map (older rows hold English text).</summary>
+    /// <summary>The summary in every enabled language, stored as a JSON map .</summary>
     public string Summary { get; private set; } = "";
     public string FindingsJson { get; private set; } = "[]";
     public string QuestionsJson { get; private set; } = "[]";
