@@ -167,7 +167,7 @@ START TRANSACTION;
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122170601_AiAuditSample') THEN
-    ALTER TABLE platform."AiSettings" ADD "AuditSamplePercent" integer NOT NULL DEFAULT 0;
+    ALTER TABLE platform."AiSettings" ADD "AuditSamplePercent" integer NOT NULL DEFAULT 10;
     END IF;
 END $EF$;
 

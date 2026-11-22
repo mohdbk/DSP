@@ -16,7 +16,7 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                 table: "AiSettings",
                 type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 10); // existing settings start with a 10% audit sample
         }
 
         /// <inheritdoc />

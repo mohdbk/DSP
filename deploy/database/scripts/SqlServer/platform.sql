@@ -194,7 +194,7 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20261122170558_AiAuditSample'
 )
 BEGIN
-    ALTER TABLE [platform].[AiSettings] ADD [AuditSamplePercent] int NOT NULL DEFAULT 0;
+    ALTER TABLE [platform].[AiSettings] ADD [AuditSamplePercent] int NOT NULL DEFAULT 10;
 END;
 
 IF NOT EXISTS (
