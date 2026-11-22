@@ -1,16 +1,19 @@
 import { useEffect, useState, Fragment } from 'react';
 import { Outlet, useRouter, useRouterState } from '@tanstack/react-router';
-import { siteName, useLang } from '@dsp/core';
+import { siteName, useLang, type ApiClient } from '@dsp/core';
 import { AppShell, type NavItem } from './AppShell';
 import { StaffShell } from './StaffShell';
 import { AccountArea } from '../navigation/AccountArea';
 import { useInternalLinks } from '../navigation/useInternalLinks';
+import { ApiProvider } from '../data/ApiContext';
 
 /**
  * The root route component of a portal: the government shell, its navigation, the signed-in user with their
  * unread notifications, language switching and in-app link handling. Each portal only supplies its settings.
  */
-export function PortalFrame({ service, homeLabel, navItems, user, notificationsHref, loadUnread, onSignOut, publicPaths, layout = 'public' }: {
+export function PortalFrame({ api, service, homeLabel, navItems, user, notificationsHref, loadUnread, onSignOut, publicPaths, layout = 'public' }: {
+  /** The portal's API client, for shared components such as tables and saved views. */
+  api: ApiClient;
   service: string;
   /** The footer link back to the portal's home page (e.g. "E-Services home"). */
   homeLabel: string;
@@ -44,11 +47,17 @@ export function PortalFrame({ service, homeLabel, navItems, user, notificationsH
   const page = <div className="contents"><Fragment key={lang}><Outlet /></Fragment></div>;
 
   if (layout === 'staff')
-    return <StaffShell service={service} nav={signedIn ? navItems(pathname) : []} account={accountArea}>{page}</StaffShell>;
+    return (
+      <ApiProvider api={api}>
+        <StaffShell service={service} nav={signedIn ? navItems(pathname) : []} account={accountArea}>{page}</StaffShell>
+      </ApiProvider>
+    );
 
   return (
-    <AppShell service={service} homeLabel={homeLabel} nav={signedIn ? navItems(pathname) : []} account={accountArea}>
-      {page}
-    </AppShell>
+    <ApiProvider api={api}>
+      <AppShell service={service} homeLabel={homeLabel} nav={signedIn ? navItems(pathname) : []} account={accountArea}>
+        {page}
+      </AppShell>
+    </ApiProvider>
   );
 }

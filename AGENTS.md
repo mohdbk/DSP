@@ -10,7 +10,7 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
 
 | Path | What it is |
 |---|---|
-| `src/BuildingBlocks/Dsp.SharedKernel` | Entity base, domain exceptions, `FieldError`, `PagedList` |
+| `src/BuildingBlocks/Dsp.SharedKernel` | Entity base, domain exceptions, `FieldError`, `PagedList`, the list engine (`ListQuery`, `ListFields`) |
 | `src/BuildingBlocks/Dsp.Contracts` | Integration events shared between services (the only shared types) |
 | `src/BuildingBlocks/Dsp.BuildingBlocks` | Hosting defaults, auth, API conventions, persistence, messaging (outbox/inbox) |
 | `src/Services/<Service>/Dsp.<Service>.{Domain,Application,Infrastructure,Api}` | One microservice, clean architecture |
@@ -95,18 +95,23 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
   `api-version`. A breaking change means a new version next to the old one; never change a published version's
   contract. Removing a field, renaming, changing a type or meaning, or tightening validation is breaking; adding an
   optional field or a new endpoint is not.
-- **Deprecation.** Old paths keep working through the gateway with `Deprecation`, `Sunset` and
-  `Link: rel="successor-version"` headers until the sunset date. The unversioned first-release paths sunset on
-  30 June 2027 (the UAE PASS redirect URI uses one; re-register it before then).
+- **Deprecation.** When a version is replaced, the old one keeps working next to it with `Deprecation`, `Sunset` and
+  `Link: rel="successor-version"` headers until its sunset date. There are no unversioned paths: everything,
+  including the UAE PASS return address, is under `/api/v1`.
 - **Contracts.** Each service publishes OpenAPI at `/api/v{n}/{service}/openapi.json` (`app.MapApiDocuments`).
   Keep endpoint parameter and return types explicit so the document stays accurate.
 - **JSON.** Plain JSON, camelCase, ISO 8601 dates in UTC. We don't use JSON:API envelopes.
 - **Errors.** RFC 9457 problem details (`application/problem+json`): `title`, `status`, `detail`, plus `errors`
   (`[{ field, message }]`) for validation and `correlationId`. Validation 422, domain conflicts 409, not found or not
   yours 404, forbidden 403. Never leak stack traces.
-- **Lists.** Every list endpoint returns `{ items, page, pageSize, total }` (`PagedList`), 1-based `page`,
-  `pageSize` up to 500. Search, sort and filter parameters, when added, are named `q`, `sort` (`field` or `-field`)
-  and the field name.
+- **Lists.** Every list a table shows is searched, filtered, sorted and paged **on the server**, never in the browser.
+  The endpoint takes `[AsParameters] ListQuery`: `q` (search words, "exact phrases"), `sort` (`field` or `-field`),
+  `page` (1-based), `pageSize` (up to 500), `filter` (JSON `{ match: "all"|"any", conditions: [{ column, op, value,
+  value2, values }] }`) and `tz` (the reader's offset from UTC in minutes, for calendar days). It returns
+  `{ items, page, pageSize, total, facets }` (`PagedList`); `facets` gives each choice column's values (with names).
+  Describe the columns once with `ListFields<T>` (text, number, date, choice, enum, tags; ids match the table's
+  column ids): `ToPageAsync` runs it in the database with EF Core, `Page` runs it over rows already in memory (small
+  settings lists). Put an index behind every list's scope and default order.
 - **Language.** `UseDspLocalization` resolves `Accept-Language` against the enabled languages (falling back to the
   default) and sets `Content-Language`. Never return English sentences: throw or return message **keys**
   (`errors.application.notFound`) and render them with `IMessages`; store notifications as `MessageRef` (key and
@@ -151,8 +156,8 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
 - Forms: visible label on every field, "(optional)" on optional fields (no asterisks), hint for formats, validation
   on blur and submit, errors next to the field. Five or fewer choices are radio buttons, more are a select.
   Use the shared fields (`TextField`, `ChoiceField`, `DateField`, `FileField`…) and `StepFields` for e-service forms.
-- Tables: every list uses `DataTable` — search, column filters (`meta.filter`), sorting and paging — with its state
-  in the URL (`validateListSearch` + `listStateProps`).
+- Tables: every list uses `DataTable` with a server `source` — search, filters, sorting and paging run on the
+  server — with its state in the URL (`validateListSearch` + `listStateProps`).
 - Citizens sign in with UAE PASS only, through `UaePassButton`, built to the UAE PASS Buttons Guidelines (official
   logo and title, measured sizes and states; see `web/packages/ui/src/assets/uaepass/README.md`). Never restyle,
   recolour or relabel it.
@@ -204,11 +209,14 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
 
 ### Tables
 
-Every list is a `DataTable`: search (several words, "exact phrases", choice labels in the reader's language),
-advanced filters (conditions per column typed text, number, date or choice — guessed from the values or set with
-`meta.type`; combined with all/any; shown as chips), sorting, paging and saved views per browser. State lives in the
-URL via `listStateProps`, so filtered lists can be shared. Mark choice columns with `meta.filter` (and `filterLabel`,
-`filterOptions`, `multiple`); hide action columns with `meta.filterable: false`.
+Every list is a `DataTable` whose `source` is its list endpoint (or a function loading one page). The table sends
+search (several words, "exact phrases"), filter conditions (per column, typed text, number, date or choice; combined
+with all/any; shown as chips), sort and page to the server and shows the page it gets back — it never filters, sorts
+or pages rows itself. Choice filters offer the server's `facets`. State lives in the URL via `listStateProps`, so
+filtered lists can be shared. Each person's **saved views** are stored in Platform (`/api/v1/platform/views`, per user
+and `listKey`) and follow them to any device. Declare `meta.type` on date and number columns, `meta.filter` (and
+`filterLabel`) on choice columns, and `meta.filterable: false` / `enableSorting: false` on columns the server doesn't
+know (actions, computed examples). After an edit, bump `reloadKey`. `PortalFrame` provides the API client (`useApi`).
 
 ### Icons
 

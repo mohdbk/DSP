@@ -42,12 +42,24 @@ public sealed class ApplicationService(
     public async Task<ApplicationDto> GetAsync(Caller caller, Guid id, CancellationToken ct) =>
         ApplicationDto.From(await ReadVisibleAsync(caller, id, ct));
 
-    public async Task<IReadOnlyList<ApplicationDto>> ListAsync(Caller caller, bool all, CancellationToken ct)
+    /// <summary>One page of applications: staff see every submitted one (<paramref name="all"/>), others their own.</summary>
+    public async Task<PagedList<ApplicationDto>> ListAsync(Caller caller, bool all, ListQuery query, CancellationToken ct)
     {
-        var list = all && caller.IsStaff
-            ? await applications.ListAllAsync(200, ct)
-            : await applications.ListForApplicantAsync(caller.UserId, ct);
-        return list.Select(ApplicationDto.From).ToList();
+        var fields = Lists.Applications(Lists.ServiceOptions(await catalog.ListPublishedAsync(ct)), messages);
+        var page = await applications.QueryAsync(all && caller.IsStaff ? null : caller.UserId, fields, query, ct);
+        return page.Map(ApplicationDto.From);
+    }
+
+    /// <summary>The published services, searched and paged (the catalogue).</summary>
+    public async Task<PagedList<ServiceSummaryDto>> ListServicesAsync(ListQuery query, CancellationToken ct)
+    {
+        var fields = new ListFields<ServiceSummaryDto>(q => q.OrderBy(s => s.Code))
+            .Text("code", s => s.Code)
+            .Text("name", s => messages.Pick(s.Name))
+            .Text("description", s => messages.Pick(s.Description))
+            .Text("category", s => messages.Pick(s.Category))
+            .Number("fee", s => s.Fee);
+        return fields.Page(await ListServicesAsync(ct), query);
     }
 
     /// <summary>The AI pre-review rounds for an application (staff only).</summary>

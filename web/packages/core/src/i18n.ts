@@ -16,10 +16,10 @@ export interface LanguageInfo {
   isEnabled: boolean;
   isDefault: boolean;
   sortOrder: number;
-  /** Offered in the citizen portal (missing in lists cached by older releases: treated as shown). */
-  showInPortal?: boolean;
+  /** Offered in the citizen portal. */
+  showInPortal: boolean;
   /** Offered in the back office. */
-  showInBackoffice?: boolean;
+  showInBackoffice: boolean;
 }
 
 /** Which portal is running: each offers only the languages shown in it. */
@@ -29,8 +29,8 @@ let app: PortalApp | undefined;
 /** Enabled and shown in this portal. */
 function offered(l: LanguageInfo): boolean {
   if (!l.isEnabled) return false;
-  if (app === 'portal') return l.showInPortal !== false;
-  if (app === 'backoffice') return l.showInBackoffice !== false;
+  if (app === 'portal') return l.showInPortal;
+  if (app === 'backoffice') return l.showInBackoffice;
   return true;
 }
 
@@ -110,7 +110,7 @@ export async function initI18n(portal: PortalApp | undefined = app): Promise<voi
     write(STORAGE_LANGUAGES, languages);
   } catch { /* keep the cached list */ }
   if (languages.length === 0)
-    languages = [{ code: 'en', name: { en: 'English' }, direction: 'ltr', isEnabled: true, isDefault: true, sortOrder: 0 }];
+    languages = [{ code: 'en', name: { en: 'English' }, direction: 'ltr', isEnabled: true, isDefault: true, sortOrder: 0, showInPortal: true, showInBackoffice: true }];
 
   const code = pick(read<string>(STORAGE_LANG));
   try {

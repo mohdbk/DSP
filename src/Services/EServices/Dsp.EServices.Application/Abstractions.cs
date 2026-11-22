@@ -33,8 +33,9 @@ public interface IApplicationRepository
     /// <summary>Untracked, always reflects the latest committed state.</summary>
     Task<ServiceApplication?> ReadAsync(Guid id, CancellationToken ct);
 
-    Task<IReadOnlyList<ServiceApplication>> ListForApplicantAsync(string applicantId, CancellationToken ct);
-    Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct);
+    /// <summary>One page of applications (one applicant's, or every submitted one when <paramref name="applicantId"/> is null), searched, filtered and sorted in the database.</summary>
+    Task<PagedList<ServiceApplication>> QueryAsync(string? applicantId, ListFields<ServiceApplication> fields, ListQuery query,
+        CancellationToken ct);
 
     /// <summary>The service's most recently decided applications (approved or rejected), newest first.</summary>
     Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct);
@@ -50,7 +51,8 @@ public interface IApplicationRepository
 public interface IReviewTaskRepository
 {
     Task<ReviewTask?> GetAsync(Guid id, CancellationToken ct);
-    Task<IReadOnlyList<ReviewTask>> ListOpenAsync(CancellationToken ct);
+    /// <summary>One page of open tasks, searched, filtered and sorted in the database.</summary>
+    Task<PagedList<ReviewTask>> QueryOpenAsync(ListFields<ReviewTask> fields, ListQuery query, CancellationToken ct);
     Task<IReadOnlyList<ReviewTask>> ListForApplicationAsync(Guid applicationId, CancellationToken ct);
     Task AddAsync(ReviewTask task, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);

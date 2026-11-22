@@ -77,8 +77,8 @@ public class PaymentCompletedHandlerTests
         public ServiceApplication? Item { get; set; }
         public Task<ServiceApplication?> GetAsync(Guid id, CancellationToken ct) => Task.FromResult(Item?.Id == id ? Item : null);
         public Task<ServiceApplication?> ReadAsync(Guid id, CancellationToken ct) => GetAsync(id, ct);
-        public Task<IReadOnlyList<ServiceApplication>> ListForApplicantAsync(string applicantId, CancellationToken ct) => throw new NotSupportedException();
-        public Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct) => throw new NotSupportedException();
+        public Task<PagedList<ServiceApplication>> QueryAsync(string? applicantId, ListFields<ServiceApplication> fields, ListQuery query,
+            CancellationToken ct) => throw new NotSupportedException();
         public Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct) => throw new NotSupportedException();
         public Task<bool> ReferenceInUseAsync(string s, string r, Guid e, CancellationToken ct) => Task.FromResult(false);
         public Task<IReadOnlyList<string>> ListActiveReferencesAsync(string s, Guid e, int take, CancellationToken ct) =>
@@ -105,7 +105,8 @@ public class PaymentCompletedHandlerTests
     internal sealed class NoTasks : IReviewTaskRepository
     {
         public Task<ReviewTask?> GetAsync(Guid id, CancellationToken ct) => Task.FromResult<ReviewTask?>(null);
-        public Task<IReadOnlyList<ReviewTask>> ListOpenAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<ReviewTask>>([]);
+        public Task<PagedList<ReviewTask>> QueryOpenAsync(ListFields<ReviewTask> fields, ListQuery query, CancellationToken ct) =>
+            Task.FromResult(fields.Page([], query));
         public Task<IReadOnlyList<ReviewTask>> ListForApplicationAsync(Guid id, CancellationToken ct) => Task.FromResult<IReadOnlyList<ReviewTask>>([]);
         public Task AddAsync(ReviewTask task, CancellationToken ct) => Task.CompletedTask;
         public Task SaveChangesAsync(CancellationToken ct) => Task.CompletedTask;

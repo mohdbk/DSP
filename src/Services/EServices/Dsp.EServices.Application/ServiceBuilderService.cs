@@ -9,11 +9,12 @@ namespace Dsp.EServices.Application;
 /// </summary>
 public sealed class ServiceBuilderService(IServiceVersionRepository versions, IMessages messages, ICurrencies currencies)
 {
-    public async Task<IReadOnlyList<BuilderServiceSummaryDto>> ListAsync(Caller caller, CancellationToken ct)
+    /// <summary>One page of services in the builder, searched, filtered and sorted on the server.</summary>
+    public async Task<PagedList<BuilderServiceSummaryDto>> ListAsync(Caller caller, ListQuery query, CancellationToken ct)
     {
         EnsureStaff(caller);
         var all = await versions.ListAllAsync(ct);
-        return all.GroupBy(v => v.Code)
+        var rows = all.GroupBy(v => v.Code)
             .Select(g =>
             {
                 var published = g.FirstOrDefault(v => v.Status == ServiceVersionStatus.Published);
@@ -23,9 +24,38 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions, IM
                 return new BuilderServiceSummaryDto(g.Key, latest.Name, latest.Category,
                     published?.Version, draft?.Version, latest.WorkflowVersion, updated.UpdatedAt, updated.UpdatedBy);
             })
-            .OrderBy(s => messages.Pick(s.Name), StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+
+        var fields = new ListFields<BuilderServiceSummaryDto>(q => q.OrderBy(s => messages.Pick(s.Name), StringComparer.CurrentCultureIgnoreCase))
+            .Text("name", s => messages.Pick(s.Name) + " " + s.Code)
+            .Choice("category", s => messages.Pick(s.Category))
+            .Choice("status", s => BuilderState(s), Lists.Labelled(messages, "builder.state.", ["draft", "live", "live-draft"]))
+            .Int("process", s => s.WorkflowVersion, Lists.ProcessOptions(messages))
+            .Text("updatedBy", s => s.UpdatedBy)
+            .Date("updated", s => s.UpdatedAt);
+        return fields.Page(rows, query);
     }
+
+    /// <summary>One page of a service's versions, searched, filtered and sorted on the server.</summary>
+    public async Task<PagedList<ServiceVersionDto>> ListVersionsAsync(Caller caller, string code, ListQuery query, CancellationToken ct)
+    {
+        EnsureStaff(caller);
+        var list = await versions.ListForCodeAsync(code, ct);
+        if (list.Count == 0) throw new NotFoundException("errors.service.notFound");
+        var fields = new ListFields<ServiceVersionDto>(q => q.OrderByDescending(v => v.Version))
+            .Number("version", v => v.Version)
+            .Choice("status", v => v.Status, Enum.GetNames<ServiceVersionStatus>().Select(n => new ListOption(n)).ToList())
+            .Text("createdBy", v => v.CreatedBy)
+            .Text("publishedBy", v => v.PublishedBy)
+            .Text("updatedBy", v => v.UpdatedBy)
+            .Date("created", v => v.CreatedAt)
+            .Date("published", v => v.PublishedAt)
+            .Date("updated", v => v.UpdatedAt);
+        return fields.Page(list.Select(ServiceVersionDto.From), query);
+    }
+
+    private static string BuilderState(BuilderServiceSummaryDto s) =>
+        s.PublishedVersion is null ? "draft" : s.DraftVersion is null ? "live" : "live-draft";
 
     public async Task<BuilderServiceDto> GetAsync(Caller caller, string code, CancellationToken ct)
     {

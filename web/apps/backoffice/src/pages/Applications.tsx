@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { getRouteApi, useNavigate, useParams } from '@tanstack/react-router';
 import { formatDate, loc, openDocument, t, type Application, type ApplicationStatus } from '@dsp/core';
 import {
@@ -12,13 +12,6 @@ const route = getRouteApi('/applications');
 export function ApplicationsPage() {
   const navigate = useNavigate();
   const search = route.useSearch();
-  const [apps, setApps] = useState<Application[]>();
-  const [error, setError] = useState<string>();
-
-  useEffect(() => {
-    api.list<Application>('/api/v1/eservices/applications?all=true').then(setApps).catch(e => setError(e.message));
-  }, []);
-
   const columns = useMemo<ColumnDef<Application, string>[]>(() => [
     { id: 'number', header: t('number'), accessorFn: a => a.number, cell: c => <strong><bdi>{c.getValue()}</bdi></strong> },
     { id: 'service', header: t('service'), accessorFn: a => loc(a.serviceName), meta: { filter: true } },
@@ -33,20 +26,17 @@ export function ApplicationsPage() {
       id: 'status', header: t('status'), accessorFn: a => a.status, cell: c => <StatusBadge status={c.getValue() as ApplicationStatus} />,
       meta: { filter: true, filterLabel: v => t(`status.${v}`) },
     },
-    { id: 'updated', header: t('updated'), accessorFn: a => a.updatedAt, cell: c => formatDate(c.getValue(), true) },
+    { id: 'updated', header: t('updated'), accessorFn: a => a.updatedAt, cell: c => formatDate(c.getValue(), true), meta: { type: 'date' } },
   ], []);
 
   return (
     <>
       <PageHeader title={t('apps.title')} />
-      {error && <Notice kind="error">{error}</Notice>}
-      {!apps && !error && <Loading />}
-      {apps && (
-        <DataTable label={t('apps.title')} data={apps} columns={columns} getRowId={a => a.id}
-          onRowAction={a => navigate({ to: '/applications/$id', params: { id: a.id } })}
-          {...listStateProps(search, next => navigate({ to: '/applications', search: next, replace: true }))}
-          emptyTitle={t('apps.empty')} />
-      )}
+      <DataTable label={t('apps.title')} source="/api/v1/eservices/applications?all=true" listKey="backoffice.applications"
+        columns={columns} getRowId={a => a.id}
+        onRowAction={a => navigate({ to: '/applications/$id', params: { id: a.id } })}
+        {...listStateProps(search, next => navigate({ to: '/applications', search: next, replace: true }))}
+        emptyTitle={t('apps.empty')} />
     </>
   );
 }

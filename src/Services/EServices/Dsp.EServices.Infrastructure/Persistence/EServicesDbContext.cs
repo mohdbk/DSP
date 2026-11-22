@@ -3,6 +3,7 @@ using Dsp.BuildingBlocks.Persistence;
 using Dsp.EServices.Application;
 using Dsp.EServices.Domain.Applications;
 using Dsp.EServices.Domain.Catalog;
+using Dsp.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dsp.EServices.Infrastructure.Persistence;
@@ -25,7 +26,9 @@ public abstract class EServicesDbContext(DbContextOptions options) : DbContext(o
             e.ToTable("Applications");
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.Number).IsUnique();
-            e.HasIndex(x => x.ApplicantId);
+            // Lists: an applicant's own (newest first) and all submitted ones by status or date.
+            e.HasIndex(x => new { x.ApplicantId, x.UpdatedAt });
+            e.HasIndex(x => new { x.Status, x.UpdatedAt });
             e.HasIndex(x => new { x.ServiceCode, x.ReferenceValue });
             e.Property(x => x.Number).HasMaxLength(32);
             e.Property(x => x.ServiceCode).HasMaxLength(64);
@@ -99,13 +102,14 @@ public sealed class ApplicationRepository(EServicesDbContext db) : IApplicationR
     public Task<ServiceApplication?> ReadAsync(Guid id, CancellationToken ct) =>
         db.Applications.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id, ct);
 
-    public async Task<IReadOnlyList<ServiceApplication>> ListForApplicantAsync(string applicantId, CancellationToken ct) =>
-        await db.Applications.AsNoTracking().Where(a => a.ApplicantId == applicantId)
-            .OrderByDescending(a => a.UpdatedAt).ToListAsync(ct);
-
-    public async Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct) =>
-        await db.Applications.AsNoTracking().Where(a => a.Status != ApplicationStatus.Draft)
-            .OrderByDescending(a => a.UpdatedAt).Take(take).ToListAsync(ct);
+    public Task<PagedList<ServiceApplication>> QueryAsync(string? applicantId, ListFields<ServiceApplication> fields, ListQuery query,
+        CancellationToken ct)
+    {
+        var scope = applicantId is null
+            ? db.Applications.AsNoTracking().Where(a => a.Status != ApplicationStatus.Draft)
+            : db.Applications.AsNoTracking().Where(a => a.ApplicantId == applicantId);
+        return scope.ToPageAsync(fields, query, ct);
+    }
 
     public async Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct) =>
         await db.Applications.AsNoTracking().Where(a => a.ServiceCode == serviceCode && a.Approved != null)
@@ -137,9 +141,8 @@ public sealed class ReviewTaskRepository(EServicesDbContext db) : IReviewTaskRep
     public Task<ReviewTask?> GetAsync(Guid id, CancellationToken ct) =>
         db.ReviewTasks.FirstOrDefaultAsync(t => t.Id == id, ct);
 
-    public async Task<IReadOnlyList<ReviewTask>> ListOpenAsync(CancellationToken ct) =>
-        await db.ReviewTasks.AsNoTracking().Where(t => t.Status == ReviewTaskStatus.Open)
-            .OrderBy(t => t.CreatedAt).ToListAsync(ct);
+    public Task<PagedList<ReviewTask>> QueryOpenAsync(ListFields<ReviewTask> fields, ListQuery query, CancellationToken ct) =>
+        db.ReviewTasks.AsNoTracking().Where(t => t.Status == ReviewTaskStatus.Open).ToPageAsync(fields, query, ct);
 
     public async Task<IReadOnlyList<ReviewTask>> ListForApplicationAsync(Guid applicationId, CancellationToken ct) =>
         await db.ReviewTasks.AsNoTracking().Where(t => t.ApplicationId == applicationId)

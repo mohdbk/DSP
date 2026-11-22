@@ -41,8 +41,8 @@ app.MapApiDocuments("eservices");
 var api = app.MapApi("eservices").RequireAuthorization();
 
 // Catalog (published services; ?version= shows the version an application was filled in on)
-api.MapGet("/services", async (int? page, int? pageSize, ApplicationService svc, CancellationToken ct) =>
-    PagedList.From(await svc.ListServicesAsync(ct), page, pageSize)).AllowAnonymous();
+api.MapGet("/services", ([AsParameters] ListQuery query, ApplicationService svc, CancellationToken ct) =>
+    svc.ListServicesAsync(query, ct)).AllowAnonymous();
 api.MapGet("/services/{code}", async (string code, int? version, ApplicationService svc, CancellationToken ct) =>
     await svc.GetServiceAsync(code, version, ct)).AllowAnonymous();
 
@@ -51,9 +51,9 @@ api.MapPost("/applications", async (CreateApplicationRequest req, ClaimsPrincipa
         ApplicationService svc, CancellationToken ct) =>
     Results.Ok(await svc.CreateDraftAsync(ToCaller(user, http), req.ServiceCode, ct)));
 
-api.MapGet("/applications", async (bool? all, int? page, int? pageSize, ClaimsPrincipal user, HttpContext http,
+api.MapGet("/applications", (bool? all, [AsParameters] ListQuery query, ClaimsPrincipal user, HttpContext http,
         ApplicationService svc, CancellationToken ct) =>
-    PagedList.From(await svc.ListAsync(ToCaller(user, http), all == true, ct), page, pageSize));
+    svc.ListAsync(ToCaller(user, http), all == true, query, ct));
 
 api.MapGet("/applications/{id:guid}", async (Guid id, ClaimsPrincipal user, HttpContext http, ApplicationService svc,
         CancellationToken ct) =>
@@ -77,9 +77,9 @@ api.MapGet("/applications/{id:guid}/assessments", async (Guid id, ClaimsPrincipa
 
 // Back office: review inbox
 var staff = api.MapGroup("/tasks").RequireAuthorization("staff");
-staff.MapGet("", async (int? page, int? pageSize, ClaimsPrincipal user, HttpContext http, ReviewService svc,
+staff.MapGet("", ([AsParameters] ListQuery query, ClaimsPrincipal user, HttpContext http, ReviewService svc,
         CancellationToken ct) =>
-    PagedList.From(await svc.ListOpenAsync(ToCaller(user, http), ct), page, pageSize));
+    svc.ListOpenAsync(ToCaller(user, http), query, ct));
 staff.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user, HttpContext http, ReviewService svc, CancellationToken ct) =>
     await svc.GetAsync(ToCaller(user, http), id, ct));
 staff.MapPost("/{id:guid}/decision", async (Guid id, DecisionRequest req, ClaimsPrincipal user, HttpContext http,
@@ -88,9 +88,9 @@ staff.MapPost("/{id:guid}/decision", async (Guid id, DecisionRequest req, Claims
 
 // Back office: service builder
 var builderApi = api.MapGroup("/builder").RequireAuthorization("staff");
-builderApi.MapGet("/services", async (int? page, int? pageSize, ClaimsPrincipal user, HttpContext http,
+builderApi.MapGet("/services", ([AsParameters] ListQuery query, ClaimsPrincipal user, HttpContext http,
         ServiceBuilderService svc, CancellationToken ct) =>
-    PagedList.From(await svc.ListAsync(ToCaller(user, http), ct), page, pageSize));
+    svc.ListAsync(ToCaller(user, http), query, ct));
 builderApi.MapGet("/services/{code}", async (string code, ClaimsPrincipal user, HttpContext http,
         ServiceBuilderService svc, CancellationToken ct) =>
     await svc.GetAsync(ToCaller(user, http), code, ct));
@@ -106,6 +106,9 @@ builderApi.MapDelete("/services/{code}/draft", async (string code, ClaimsPrincip
 builderApi.MapPost("/services/{code}/publish", async (string code, ClaimsPrincipal user, HttpContext http,
         ServiceBuilderService svc, CancellationToken ct) =>
     await svc.PublishAsync(ToCaller(user, http), code, ct));
+builderApi.MapGet("/services/{code}/versions", (string code, [AsParameters] ListQuery query, ClaimsPrincipal user,
+        HttpContext http, ServiceBuilderService svc, CancellationToken ct) =>
+    svc.ListVersionsAsync(ToCaller(user, http), code, query, ct));
 builderApi.MapGet("/services/{code}/ai-readiness", (string code, ClaimsPrincipal user, HttpContext http,
         AiReadinessService svc, CancellationToken ct) => svc.GetAsync(ToCaller(user, http), code, ct));
 builderApi.MapPost("/validate", async (ServiceDefinition definition, ClaimsPrincipal user, HttpContext http,

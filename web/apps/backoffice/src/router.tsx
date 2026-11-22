@@ -20,7 +20,7 @@ function Root() {
   useLang(); // the portal name and labels below follow the language
   const user = useCurrentUser(); // re-renders the frame (and its menu) right after sign-in
   return (
-    <PortalFrame layout="staff" service={t('app.backoffice')} homeLabel={t('app.backofficeHome')} publicPaths={['/login']} onSignOut={signOut}
+    <PortalFrame api={api} layout="staff" service={t('app.backoffice')} homeLabel={t('app.backofficeHome')} publicPaths={['/login']} onSignOut={signOut}
       user={user && { name: user.name, role: user.title ?? t('staff') }}
       loadUnread={() => countUnread(api)}
       navItems={pathname => [

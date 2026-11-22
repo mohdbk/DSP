@@ -4,6 +4,7 @@ using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Web;
 using Dsp.Platform.Application;
 using Dsp.Platform.Infrastructure;
+using Dsp.SharedKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddDspDefaults("dsp-platform");
@@ -34,11 +35,22 @@ api.MapGet("/catalog/{lang}", (string lang, TranslationService svc, Cancellation
     .AllowAnonymous();
 api.MapGet("/currencies", (CurrencyService svc, CancellationToken ct) => svc.ListAllAsync(ct)).AllowAnonymous();
 
+// Anyone signed in (staff or citizen): their own saved views of the lists.
+var views = api.MapGroup("/views").RequireAuthorization();
+views.MapGet("", (string list, ClaimsPrincipal user, SavedViewService svc, CancellationToken ct) => svc.ListAsync(Caller(user), list, ct));
+views.MapPost("", (SavedViewRequest req, ClaimsPrincipal user, SavedViewService svc, CancellationToken ct) =>
+    svc.SaveAsync(Caller(user), req, ct));
+views.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, SavedViewService svc, CancellationToken ct) =>
+{
+    await svc.DeleteAsync(Caller(user), id, ct);
+    return Results.NoContent();
+});
+
 // Staff: languages, texts and AI settings.
 var admin = api.MapGroup("/admin").RequireAuthorization("staff");
 
-admin.MapGet("/languages", (ClaimsPrincipal user, LanguageService svc, CancellationToken ct) =>
-    svc.ListForAdminAsync(Caller(user), ct));
+admin.MapGet("/languages", ([AsParameters] ListQuery query, ClaimsPrincipal user, LanguageService svc, CancellationToken ct) =>
+    svc.ListForAdminAsync(Caller(user), query, ct));
 admin.MapPost("/languages", (LanguageRequest req, ClaimsPrincipal user, LanguageService svc, CancellationToken ct) =>
     svc.CreateAsync(Caller(user), req, ct));
 admin.MapPut("/languages/{code}", (string code, LanguageRequest req, ClaimsPrincipal user, LanguageService svc, CancellationToken ct) =>
@@ -55,8 +67,8 @@ admin.MapDelete("/languages/{code}", async (string code, ClaimsPrincipal user, L
     return Results.NoContent();
 });
 
-admin.MapGet("/translations/{code}", (string code, string? q, bool? missing, int? page, int? pageSize, ClaimsPrincipal user,
-    TranslationService svc, CancellationToken ct) => svc.ListAsync(Caller(user), code, q, missing ?? false, page, pageSize, ct));
+admin.MapGet("/translations/{code}", (string code, [AsParameters] ListQuery query, ClaimsPrincipal user,
+    TranslationService svc, CancellationToken ct) => svc.ListAsync(Caller(user), code, query, ct));
 admin.MapPut("/translations/{code}/{key}", async (string code, string key, SetTranslationRequest req, ClaimsPrincipal user,
     TranslationService svc, CancellationToken ct) =>
 {
@@ -73,7 +85,8 @@ admin.MapGet("/translations/{code}/export", (string code, ClaimsPrincipal user, 
 admin.MapPost("/translations/{code}/import", (string code, Dictionary<string, string> strings, ClaimsPrincipal user,
     TranslationService svc, CancellationToken ct) => svc.ImportAsync(Caller(user), code, strings, ct));
 
-admin.MapGet("/currencies", (ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) => svc.ListForAdminAsync(Caller(user), ct));
+admin.MapGet("/currencies", ([AsParameters] ListQuery query, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
+    svc.ListForAdminAsync(Caller(user), query, ct));
 admin.MapPost("/currencies", (CurrencyRequest req, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
     svc.CreateAsync(Caller(user), req, ct));
 admin.MapPut("/currencies/{code}", (string code, CurrencyRequest req, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>

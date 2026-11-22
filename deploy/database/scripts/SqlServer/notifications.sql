@@ -150,3 +150,104 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211157_ServerListsSavedViews'
+)
+BEGIN
+    DECLARE @var nvarchar(max);
+    SELECT @var = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[notifications].[Notifications]') AND [c].[name] = N'Body');
+    IF @var IS NOT NULL EXEC(N'ALTER TABLE [notifications].[Notifications] DROP CONSTRAINT ' + @var + ';');
+    ALTER TABLE [notifications].[Notifications] DROP COLUMN [Body];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211157_ServerListsSavedViews'
+)
+BEGIN
+    DECLARE @var1 nvarchar(max);
+    SELECT @var1 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[notifications].[Notifications]') AND [c].[name] = N'BodyAr');
+    IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [notifications].[Notifications] DROP CONSTRAINT ' + @var1 + ';');
+    ALTER TABLE [notifications].[Notifications] DROP COLUMN [BodyAr];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211157_ServerListsSavedViews'
+)
+BEGIN
+    DECLARE @var2 nvarchar(max);
+    SELECT @var2 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[notifications].[Notifications]') AND [c].[name] = N'Title');
+    IF @var2 IS NOT NULL EXEC(N'ALTER TABLE [notifications].[Notifications] DROP CONSTRAINT ' + @var2 + ';');
+    ALTER TABLE [notifications].[Notifications] DROP COLUMN [Title];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211157_ServerListsSavedViews'
+)
+BEGIN
+    DECLARE @var3 nvarchar(max);
+    SELECT @var3 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[notifications].[Notifications]') AND [c].[name] = N'TitleAr');
+    IF @var3 IS NOT NULL EXEC(N'ALTER TABLE [notifications].[Notifications] DROP CONSTRAINT ' + @var3 + ';');
+    ALTER TABLE [notifications].[Notifications] DROP COLUMN [TitleAr];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211157_ServerListsSavedViews'
+)
+BEGIN
+    DECLARE @var4 nvarchar(max);
+    SELECT @var4 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[notifications].[Notifications]') AND [c].[name] = N'TitleMessage');
+    IF @var4 IS NOT NULL EXEC(N'ALTER TABLE [notifications].[Notifications] DROP CONSTRAINT ' + @var4 + ';');
+    EXEC(N'UPDATE [notifications].[Notifications] SET [TitleMessage] = N'''' WHERE [TitleMessage] IS NULL');
+    ALTER TABLE [notifications].[Notifications] ALTER COLUMN [TitleMessage] nvarchar(4000) NOT NULL;
+    ALTER TABLE [notifications].[Notifications] ADD DEFAULT N'' FOR [TitleMessage];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211157_ServerListsSavedViews'
+)
+BEGIN
+    DECLARE @var5 nvarchar(max);
+    SELECT @var5 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[notifications].[Notifications]') AND [c].[name] = N'BodyMessage');
+    IF @var5 IS NOT NULL EXEC(N'ALTER TABLE [notifications].[Notifications] DROP CONSTRAINT ' + @var5 + ';');
+    EXEC(N'UPDATE [notifications].[Notifications] SET [BodyMessage] = N'''' WHERE [BodyMessage] IS NULL');
+    ALTER TABLE [notifications].[Notifications] ALTER COLUMN [BodyMessage] nvarchar(max) NOT NULL;
+    ALTER TABLE [notifications].[Notifications] ADD DEFAULT N'' FOR [BodyMessage];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211157_ServerListsSavedViews'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122211157_ServerListsSavedViews', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

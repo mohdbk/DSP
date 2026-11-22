@@ -218,3 +218,37 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211219_ServerListsSavedViews') THEN
+    CREATE TABLE platform."SavedViews" (
+        "Id" uuid NOT NULL,
+        "Owner" character varying(200) NOT NULL,
+        "ListKey" character varying(100) NOT NULL,
+        "Name" character varying(100) NOT NULL,
+        "State" character varying(8000) NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        "UpdatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_SavedViews" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211219_ServerListsSavedViews') THEN
+    CREATE INDEX "IX_SavedViews_Owner_ListKey" ON platform."SavedViews" ("Owner", "ListKey");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211219_ServerListsSavedViews') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261122211219_ServerListsSavedViews', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+

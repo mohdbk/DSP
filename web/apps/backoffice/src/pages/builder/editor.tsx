@@ -308,23 +308,24 @@ export function PreviewSection({ def }: { def: ServiceDefinition }) {
 
 const versionStatus = { Draft: 'aegold', Published: 'aegreen', Retired: 'slate' } as const;
 
-export function VersionsSection({ versions }: { versions: ServiceVersionInfo[] }) {
+export function VersionsSection({ code, reloadKey }: { code: string; reloadKey?: unknown }) {
   const columns = useMemo<ColumnDef<ServiceVersionInfo, string>[]>(() => [
-    { id: 'version', header: t('builder.version'), accessorFn: v => String(v.version).padStart(4, '0'), cell: c => <strong>v{c.row.original.version}</strong> },
+    { id: 'version', header: t('builder.version'), accessorFn: v => String(v.version), cell: c => <strong>v{c.row.original.version}</strong>, meta: { type: 'number' } },
     {
       id: 'status', header: t('status'), accessorFn: v => v.status,
       cell: c => <Tag variant={versionStatus[c.row.original.status]}>{t(`builder.vstatus.${c.row.original.status}`)}</Tag>,
       meta: { filter: true, filterLabel: v => t(`builder.vstatus.${v}`) },
     },
-    { id: 'created', header: t('builder.created'), accessorFn: v => v.createdAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.createdBy}` },
+    { id: 'created', header: t('builder.created'), accessorFn: v => v.createdAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.createdBy}`, meta: { type: 'date' } },
     {
-      id: 'published', header: t('builder.publishedAt'), accessorFn: v => v.publishedAt ?? '',
+      id: 'published', header: t('builder.publishedAt'), accessorFn: v => v.publishedAt ?? '', meta: { type: 'date' },
       cell: c => (c.getValue() ? `${formatDate(c.getValue(), true)} · ${c.row.original.publishedBy ?? ''}` : '—'),
     },
-    { id: 'updated', header: t('builder.lastChange'), accessorFn: v => v.updatedAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.updatedBy}` },
+    { id: 'updated', header: t('builder.lastChange'), accessorFn: v => v.updatedAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.updatedBy}`, meta: { type: 'date' } },
   ], []);
   return (
-    <DataTable label={t('builder.tab.versions')} data={versions} columns={columns} getRowId={v => String(v.version)}
+    <DataTable label={t('builder.tab.versions')} source={`/api/v1/eservices/builder/services/${encodeURIComponent(code)}/versions`}
+      listKey="backoffice.service-versions" reloadKey={reloadKey} columns={columns} getRowId={v => String(v.version)}
       emptyTitle={t('builder.empty')} />
   );
 }

@@ -24,10 +24,6 @@ public abstract class NotificationsDbContext(DbContextOptions options) : DbConte
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.Recipient, x.CreatedAt });
             e.Property(x => x.Recipient).HasMaxLength(200);
-            e.Property(x => x.Title).HasMaxLength(300);
-            e.Property(x => x.Body).HasMaxLength(2000);
-            e.Property(x => x.TitleAr).HasMaxLength(300);
-            e.Property(x => x.BodyAr).HasMaxLength(2000);
             e.Property(x => x.Link).HasMaxLength(300);
             e.Property(x => x.TitleMessage).HasMaxLength(4000);
             e.Property(x => x.BodyMessage).HasMaxLength(8000);

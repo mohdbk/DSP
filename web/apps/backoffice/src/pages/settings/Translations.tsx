@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import {
-  ApiError, getDefaultLang, getLang, MAX_PAGE_SIZE, openBlob, refreshI18n, t, type LanguageAdmin, type PagedList,
+  ApiError, getDefaultLang, getLang, openBlob, refreshI18n, t, type LanguageAdmin,
   type TranslationRow,
 } from '@dsp/core';
 import {
@@ -20,24 +20,14 @@ const usageVariant: Record<string, 'aegold' | 'seablue' | 'camel' | 'slate'> = {
 
 const base = '/api/v1/platform/admin';
 
-/** Every key with its text in the default language and in the chosen language. */
-async function loadAll(code: string): Promise<TranslationRow[]> {
-  const rows: TranslationRow[] = [];
-  for (let page = 1; ; page++) {
-    const result = await api.get<PagedList<TranslationRow>>(
-      `${base}/translations/${encodeURIComponent(code)}?page=${page}&pageSize=${MAX_PAGE_SIZE}`);
-    rows.push(...result.items);
-    if (rows.length >= result.total || result.items.length === 0) return rows;
-  }
-}
-
 /** All texts of both portals and the services' messages, in any language: search, fill gaps, import and export. */
 export function TranslationsPage() {
   const navigate = useNavigate();
   const search = route.useSearch();
   const [languages, setLanguages] = useState<LanguageAdmin[]>();
   const [code, setCode] = useState<string>();
-  const [rows, setRows] = useState<TranslationRow[]>();
+  const [missing, setMissing] = useState<number>();
+  const [reloadKey, setReloadKey] = useState(0);
   const [editing, setEditing] = useState<TranslationRow & { isNew?: boolean }>();
   const [text, setText] = useState('');
   const [newKey, setNewKey] = useState('');
@@ -46,14 +36,20 @@ export function TranslationsPage() {
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string }>();
 
   useEffect(() => {
-    api.get<LanguageAdmin[]>(`${base}/languages`).then(list => {
+    api.list<LanguageAdmin>(`${base}/languages`).then(list => {
       setLanguages(list);
       setCode(list.find(l => l.code === getLang() && !l.isDefault)?.code ?? list.find(l => !l.isDefault)?.code ?? getDefaultLang());
     }).catch(e => setMessage({ kind: 'error', text: e.message }));
   }, []);
 
-  const reload = () => code ? loadAll(code).then(setRows) : Promise.resolve();
-  useEffect(() => { setRows(undefined); reload().catch(e => setMessage({ kind: 'error', text: e.message })); }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
+  // How many keys still miss a text in this language (for the badge), counted by the server.
+  useEffect(() => {
+    if (!code) return;
+    api.page<TranslationRow>(`${base}/translations/${encodeURIComponent(code)}`, {
+      pageSize: 1, filter: { match: 'all', conditions: [{ column: 'state', op: 'anyOf', values: ['missing'] }] },
+    }).then(r => setMissing(r.total)).catch(() => setMissing(undefined));
+  }, [code, reloadKey]);
+  const reload = async () => setReloadKey(n => n + 1);
 
   const language = languages?.find(l => l.code === code);
   const isDefault = !!language?.isDefault;
@@ -103,9 +99,10 @@ export function TranslationsPage() {
       meta: { filter: true, filterLabel: v => t(`settings.tr.${v}`) },
     },
   ], [language, code]);
+  // Each language is its own list: its endpoint changes with the language.
+  const source = code ? `${base}/translations/${encodeURIComponent(code)}` : '';
 
   if (!languages || !code) return message ? <Notice kind="error">{message.text}</Notice> : <Loading />;
-  const missing = rows?.filter(r => !r.text).length ?? 0;
 
   return (
     <>
@@ -115,7 +112,7 @@ export function TranslationsPage() {
             <IconLabel icon={Plus}>{t('settings.addKey')}</IconLabel>
           </AegovButton>
         )}
-        badges={rows && <Tag variant={missing ? 'aegold' : 'aegreen'}>{t('settings.missingCount', { n: missing })}</Tag>} />
+        badges={missing !== undefined && <Tag variant={missing ? 'aegold' : 'aegreen'}>{t('settings.missingCount', { n: missing })}</Tag>} />
       {message && !editing && <Notice kind={message.kind}>{message.text}</Notice>}
       <p className="mb-4 text-sm text-aeblack-600">{t('settings.usedInNote')}</p>
 
@@ -200,11 +197,10 @@ export function TranslationsPage() {
         }} />
 
       <div>
-        {!rows ? <Loading /> : (
-          <DataTable label={t('settings.translations')} data={rows} columns={columns} getRowId={r => r.key} onRowAction={edit} pageSize={25}
-            {...listStateProps(search, next => navigate({ to: '/settings/translations', search: next, replace: true }))}
-            emptyTitle={t('settings.noTexts')} />
-        )}
+        <DataTable key={code} label={t('settings.translations')} source={source} listKey="backoffice.translations" reloadKey={reloadKey}
+          columns={columns} getRowId={r => r.key} onRowAction={edit} pageSize={25}
+          {...listStateProps(search, next => navigate({ to: '/settings/translations', search: next, replace: true }))}
+          emptyTitle={t('settings.noTexts')} />
       </div>
     </>
   );

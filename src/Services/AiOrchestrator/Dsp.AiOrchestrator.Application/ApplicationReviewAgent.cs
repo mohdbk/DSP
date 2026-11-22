@@ -172,13 +172,23 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, IAiSettingsProvider s
                 ReviewRecommendations.Reject => ReviewRecommendations.Reject,
                 _ => ReviewRecommendations.Approve,
             };
+            // Models write each text as a language map or, often, as one plain string (taken as the default language).
+            LocalizedText Text(JsonElement? e) => e switch
+            {
+                { ValueKind: JsonValueKind.String } v => LocalizedText.Of(defaultLanguage, v.GetString()!.Trim()),
+                { ValueKind: JsonValueKind.Object } v => new LocalizedText(v.EnumerateObject()
+                    .Where(p => p.Value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(p.Value.GetString()))
+                    .Select(p => KeyValuePair.Create(p.Name, p.Value.GetString()!.Trim()))),
+                _ => new LocalizedText(),
+            };
             var findings = (raw.Findings ?? [])
-                .Where(f => f.Message is { IsEmpty: false })
-                .Select(f => new ReviewFinding(f.Severity is "issue" or "warning" ? f.Severity : "info",
-                    string.IsNullOrWhiteSpace(f.Field) || f.Field == "null" ? null : f.Field, Trim(f.Message!)))
+                .Select(f => (f, Message: Text(f.Message)))
+                .Where(x => !x.Message.IsEmpty)
+                .Select(x => new ReviewFinding(x.f.Severity is "issue" or "warning" ? x.f.Severity : "info",
+                    string.IsNullOrWhiteSpace(x.f.Field) || x.f.Field == "null" ? null : x.f.Field, x.Message))
                 .Take(30).ToList();
-            var questions = (raw.Questions ?? []).Where(q => q is { IsEmpty: false }).Select(Trim).Take(5).ToList();
-            return new ApplicationReviewResult(recommendation, Trim(raw.Summary ?? new LocalizedText()), findings, questions, "llm", null);
+            var questions = (raw.Questions ?? []).Select(q => Text(q)).Where(q => !q.IsEmpty).Take(5).ToList();
+            return new ApplicationReviewResult(recommendation, Text(raw.Summary), findings, questions, "llm", null);
         }
         catch (JsonException)
         {
@@ -186,12 +196,10 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, IAiSettingsProvider s
         }
     }
 
-    private static LocalizedText Trim(LocalizedText text) => new(text.Select(p => KeyValuePair.Create(p.Key, p.Value.Trim())));
+    private sealed record RawReview(string? Recommendation, JsonElement? Summary, List<RawFinding>? Findings,
+        List<JsonElement>? Questions);
 
-    private sealed record RawReview(string? Recommendation, LocalizedText? Summary, List<RawFinding>? Findings,
-        List<LocalizedText>? Questions);
-
-    private sealed record RawFinding(string? Severity, string? Field, LocalizedText? Message);
+    private sealed record RawFinding(string? Severity, string? Field, JsonElement? Message);
 }
 
 /// <summary>

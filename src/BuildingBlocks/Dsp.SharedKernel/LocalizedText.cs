@@ -49,13 +49,7 @@ public sealed class LocalizedText : Dictionary<string, string>
     public static LocalizedText Parse(string? stored)
     {
         if (string.IsNullOrWhiteSpace(stored)) return new LocalizedText();
-        var trimmed = stored.TrimStart();
-        if (trimmed.StartsWith('{'))
-        {
-            try { return JsonSerializer.Deserialize<LocalizedText>(trimmed, Json) ?? new LocalizedText(); }
-            catch (JsonException) { /* plain text that happens to start with a brace */ }
-        }
-        return Of("en", stored);
+        return JsonSerializer.Deserialize<LocalizedText>(stored, Json) ?? new LocalizedText();
     }
 
     /// <summary>Joins texts per language (e.g. several questions into one message), falling back to <paramref name="fallback"/>.</summary>
@@ -70,13 +64,12 @@ public sealed class LocalizedText : Dictionary<string, string>
     }
 }
 
-/// <summary>Reads a language map; a plain string (older data) becomes the text of the "en" key.</summary>
+/// <summary>Reads and writes a language map ({ "en": "…", "ar": "…" }).</summary>
 public sealed class LocalizedTextConverter : JsonConverter<LocalizedText>
 {
     public override LocalizedText? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null) return null;
-        if (reader.TokenType == JsonTokenType.String) return LocalizedText.Of("en", reader.GetString() ?? "");
         if (reader.TokenType != JsonTokenType.StartObject) throw new JsonException("Expected a language map.");
 
         var text = new LocalizedText();

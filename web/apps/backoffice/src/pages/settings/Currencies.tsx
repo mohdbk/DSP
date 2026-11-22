@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ApiError, formatDate, formatMoney, initCurrencies, loc, t, type FieldError, type LocalizedText } from '@dsp/core';
 import {
-  AegovButton, ConfirmDialog, Modal, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, Loading, Money, MultilingualField, Notice, NumberField, PageHeader, Plus, Tag, TextField,
+  AegovButton, ConfirmDialog, Modal, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, Money, MultilingualField, Notice, NumberField, PageHeader, Plus, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
 
@@ -27,7 +27,10 @@ function example(d: Draft): string {
 export function CurrenciesPage() {
   const navigate = useNavigate();
   const search = route.useSearch();
-  const [currencies, setCurrencies] = useState<CurrencyAdmin[]>();
+  // The rows on the page shown (the table loads them from the server) and how many currencies there are.
+  const [currencies, setCurrencies] = useState<CurrencyAdmin[]>([]);
+  const [count, setCount] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
   const [selected, setSelected] = useState<string | 'new'>();
   const [draft, setDraft] = useState<Draft>();
   const [errors, setErrors] = useState<FieldError[]>([]);
@@ -35,19 +38,18 @@ export function CurrenciesPage() {
   const [busy, setBusy] = useState<string>();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const load = () => api.get<CurrencyAdmin[]>(base).then(setCurrencies).catch(e => setMessage({ kind: 'error', text: e.message }));
-  useEffect(() => { void load(); }, []);
+  const load = () => setReloadKey(n => n + 1);
 
-  const current = currencies?.find(c => c.code === selected);
+  const current = currencies.find(c => c.code === selected);
   const select = (code: string | 'new') => {
     setSelected(code);
     setErrors([]);
     setMessage(undefined);
     setConfirmDelete(false);
-    const c = currencies?.find(x => x.code === code);
+    const c = currencies.find(x => x.code === code);
     setDraft(c
       ? { code: c.code, name: c.name, symbol: c.symbol, symbolPosition: c.symbolPosition, decimals: c.decimals, sortOrder: c.sortOrder }
-      : { code: '', name: null, symbol: '', symbolPosition: 'before', decimals: 2, sortOrder: (currencies?.length ?? 0) * 10 });
+      : { code: '', name: null, symbol: '', symbolPosition: 'before', decimals: 2, sortOrder: count * 10 });
   };
 
   async function run(kind: string, action: () => Promise<unknown>, success: string) {
@@ -55,7 +57,7 @@ export function CurrenciesPage() {
     setMessage(undefined);
     try {
       await action();
-      await load();
+      load();
       await initCurrencies(); // this portal formats amounts with the new settings at once
       setMessage({ kind: 'success', text: success });
       setErrors([]);
@@ -91,12 +93,13 @@ export function CurrenciesPage() {
       cell: c => <Tag variant={c.getValue() === 'disabled' ? 'slate' : c.getValue() === 'default' ? 'aegold' : 'aegreen'}>{t(`settings.lang.${c.getValue()}`)}</Tag>,
       meta: { filter: true, filterLabel: v => t(`settings.lang.${v}`) },
     },
-    { id: 'decimals', header: t('settings.decimals'), accessorFn: c => String(c.decimals) },
-    { id: 'example', header: t('settings.example'), accessorFn: c => formatMoney(1500.5, c.code), cell: c => <Money>{c.getValue()}</Money> },
-    { id: 'updated', header: t('updated'), accessorFn: c => c.updatedAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.updatedBy}` },
+    { id: 'decimals', header: t('settings.decimals'), accessorFn: c => String(c.decimals), meta: { type: 'number' } },
+    {
+      id: 'example', header: t('settings.example'), accessorFn: c => formatMoney(1500.5, c.code), cell: c => <Money>{c.getValue()}</Money>,
+      enableSorting: false, meta: { filterable: false },
+    },
+    { id: 'updated', header: t('updated'), accessorFn: c => c.updatedAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.updatedBy}`, meta: { type: 'date' } },
   ], []);
-
-  if (!currencies) return message ? <Notice kind="error">{message.text}</Notice> : <Loading />;
 
   return (
     <>
@@ -169,7 +172,8 @@ export function CurrenciesPage() {
         onConfirm={() => { if (current) void run('delete', () => api.del(`${base}/${current.code}`), t('settings.deleted')); }} />
 
       <div>
-        <DataTable label={t('settings.currencies')} data={currencies} columns={columns} getRowId={c => c.code}
+        <DataTable label={t('settings.currencies')} source={base} listKey="backoffice.currencies" reloadKey={reloadKey}
+          onLoad={p => { setCurrencies(p.items); setCount(p.total); }} columns={columns} getRowId={c => c.code}
           onRowAction={c => select(c.code)}
           {...listStateProps(search, next => navigate({ to: '/settings/currencies', search: next, replace: true }))}
           emptyTitle={t('settings.noCurrencies')} />

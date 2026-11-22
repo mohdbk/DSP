@@ -15,7 +15,7 @@ function Root() {
   useLang(); // the portal name and labels below follow the language
   const user = useCurrentUser(); // re-renders the frame (and its menu) right after sign-in
   return (
-    <PortalFrame service={t('app.portal')} homeLabel={t('app.portalHome')} publicPaths={['/login', '/auth']} onSignOut={signOut}
+    <PortalFrame api={api} service={t('app.portal')} homeLabel={t('app.portalHome')} publicPaths={['/login', '/auth']} onSignOut={signOut}
       user={user && { name: user.name, role: user.accountLevel ? `${t('uaePass')} · ${user.accountLevel}` : t('uaePass') }}
       notificationsHref="/notifications"
       loadUnread={() => countUnread(api)}

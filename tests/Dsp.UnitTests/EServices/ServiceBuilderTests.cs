@@ -216,7 +216,7 @@ public class ServiceBuilderServiceTests
         await _builder.CreateAsync(Staff, ServiceDefinitionRulesTests.Valid(), default);
 
         await Assert.ThrowsAsync<ValidationException>(() => _builder.CreateAsync(Staff, ServiceDefinitionRulesTests.Valid(), default));
-        await Assert.ThrowsAsync<ForbiddenException>(() => _builder.ListAsync(Citizen, default));
+        await Assert.ThrowsAsync<ForbiddenException>(() => _builder.ListAsync(Citizen, new ListQuery(), default));
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class ServiceBuilderServiceTests
         await _builder.CreateAsync(Staff, ServiceDefinitionRulesTests.Valid(), default);
 
         Assert.Null(await _builder.DiscardDraftAsync(Staff, "BUSINESS_PERMIT", default));
-        Assert.Empty(await _builder.ListAsync(Staff, default));
+        Assert.Empty((await _builder.ListAsync(Staff, new ListQuery(), default)).Items);
     }
 
     [Fact]

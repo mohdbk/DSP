@@ -6,12 +6,16 @@ namespace Dsp.EServices.Application;
 public sealed class ReviewService(
     IReviewTaskRepository tasks,
     IApplicationRepository applications,
-    IWorkflowEngine workflow)
+    IWorkflowEngine workflow,
+    IServiceCatalog catalog,
+    IMessages messages)
 {
-    public async Task<IReadOnlyList<ReviewTaskDto>> ListOpenAsync(Caller caller, CancellationToken ct)
+    /// <summary>One page of the review inbox (open tasks, oldest first unless sorted otherwise).</summary>
+    public async Task<PagedList<ReviewTaskDto>> ListOpenAsync(Caller caller, ListQuery query, CancellationToken ct)
     {
         EnsureStaff(caller);
-        return (await tasks.ListOpenAsync(ct)).Select(ReviewTaskDto.From).ToList();
+        var fields = Lists.Inbox(Lists.ServiceOptions(await catalog.ListPublishedAsync(ct)), messages);
+        return (await tasks.QueryOpenAsync(fields, query, ct)).Map(ReviewTaskDto.From);
     }
 
     public async Task<ReviewTaskDto> GetAsync(Caller caller, Guid taskId, CancellationToken ct)

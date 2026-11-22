@@ -12,19 +12,14 @@ export function requireSignedIn(isSignedIn: () => boolean, loginPath: string) {
 }
 
 /** List state (search, page, sort, filters) kept in the URL, so it survives reloads and can be shared. */
-export interface ListSearch { q?: string; page?: number; sort?: string; filter?: Record<string, string>; adv?: FilterState }
+export interface ListSearch { q?: string; page?: number; sort?: string; adv?: FilterState }
 
 export function validateListSearch(search: Record<string, unknown>): ListSearch {
   const page = Number(search.page);
-  const filter = search.filter && typeof search.filter === 'object' && !Array.isArray(search.filter)
-    ? Object.fromEntries(Object.entries(search.filter as Record<string, unknown>)
-      .filter(([, v]) => typeof v === 'string' && v).map(([k, v]) => [k, v as string]))
-    : undefined;
   return {
     q: typeof search.q === 'string' && search.q ? search.q : undefined,
     page: Number.isInteger(page) && page > 1 ? page : undefined,
     sort: typeof search.sort === 'string' && search.sort ? search.sort : undefined,
-    filter: filter && Object.keys(filter).length > 0 ? filter : undefined,
     adv: sanitizeFilters(search.adv),
   };
 }
@@ -43,11 +38,9 @@ export function listStateProps(search: ListSearch, write: (next: ListSearch) => 
     sort: search.sort,
     onSortChange: (sort: string | undefined) => update({ sort, page: undefined }),
     advanced: search.adv ?? emptyFilters,
-    onAdvancedChange: (adv: FilterState) => update({ adv: adv.conditions.length ? adv : undefined, filter: undefined, page: undefined }),
-    filters: search.filter ?? {},
-    onFiltersChange: (filter: Record<string, string>) => {
-      const clean = Object.fromEntries(Object.entries(filter).filter(([, v]) => v));
-      update({ filter: Object.keys(clean).length ? clean : undefined, page: undefined });
-    },
+    onAdvancedChange: (adv: FilterState) => update({ adv: adv.conditions.length ? adv : undefined, page: undefined }),
+    onViewChange: (view: { q?: string; sort?: string; advanced?: FilterState }) => write({
+      q: view.q || undefined, sort: view.sort, adv: view.advanced?.conditions.length ? view.advanced : undefined,
+    }),
   };
 }
