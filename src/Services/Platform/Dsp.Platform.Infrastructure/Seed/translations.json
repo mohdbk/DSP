@@ -2202,25 +2202,21 @@
    "en": "Show in the portal",
    "ar": "إظهار في البوابة"
   },
-  "settings.shown.backoffice": {
-   "en": "Back office only",
-   "ar": "المكتب الخلفي فقط"
-  },
-  "settings.shown.both": {
-   "en": "Portal and back office",
-   "ar": "البوابة والمكتب الخلفي"
-  },
-  "settings.shown.none": {
-   "en": "Hidden",
-   "ar": "مخفية"
-  },
-  "settings.shown.portal": {
-   "en": "Portal only",
-   "ar": "البوابة فقط"
-  },
   "settings.shownIn": {
    "en": "Shown in",
    "ar": "يظهر في"
+  },
+  "settings.shownTag.backoffice": {
+   "en": "Back office",
+   "ar": "المكتب الخلفي"
+  },
+  "settings.shownTag.none": {
+   "en": "Hidden",
+   "ar": "مخفية"
+  },
+  "settings.shownTag.portal": {
+   "en": "Portal",
+   "ar": "البوابة"
   },
   "settings.symbol": {
    "en": "Symbol",
@@ -4263,19 +4259,16 @@
   "settings.showInPortal": [
    "backoffice"
   ],
-  "settings.shown.backoffice": [
-   "backoffice"
-  ],
-  "settings.shown.both": [
-   "backoffice"
-  ],
-  "settings.shown.none": [
-   "backoffice"
-  ],
-  "settings.shown.portal": [
-   "backoffice"
-  ],
   "settings.shownIn": [
+   "backoffice"
+  ],
+  "settings.shownTag.backoffice": [
+   "backoffice"
+  ],
+  "settings.shownTag.none": [
+   "backoffice"
+  ],
+  "settings.shownTag.portal": [
    "backoffice"
   ],
   "settings.symbol": [
