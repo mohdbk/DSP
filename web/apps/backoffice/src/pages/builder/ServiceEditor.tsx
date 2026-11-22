@@ -145,7 +145,7 @@ export function ServiceEditorPage() {
       </Panel>
       {message && <Notice kind={message.kind}>{message.text}</Notice>}
 
-      <AegovTabs ref={tabsRef} isScrollable labelTablist={t('builder.title')}>
+      <AegovTabs ref={tabsRef} isScrollable labelTablist={t('builder.pageTitle')}>
         {tabs.map(([id, label, n]) => (
           <AegovTab key={id} slot="tabs" tabId={id}>
             {t(label)}

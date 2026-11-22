@@ -40,6 +40,24 @@ public class ServiceDefinitionRulesTests
     public void A_complete_bilingual_definition_is_valid() => Assert.Empty(ServiceDefinitionRules.Validate(Valid(), M));
 
     [Fact]
+    public void The_currency_must_be_enabled_and_the_fee_must_fit_its_decimals()
+    {
+        var usd = CurrencyInfo.Fallback("USD") with { IsEnabled = false };
+        var kwd = new CurrencyInfo("KWD", TestText.Text("Kuwaiti dinar"), "KWD", "before", 3, true, false, 0);
+        var aed = new CurrencyInfo("AED", TestText.Text("UAE dirham"), "AED", "before", 2, true, true, 0);
+
+        var withUsd = Valid();
+        withUsd = new ServiceDefinition { Code = withUsd.Code, Name = withUsd.Name, Description = withUsd.Description,
+            Fee = 150, Currency = "USD", Steps = withUsd.Steps };
+        Assert.Contains(ServiceDefinitionRules.Validate(withUsd, M, usd), e => e.Field == "currency");
+
+        var precise = new ServiceDefinition { Code = withUsd.Code, Name = withUsd.Name, Description = withUsd.Description,
+            Fee = 12.345m, Currency = "KWD", Steps = withUsd.Steps };
+        Assert.DoesNotContain(ServiceDefinitionRules.Validate(precise, M, kwd), e => e.Field == "fee");
+        Assert.Contains(ServiceDefinitionRules.Validate(precise, M, aed), e => e.Field == "fee");
+    }
+
+    [Fact]
     public void Only_the_default_language_is_required()
     {
         var d = Valid();
@@ -154,7 +172,7 @@ public class ServiceBuilderServiceTests
     private readonly InMemoryVersions _versions = new();
     private readonly ServiceBuilderService _builder;
 
-    public ServiceBuilderServiceTests() => _builder = new ServiceBuilderService(_versions, TestText.Messages());
+    public ServiceBuilderServiceTests() => _builder = new ServiceBuilderService(_versions, TestText.Messages(), TestText.Currencies);
 
     [Fact]
     public async Task A_new_service_is_a_draft_until_published()

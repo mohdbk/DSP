@@ -2,10 +2,11 @@ import { t } from '@dsp/core';
 import { AegovLink } from '@dsp/ui';
 
 /** Links between the settings pages (languages, texts, AI). */
-export function SettingsNav({ current }: { current: 'languages' | 'translations' | 'ai' }) {
+export function SettingsNav({ current }: { current: 'languages' | 'translations' | 'currencies' | 'ai' }) {
   const pages = [
     ['languages', '/settings/languages', 'settings.languages'],
     ['translations', '/settings/translations', 'settings.translations'],
+    ['currencies', '/settings/currencies', 'settings.currencies'],
     ['ai', '/settings/ai', 'settings.ai'],
   ] as const;
   return (

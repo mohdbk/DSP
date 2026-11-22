@@ -10,7 +10,7 @@ namespace Dsp.AiOrchestrator.Application;
 /// answer through the E-Services API. Same validation, same data, no AI needed. Every sentence is a message key, so
 /// it speaks whichever language the portal uses, including languages added later.
 /// </summary>
-public sealed class GuidedConversation(IEServicesApi eservices, IMessages messages)
+public sealed class GuidedConversation(IEServicesApi eservices, IMessages messages, ICurrencies currencies)
 {
     private static readonly string[] DateFormats =
         ["yyyy-MM-dd", "d/M/yyyy", "dd/MM/yyyy", "d-M-yyyy", "d MMM yyyy", "d MMMM yyyy", "MMM d yyyy", "MMMM d yyyy"];
@@ -80,9 +80,8 @@ public sealed class GuidedConversation(IEServicesApi eservices, IMessages messag
         {
             var summary = string.Join("\n", service.AllFields.Where(f => HasValue(application, f.Key) && f.Type != "checkbox")
                 .Select(f => $"• {messages.Pick(f.Label)}: {Display(f, application.Data[f.Key])}"));
-            return Reply(prefix + M("chat.guided.allFilled", ("summary", summary),
-                    ("fee", service.Fee.ToString("#,0.##", CultureInfo.InvariantCulture)),
-                    ("currency", M($"currency.{service.Currency}")),
+            return Reply(prefix + M("chat.guided.allFilledPrice", ("summary", summary),
+                    ("price", await currencies.FormatAsync(service.Fee, service.Currency, ct)),
                     ("word", ConfirmWords.FirstOrDefault() ?? "")),
                 null, application);
         }

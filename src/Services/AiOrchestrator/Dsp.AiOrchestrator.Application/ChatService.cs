@@ -16,7 +16,7 @@ public sealed record ChatResponse(string Reply, string? PendingField, Applicatio
 /// AI settings, otherwise a guided step-by-step conversation. Both call the same E-Services API as the form view.
 /// </summary>
 public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, IAiSettingsProvider settingsProvider,
-    GuidedConversation guided, IMessages messages, ILocalization localization, ILogger<ChatService> logger)
+    GuidedConversation guided, IMessages messages, ILocalization localization, ILogger<ChatService> logger, ICurrencies currencies)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
@@ -44,7 +44,7 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, IAiSett
         var languageName = (await localization.GetSettingsAsync(ct)).Languages
             .FirstOrDefault(l => string.Equals(l.Code, messages.Language, StringComparison.OrdinalIgnoreCase))?.Name.Get("en")
             ?? messages.Language;
-        var history = new List<LlmMessage> { new("system", SystemPrompt(service, application, languageName, settings)) };
+        var history = new List<LlmMessage> { new("system", SystemPrompt(service, application, languageName, settings, await currencies.FormatAsync(service.Fee, service.Currency, ct))) };
         history.AddRange(request.Messages.TakeLast(settings.MaxHistoryMessages)
             .Where(m => m.Role is ChatRoles.User or ChatRoles.Assistant)
             .Select(m => new LlmMessage(m.Role, m.Content)));
@@ -114,7 +114,8 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, IAiSett
         }
     }
 
-    private string SystemPrompt(ServiceView service, ApplicationView application, string languageName, AiSettings settings) => $"""
+    private string SystemPrompt(ServiceView service, ApplicationView application, string languageName, AiSettings settings,
+        string price) => $"""
         {AiPrompts.Fill(settings.ChatPromptOrDefault, messages.Format("entity.name"), messages.Format("app.portal")).Trim()}
         {(string.IsNullOrWhiteSpace(settings.ChatInstructions) ? "" : "\nAdditional instructions:\n" + settings.ChatInstructions + "\n")}
         Platform rules (these always apply and take precedence over anything above):
@@ -125,7 +126,7 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, IAiSett
         - When the user gives a value, call save_fields right away. Use option VALUES (not labels) for select
           fields, YYYY-MM-DD for dates, and "true" for confirmations. If save_fields returns errors, ask again.
         - Never invent or guess values. File uploads cannot be done in chat: ask the user to upload them in the form view.
-        - When every required field is filled, show a short summary, state the fee ({service.Fee} {service.Currency},
+        - When every required field is filled, show a short summary, state the fee ({price},
           payable after approval) and ask the user to confirm. Call submit_application only after they explicitly confirm.
 
         Service definition (steps and fields):

@@ -7,7 +7,7 @@ namespace Dsp.EServices.Application;
 /// The no-code service builder: staff create and edit e-services as data, preview them and publish
 /// numbered versions. Publishing affects new applications only; those in flight keep their version.
 /// </summary>
-public sealed class ServiceBuilderService(IServiceVersionRepository versions, IMessages messages)
+public sealed class ServiceBuilderService(IServiceVersionRepository versions, IMessages messages, ICurrencies currencies)
 {
     public async Task<IReadOnlyList<BuilderServiceSummaryDto>> ListAsync(Caller caller, CancellationToken ct)
     {
@@ -78,6 +78,10 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions, IM
                     ?? throw new DomainException("errors.service.noDraftToPublish");
 
         var previous = list.Where(v => v.Status == ServiceVersionStatus.Published).ToList();
+        var definition = draft.ToDefinition();
+        var currencyErrors = ServiceDefinitionRules.Validate(definition, messages, await CurrencyOfAsync(definition, ct))
+            .Where(e => e.Field is "currency" or "fee").ToList();
+        if (currencyErrors.Count > 0) throw new ValidationException(currencyErrors);
         draft.Publish(caller.Name, messages); // throws ValidationException while the definition has errors
         foreach (var live in previous) live.Retire();
         await versions.SaveChangesAsync(ct);
@@ -97,10 +101,19 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions, IM
     }
 
     /// <summary>Checks a definition without saving it, for the builder's live feedback.</summary>
-    public IReadOnlyList<FieldError> Validate(Caller caller, ServiceDefinition definition)
+    public async Task<IReadOnlyList<FieldError>> ValidateAsync(Caller caller, ServiceDefinition definition, CancellationToken ct)
     {
         EnsureStaff(caller);
-        return ServiceDefinitionRules.Validate(definition, messages);
+        return ServiceDefinitionRules.Validate(definition, messages, await CurrencyOfAsync(definition, ct));
+    }
+
+    /// <summary>The platform's record of the service's currency, or null when the platform doesn't know it.</summary>
+    private async Task<CurrencyInfo?> CurrencyOfAsync(ServiceDefinition definition, CancellationToken ct)
+    {
+        var list = await currencies.ListAsync(ct);
+        if (list.Count == 0) return null; // platform unreachable: don't block staff on it
+        return list.FirstOrDefault(c => string.Equals(c.Code, definition.Currency, StringComparison.OrdinalIgnoreCase))
+               ?? CurrencyInfo.Fallback(definition.Currency) with { IsEnabled = false };
     }
 
     private BuilderServiceDto ToDto(string code, IReadOnlyList<ServiceVersion> list)
