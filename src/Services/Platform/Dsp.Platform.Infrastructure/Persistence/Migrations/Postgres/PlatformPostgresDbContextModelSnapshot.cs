@@ -34,10 +34,11 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<bool>("ChatEnabled")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("ChatInstructions")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<string>("ChatPrompt")
                         .HasMaxLength(8000)
                         .HasColumnType("character varying(8000)");
 
@@ -52,6 +53,9 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<bool>("Paused")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ProtectedApiKey")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -61,10 +65,11 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<bool>("ReviewEnabled")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("ReviewInstructions")
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<string>("ReviewPrompt")
                         .HasMaxLength(8000)
                         .HasColumnType("character varying(8000)");
 
@@ -102,6 +107,12 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                         .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
+
+                    b.Property<bool>("HiddenInBackoffice")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("HiddenInPortal")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("boolean");
