@@ -57,8 +57,8 @@ public sealed class DocumentService(IDocumentRepository documents, IObjectStorag
 
     private async Task<StoredDocument> LoadReadableAsync(string userId, bool isStaff, Guid id, CancellationToken ct)
     {
-        var document = await documents.GetAsync(id, ct) ?? throw new NotFoundException("Document not found.");
-        if (!document.CanBeReadBy(userId, isStaff)) throw new NotFoundException("Document not found.");
+        var document = await documents.GetAsync(id, ct) ?? throw new NotFoundException("errors.document.notFound");
+        if (!document.CanBeReadBy(userId, isStaff)) throw new NotFoundException("errors.document.notFound");
         return document;
     }
 }

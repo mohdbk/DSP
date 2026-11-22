@@ -17,7 +17,7 @@ public sealed class ReviewService(
     public async Task<ReviewTaskDto> GetAsync(Caller caller, Guid taskId, CancellationToken ct)
     {
         EnsureStaff(caller);
-        var task = await tasks.GetAsync(taskId, ct) ?? throw new NotFoundException("Task not found.");
+        var task = await tasks.GetAsync(taskId, ct) ?? throw new NotFoundException("errors.task.notFound");
         return ReviewTaskDto.From(task);
     }
 
@@ -25,9 +25,9 @@ public sealed class ReviewService(
         CancellationToken ct)
     {
         EnsureStaff(caller);
-        var task = await tasks.GetAsync(taskId, ct) ?? throw new NotFoundException("Task not found.");
+        var task = await tasks.GetAsync(taskId, ct) ?? throw new NotFoundException("errors.task.notFound");
         var app = await applications.GetAsync(task.ApplicationId, ct)
-                  ?? throw new NotFoundException("Application not found.");
+                  ?? throw new NotFoundException("errors.application.notFound");
 
         app.RecordDecision(decision.Approve, decision.Comment, caller.UserId);
         task.Complete(caller.UserId, decision.Approve);
@@ -41,6 +41,6 @@ public sealed class ReviewService(
 
     private static void EnsureStaff(Caller caller)
     {
-        if (!caller.IsStaff) throw new ForbiddenException("Back-office access only.");
+        if (!caller.IsStaff) throw new ForbiddenException("errors.staffOnly");
     }
 }

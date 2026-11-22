@@ -148,7 +148,7 @@ public sealed class ProcessSteps(
     private async Task<ServiceDefinition> DefinitionAsync(ServiceApplication app, CancellationToken ct) =>
         await catalog.FindVersionAsync(app.ServiceCode, app.ServiceVersion, ct)
                ?? await catalog.FindPublishedAsync(app.ServiceCode, ct)
-               ?? throw new NotFoundException($"Service '{app.ServiceCode}' was not found.");
+               ?? throw new NotFoundException("errors.service.notFound");
 
     private static AiReviewResult Unavailable(string summary) =>
         new(AiRecommendations.Unavailable, summary, [], [], "unavailable", null);
@@ -156,7 +156,7 @@ public sealed class ProcessSteps(
     private static string CurrencyAr(string currency) => currency == "AED" ? "درهم" : currency;
 
     private async Task<ServiceApplication> LoadAsync(Guid id, CancellationToken ct) =>
-        await applications.GetAsync(id, ct) ?? throw new NotFoundException($"Application {id} not found.");
+        await applications.GetAsync(id, ct) ?? throw new NotFoundException("errors.application.notFound");
 }
 
 /// <summary>Stages status changes for the Notifications service (sent after the caller's SaveChanges).</summary>

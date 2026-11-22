@@ -49,7 +49,7 @@ public sealed class AiAssessment : Entity
     public static AiAssessment Create(Guid applicationId, int round, string recommendation, string summary,
         IReadOnlyList<AiFinding> findings, IReadOnlyList<LocalizedText> questions, string mode, string? model)
     {
-        if (round < 1) throw new DomainException("Review rounds start at 1.");
+        if (round < 1) throw new DomainException("errors.assessment.round");
         return new AiAssessment
         {
             ApplicationId = applicationId,

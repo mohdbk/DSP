@@ -30,10 +30,10 @@ public sealed class StoredDocument : Entity
     public static StoredDocument Create(string ownerId, string fileName, string contentType, long sizeBytes,
         string sha256, DocumentKind kind)
     {
-        if (sizeBytes <= 0) throw new DomainException("The file is empty.");
-        if (sizeBytes > MaxSizeBytes) throw new DomainException("Files must be 10 MB or smaller.");
+        if (sizeBytes <= 0) throw new DomainException("errors.document.empty");
+        if (sizeBytes > MaxSizeBytes) throw new DomainException("errors.document.tooLarge");
         if (kind == DocumentKind.Attachment && !AllowedContentTypes.Contains(contentType))
-            throw new DomainException("Upload a PDF, PNG or JPEG file.");
+            throw new DomainException("errors.document.type");
 
         var doc = new StoredDocument
         {

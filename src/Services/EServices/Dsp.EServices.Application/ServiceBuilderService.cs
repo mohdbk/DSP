@@ -31,7 +31,7 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
     {
         EnsureStaff(caller);
         var list = await versions.ListForCodeAsync(code, ct);
-        if (list.Count == 0) throw new NotFoundException($"Service '{code}' was not found.");
+        if (list.Count == 0) throw new NotFoundException("errors.service.notFound");
         return ToDto(code, list);
     }
 
@@ -54,10 +54,10 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
     {
         EnsureStaff(caller);
         if (!string.Equals(definition.Code, code, StringComparison.Ordinal))
-            throw new DomainException("The service code can't be changed. Create a new service instead.");
+            throw new DomainException("errors.service.codeChange");
 
         var list = await versions.ListForCodeAsync(code, ct);
-        if (list.Count == 0) throw new NotFoundException($"Service '{code}' was not found.");
+        if (list.Count == 0) throw new NotFoundException("errors.service.notFound");
 
         var draft = list.FirstOrDefault(v => v.Status == ServiceVersionStatus.Draft);
         if (draft is null)
@@ -75,7 +75,7 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
         EnsureStaff(caller);
         var list = await versions.ListForCodeAsync(code, ct);
         var draft = list.FirstOrDefault(v => v.Status == ServiceVersionStatus.Draft)
-                    ?? throw new DomainException("There is no draft to publish. Make a change first.");
+                    ?? throw new DomainException("errors.service.noDraftToPublish");
 
         var previous = list.Where(v => v.Status == ServiceVersionStatus.Published).ToList();
         draft.Publish(caller.Name); // throws ValidationException while the definition has errors
@@ -90,7 +90,7 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
         EnsureStaff(caller);
         var list = await versions.ListForCodeAsync(code, ct);
         var draft = list.FirstOrDefault(v => v.Status == ServiceVersionStatus.Draft)
-                    ?? throw new DomainException("There is no draft to discard.");
+                    ?? throw new DomainException("errors.service.noDraftToDiscard");
         versions.Remove(draft);
         await versions.SaveChangesAsync(ct);
         return list.Count == 1 ? null : await GetAsync(caller, code, ct);
@@ -114,7 +114,7 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
 
     private static void EnsureStaff(Caller caller)
     {
-        if (!caller.IsStaff) throw new ForbiddenException("Back-office access only.");
+        if (!caller.IsStaff) throw new ForbiddenException("errors.staffOnly");
     }
 }
 

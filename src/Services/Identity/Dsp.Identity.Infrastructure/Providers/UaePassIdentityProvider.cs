@@ -53,12 +53,12 @@ public sealed class UaePassIdentityProvider(
         {
             logger.LogInformation("UAE PASS returned {Error}", error);
             throw new DomainException(error == "access_denied"
-                ? "You cancelled the UAE PASS sign-in."
-                : "UAE PASS sign-in could not be completed.");
+                ? "errors.uaePass.cancelled"
+                : "errors.uaePass.failed");
         }
 
         if (!callback.TryGetValue("code", out var code) || string.IsNullOrWhiteSpace(code))
-            throw new DomainException("UAE PASS did not return an authorization code.");
+            throw new DomainException("errors.uaePass.failed");
 
         var accessToken = await ExchangeCodeAsync(code, redirectUri, ct);
         return await GetProfileAsync(accessToken, ct);
@@ -85,12 +85,12 @@ public sealed class UaePassIdentityProvider(
         if (!response.IsSuccessStatusCode)
         {
             logger.LogWarning("UAE PASS token exchange failed: {Status} {Body}", (int)response.StatusCode, body);
-            throw new DomainException("UAE PASS sign-in could not be completed. Please try again.");
+            throw new DomainException("errors.uaePass.failed");
         }
 
         using var doc = JsonDocument.Parse(body);
         return doc.RootElement.GetProperty("access_token").GetString()
-               ?? throw new DomainException("UAE PASS returned no access token.");
+               ?? throw new DomainException("errors.uaePass.failed");
     }
 
     private async Task<ExternalProfile> GetProfileAsync(string accessToken, CancellationToken ct)
@@ -103,7 +103,7 @@ public sealed class UaePassIdentityProvider(
         if (!response.IsSuccessStatusCode)
         {
             logger.LogWarning("UAE PASS userinfo failed: {Status}", (int)response.StatusCode);
-            throw new DomainException("Could not read your UAE PASS profile.");
+            throw new DomainException("errors.uaePass.failed");
         }
 
         using var doc = JsonDocument.Parse(body);
@@ -111,7 +111,7 @@ public sealed class UaePassIdentityProvider(
         string? Get(string name) =>
             root.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
-        var externalId = Get("uuid") ?? Get("sub") ?? throw new DomainException("UAE PASS profile has no subject.");
+        var externalId = Get("uuid") ?? Get("sub") ?? throw new DomainException("errors.uaePass.failed");
         var fullName = Get("fullnameEN") ?? JoinNames(Get("firstnameEN"), Get("lastnameEN")) ?? "UAE PASS user";
 
         return new ExternalProfile(

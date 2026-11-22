@@ -61,8 +61,8 @@ public sealed class PaymentService(IPaymentRepository payments, IPaymentProcesso
 
     private async Task<Payment> LoadVisibleAsync(string payerId, bool isStaff, Guid id, CancellationToken ct)
     {
-        var payment = await payments.GetAsync(id, ct) ?? throw new NotFoundException("Payment not found.");
-        if (!isStaff && payment.PayerId != payerId) throw new NotFoundException("Payment not found.");
+        var payment = await payments.GetAsync(id, ct) ?? throw new NotFoundException("errors.payment.notFound");
+        if (!isStaff && payment.PayerId != payerId) throw new NotFoundException("errors.payment.notFound");
         return payment;
     }
 }

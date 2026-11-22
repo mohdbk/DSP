@@ -40,5 +40,6 @@ provision dsp_eservices     "$ESERVICES_DB_PASSWORD"     eservices workflows
 provision dsp_payments      "$PAYMENTS_DB_PASSWORD"      payments
 provision dsp_documents     "$DOCUMENTS_DB_PASSWORD"     documents
 provision dsp_notifications "$NOTIFICATIONS_DB_PASSWORD" notifications
+provision dsp_platform      "$PLATFORM_DB_PASSWORD"      platform
 
 echo "PROVISIONING COMPLETE"

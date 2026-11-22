@@ -8,6 +8,7 @@
     <ProjectReference Include="../../src/Services/Payments/Dsp.Payments.Infrastructure/Dsp.Payments.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Services/Documents/Dsp.Documents.Infrastructure/Dsp.Documents.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Services/Notifications/Dsp.Notifications.Infrastructure/Dsp.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Services/Platform/Dsp.Platform.Infrastructure/Dsp.Platform.Infrastructure.csproj" />
     <ProjectReference Include="../../src/Services/AiOrchestrator/Dsp.AiOrchestrator.Infrastructure/Dsp.AiOrchestrator.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

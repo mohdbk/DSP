@@ -34,6 +34,37 @@ public sealed class LocalizedText : Dictionary<string, string>
     public bool Has(string language) => TryGetValue(language, out var v) && !string.IsNullOrWhiteSpace(v);
 
     public bool IsEmpty => Values.All(string.IsNullOrWhiteSpace);
+
+    /// <summary>The languages that have a text.</summary>
+    public IEnumerable<string> Languages => this.Where(p => !string.IsNullOrWhiteSpace(p.Value)).Select(p => p.Key);
+
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+    public string ToJson() => JsonSerializer.Serialize(this, Json);
+
+    /// <summary>Reads a stored map. Text that isn't a JSON map (data written before languages were dynamic) is English.</summary>
+    public static LocalizedText Parse(string? stored)
+    {
+        if (string.IsNullOrWhiteSpace(stored)) return new LocalizedText();
+        var trimmed = stored.TrimStart();
+        if (trimmed.StartsWith('{'))
+        {
+            try { return JsonSerializer.Deserialize<LocalizedText>(trimmed, Json) ?? new LocalizedText(); }
+            catch (JsonException) { /* plain text that happens to start with a brace */ }
+        }
+        return Of("en", stored);
+    }
+
+    /// <summary>Joins texts per language (e.g. several questions into one message), falling back to <paramref name="fallback"/>.</summary>
+    public static LocalizedText Join(IEnumerable<LocalizedText> parts, string separator, string? fallback = null)
+    {
+        var list = parts.ToList();
+        var languages = list.SelectMany(p => p.Languages).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var joined = new LocalizedText();
+        foreach (var language in languages)
+            joined[language] = string.Join(separator, list.Select(p => p.Get(language, fallback)).Where(t => t.Length > 0));
+        return joined;
+    }
 }
 
 /// <summary>Reads a language map; a plain string (older data) becomes the text of the "en" key.</summary>

@@ -103,7 +103,7 @@ public sealed class ServiceApplication : Entity
 
     public void UpdateData(IReadOnlyDictionary<string, string?> values)
     {
-        if (!IsEditable) throw new DomainException("Only draft applications can be edited.");
+        if (!IsEditable) throw new DomainException("errors.application.notEditable");
         var data = GetData();
         foreach (var (key, value) in values) data[key] = value?.Trim();
         DataJson = JsonSerializer.Serialize(data);
@@ -130,9 +130,9 @@ public sealed class ServiceApplication : Entity
     public void RequestInformation(IReadOnlyList<LocalizedText> questions)
     {
         EnsureStatus(ApplicationStatus.AiReview, "Information can only be requested during the AI pre-review.");
-        if (questions.Count == 0) throw new DomainException("Say what information is needed.");
+        if (questions.Count == 0) throw new DomainException("errors.application.questionsRequired");
         if (InformationRequestCount >= MaxInformationRequests)
-            throw new DomainException("The applicant was already asked the maximum number of times.");
+            throw new DomainException("errors.application.maxInformationRequests");
         Status = ApplicationStatus.InformationRequested;
         InformationRequestJson = JsonSerializer.Serialize(questions);
         InformationRequestCount++;
@@ -152,7 +152,7 @@ public sealed class ServiceApplication : Entity
     public void StartReview()
     {
         if (Status is not (ApplicationStatus.Submitted or ApplicationStatus.AiReview))
-            throw new DomainException("Only submitted applications can go to review.");
+            throw new DomainException("errors.application.reviewSubmittedOnly");
         Status = ApplicationStatus.UnderReview;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
@@ -161,7 +161,7 @@ public sealed class ServiceApplication : Entity
     {
         EnsureStatus(ApplicationStatus.UnderReview, "Only applications under review can be decided.");
         if (!approved && string.IsNullOrWhiteSpace(comment))
-            throw new DomainException("A reason is required when rejecting an application.");
+            throw new DomainException("errors.application.rejectReason");
         Approved = approved;
         DecisionComment = comment?.Trim();
         DecidedBy = decidedBy;
@@ -170,7 +170,7 @@ public sealed class ServiceApplication : Entity
 
     public void RequestPayment(Guid paymentId)
     {
-        if (Approved != true) throw new DomainException("Payment can only be requested after approval.");
+        if (Approved != true) throw new DomainException("errors.application.paymentBeforeApproval");
         Status = ApplicationStatus.AwaitingPayment;
         PaymentId = paymentId;
         UpdatedAt = DateTimeOffset.UtcNow;
@@ -179,7 +179,7 @@ public sealed class ServiceApplication : Entity
     public void MarkPaid(Guid paymentId)
     {
         EnsureStatus(ApplicationStatus.AwaitingPayment, "This application is not awaiting payment.");
-        if (PaymentId != paymentId) throw new DomainException("Payment does not match this application.");
+        if (PaymentId != paymentId) throw new DomainException("errors.application.paymentMismatch");
         Status = ApplicationStatus.Paid;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
@@ -194,7 +194,7 @@ public sealed class ServiceApplication : Entity
 
     public void Reject()
     {
-        if (Approved != false) throw new DomainException("Only a rejection decision can reject the application.");
+        if (Approved != false) throw new DomainException("errors.application.rejectWithoutDecision");
         Status = ApplicationStatus.Rejected;
         CompletedAt = UpdatedAt = DateTimeOffset.UtcNow;
     }

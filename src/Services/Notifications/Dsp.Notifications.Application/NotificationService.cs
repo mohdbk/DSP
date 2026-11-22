@@ -30,9 +30,9 @@ public sealed class NotificationService(INotificationRepository notifications)
 
     public async Task MarkReadAsync(string userId, bool isStaff, Guid id, CancellationToken ct)
     {
-        var notification = await notifications.GetAsync(id, ct) ?? throw new NotFoundException("Notification not found.");
+        var notification = await notifications.GetAsync(id, ct) ?? throw new NotFoundException("errors.notification.notFound");
         var mine = notification.Recipient == userId || (isStaff && notification.Recipient == Notification.StaffAudience);
-        if (!mine) throw new NotFoundException("Notification not found.");
+        if (!mine) throw new NotFoundException("errors.notification.notFound");
         notification.MarkRead();
         await notifications.SaveChangesAsync(ct);
     }

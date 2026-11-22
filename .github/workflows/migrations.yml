@@ -47,7 +47,7 @@ jobs:
           dotnet build Dsp.sln -c Debug -v q -nologo
 
           changed=()
-          for svc in Identity EServices Payments Documents Notifications; do
+          for svc in Identity EServices Payments Documents Notifications Platform; do
             proj="src/Services/$svc/Dsp.$svc.Infrastructure"
             lower="$(echo "$svc" | tr '[:upper:]' '[:lower:]')"
             pending=0

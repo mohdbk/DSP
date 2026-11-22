@@ -49,7 +49,7 @@ public sealed class ReviewTask : Entity
 
     public void Complete(string staffId, bool approved)
     {
-        if (Status != ReviewTaskStatus.Open) throw new DomainException("This task is already completed.");
+        if (Status != ReviewTaskStatus.Open) throw new DomainException("errors.task.completed");
         Status = ReviewTaskStatus.Completed;
         CompletedBy = staffId;
         CompletedAt = DateTimeOffset.UtcNow;

@@ -1,21 +1,22 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Dsp.SharedKernel;
 
 namespace Dsp.EServices.Domain.Catalog;
 
 /// <summary>
-/// An e-service as data: its fee, its process and the steps and fields users complete, in English and Arabic.
-/// Built in the back-office service builder (or produced by the OutSystems extraction pipeline) and
-/// published as numbered versions. The form view, chat view, validation and AI review all read this one definition.
+/// An e-service as data: its fee, its process and the steps and fields users complete. Every human-facing text is a
+/// <see cref="LocalizedText"/> in any number of languages; only the platform's default language is required.
+/// Built in the back-office service builder (or produced by the OutSystems extraction pipeline) and published as
+/// numbered versions. The form view, chat view, validation and AI review all read this one definition.
 /// </summary>
 public sealed class ServiceDefinition
 {
     public required string Code { get; init; }
-    public required string Name { get; init; }
-    public string? NameAr { get; init; }
-    public required string Description { get; init; }
-    public string? DescriptionAr { get; init; }
-    public string Category { get; init; } = "General";
-    public string? CategoryAr { get; init; }
+    public required LocalizedText Name { get; init; }
+    public required LocalizedText Description { get; init; }
+    public LocalizedText Category { get; init; } = LocalizedText.Of("en", "General");
     public decimal Fee { get; init; }
     public string Currency { get; init; } = "AED";
 
@@ -29,7 +30,7 @@ public sealed class ServiceDefinition
     public int WorkflowVersion { get; init; } = WorkflowVersions.Standard;
 
     /// <summary>What the AI pre-review checks for this service (agentic process only), in plain language.</summary>
-    public IReadOnlyList<string>? ReviewChecklist { get; init; }
+    public IReadOnlyList<LocalizedText>? ReviewChecklist { get; init; }
 
     public required IReadOnlyList<FormStep> Steps { get; init; }
 
@@ -54,10 +55,8 @@ public static class WorkflowVersions
 public sealed class FormStep
 {
     public required string Id { get; init; }
-    public required string Title { get; init; }
-    public string? TitleAr { get; init; }
-    public string? Description { get; init; }
-    public string? DescriptionAr { get; init; }
+    public required LocalizedText Title { get; init; }
+    public LocalizedText? Description { get; init; }
     public required IReadOnlyList<FieldDefinition> Fields { get; init; }
 }
 
@@ -80,52 +79,84 @@ public static class FieldTypes
 public sealed class FieldDefinition
 {
     public required string Key { get; init; }
-    public required string Label { get; init; }
-    public string? LabelAr { get; init; }
+    public required LocalizedText Label { get; init; }
     public string Type { get; init; } = FieldTypes.Text;
     public bool Required { get; init; }
-    public string? Help { get; init; }
-    public string? HelpAr { get; init; }
-    public string? Placeholder { get; init; }
-    public string? PlaceholderAr { get; init; }
+    public LocalizedText? Help { get; init; }
+    public LocalizedText? Placeholder { get; init; }
     public IReadOnlyList<FieldOption>? Options { get; init; }
     public int? MinLength { get; init; }
     public int? MaxLength { get; init; }
     public decimal? Min { get; init; }
     public decimal? Max { get; init; }
     public string? Pattern { get; init; }
-    public string? PatternMessage { get; init; }
-    public string? PatternMessageAr { get; init; }
+    public LocalizedText? PatternMessage { get; init; }
 
     /// <summary>Profile claim used to pre-fill the field from the signed-in user (e.g. "name", "email").</summary>
     public string? PrefillFrom { get; init; }
-
-    public string LabelFor(string lang) => Localized.Pick(lang, Label, LabelAr);
 }
 
 public sealed class FieldOption
 {
     public required string Value { get; init; }
-    public required string Label { get; init; }
-    public string? LabelAr { get; init; }
+    public required LocalizedText Label { get; init; }
 }
 
-/// <summary>A text in English and Arabic.</summary>
-public sealed record LocalizedText(string En, string Ar)
+/// <summary>
+/// Reads and writes definitions as JSON. Definitions saved before languages became dynamic kept Arabic in separate
+/// properties (<c>name</c> + <c>nameAr</c>); reading folds those into the language maps, so old versions still open.
+/// </summary>
+public static class ServiceDefinitionJson
 {
-    public string For(string lang) => Localized.Pick(lang, En, Ar);
-}
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-public static class Localized
-{
-    public const string English = "en";
-    public const string Arabic = "ar";
+    private static readonly string[] LocalizedProperties =
+        ["name", "description", "category", "title", "label", "help", "placeholder", "patternMessage"];
 
-    /// <summary>Normalises an Accept-Language style value to "en" or "ar".</summary>
-    public static string Normalize(string? lang) =>
-        lang is not null && lang.TrimStart().StartsWith("ar", StringComparison.OrdinalIgnoreCase) ? Arabic : English;
+    public static string Serialize(ServiceDefinition definition) => JsonSerializer.Serialize(definition, Json);
 
-    /// <summary>The Arabic text when asked for Arabic and one exists, otherwise the English text.</summary>
-    public static string Pick(string? lang, string en, string? ar) =>
-        Normalize(lang) == Arabic && !string.IsNullOrWhiteSpace(ar) ? ar : en;
+    public static ServiceDefinition Deserialize(string json)
+    {
+        var node = JsonNode.Parse(json) ?? throw new DomainException("errors.service.unreadable");
+        Upgrade(node);
+        return node.Deserialize<ServiceDefinition>(Json) ?? throw new DomainException("errors.service.unreadable");
+    }
+
+    public static ServiceDefinition Deserialize(Stream json)
+    {
+        using var reader = new StreamReader(json);
+        return Deserialize(reader.ReadToEnd());
+    }
+
+    private static void Upgrade(JsonNode node)
+    {
+        switch (node)
+        {
+            case JsonObject obj:
+                foreach (var name in LocalizedProperties)
+                {
+                    var arName = name + "Ar";
+                    if (!obj.TryGetPropertyValue(arName, out var arabic)) continue;
+                    obj.Remove(arName);
+                    var arabicText = arabic?.GetValueKind() == JsonValueKind.String ? arabic.GetValue<string>() : null;
+                    if (obj[name] is JsonObject existing)
+                    {
+                        if (!string.IsNullOrWhiteSpace(arabicText)) existing["ar"] = arabicText;
+                        continue;
+                    }
+                    var map = obj[name] is JsonValue value && value.GetValueKind() == JsonValueKind.String
+                        ? new JsonObject { ["en"] = value.GetValue<string>() }
+                        : new JsonObject();
+                    if (!string.IsNullOrWhiteSpace(arabicText)) map["ar"] = arabicText;
+                    obj[name] = map.Count > 0 ? map : null;
+                }
+                foreach (var (_, child) in obj.ToList())
+                    if (child is not null) Upgrade(child);
+                break;
+            case JsonArray array:
+                foreach (var child in array)
+                    if (child is not null) Upgrade(child);
+                break;
+        }
+    }
 }

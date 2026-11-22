@@ -5,8 +5,9 @@ namespace Dsp.EServices.Domain.Catalog;
 
 /// <summary>
 /// What makes a service definition publishable. The service builder shows these errors while staff edit,
-/// and publishing is refused until there are none. Error keys point at the place in the definition
-/// (e.g. "steps[1].fields[0].key") so the builder can highlight it.
+/// and publishing is refused until there are none. Error paths point at the place in the definition
+/// (e.g. "steps[1].fields[0].key", or "name.en" for one language of a text) so the builder can highlight it.
+/// Only the platform's default language is required; other languages are optional.
 /// </summary>
 public static partial class ServiceDefinitionRules
 {
@@ -17,37 +18,45 @@ public static partial class ServiceDefinitionRules
     public const int MaxFieldsPerStep = 30;
     public const int MaxChecklistItems = 20;
 
-    public static List<FieldError> Validate(ServiceDefinition d)
+    /// <param name="messages">Messages in the editor's language; its default language is the one every text needs.</param>
+    public static List<FieldError> Validate(ServiceDefinition d, IMessages messages)
     {
         var errors = new List<FieldError>();
-        void Add(string at, string message) => errors.Add(new FieldError(at, message));
+        var lang = messages.DefaultLanguage;
+        void Add(string at, string key, params (string, object?)[] args) =>
+            errors.Add(new FieldError(at, messages.Format(key, [("language", lang), .. args])));
+        void Require(LocalizedText? text, string at, string key)
+        {
+            if (text is null || !text.Has(lang)) Add($"{at}.{lang}", key);
+        }
 
         if (string.IsNullOrWhiteSpace(d.Code) || !CodePattern().IsMatch(d.Code))
-            Add("code", "Use 3–64 capital letters, digits or underscores, starting with a letter (e.g. TRADE_NAME_RESERVATION).");
-        if (string.IsNullOrWhiteSpace(d.Name)) Add("name", "Enter the service name in English.");
-        if (string.IsNullOrWhiteSpace(d.NameAr)) Add("nameAr", "Enter the service name in Arabic.");
-        if (string.IsNullOrWhiteSpace(d.Description)) Add("description", "Enter a short description in English.");
-        if (string.IsNullOrWhiteSpace(d.DescriptionAr)) Add("descriptionAr", "Enter a short description in Arabic.");
-        if (d.Fee <= 0) Add("fee", "The fee must be more than zero.");
-        if (string.IsNullOrWhiteSpace(d.Currency) || d.Currency.Length != 3) Add("currency", "Use a 3-letter currency code, e.g. AED.");
-        if (!WorkflowVersions.IsKnown(d.WorkflowVersion)) Add("workflowVersion", "Choose the standard or the AI-assisted process.");
+            Add("code", "builder.rule.code");
+        Require(d.Name, "name", "builder.rule.name");
+        Require(d.Description, "description", "builder.rule.description");
+        Require(d.Category, "category", "builder.rule.category");
+        if (d.Fee <= 0) Add("fee", "builder.rule.fee");
+        if (string.IsNullOrWhiteSpace(d.Currency) || d.Currency.Length != 3) Add("currency", "builder.rule.currency");
+        if (!WorkflowVersions.IsKnown(d.WorkflowVersion)) Add("workflowVersion", "builder.rule.workflow");
 
         if (d.ReviewChecklist is { } checklist)
         {
-            if (checklist.Count > MaxChecklistItems) Add("reviewChecklist", $"Use at most {MaxChecklistItems} checklist items.");
+            if (checklist.Count > MaxChecklistItems) Add("reviewChecklist", "builder.rule.checklistMax", ("max", MaxChecklistItems));
             for (var i = 0; i < checklist.Count; i++)
             {
-                if (string.IsNullOrWhiteSpace(checklist[i]) || checklist[i].Length > 300)
-                    Add($"reviewChecklist[{i}]", "Each checklist item needs 1–300 characters.");
+                if (checklist[i] is null || !checklist[i].Has(lang))
+                    Add($"reviewChecklist[{i}].{lang}", "builder.rule.checklistItem");
+                else if (checklist[i].Values.Any(v => v.Length > 300))
+                    Add($"reviewChecklist[{i}]", "builder.rule.checklistItem");
             }
         }
 
         if (d.Steps is null || d.Steps.Count == 0)
         {
-            Add("steps", "Add at least one step.");
+            Add("steps", "builder.rule.stepsNone");
             return errors;
         }
-        if (d.Steps.Count > MaxSteps) Add("steps", $"Use at most {MaxSteps} steps.");
+        if (d.Steps.Count > MaxSteps) Add("steps", "builder.rule.stepsMax", ("max", MaxSteps));
 
         var stepIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var fieldKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -57,74 +66,74 @@ public static partial class ServiceDefinitionRules
             var step = d.Steps[s];
             var at = $"steps[{s}]";
             if (string.IsNullOrWhiteSpace(step.Id) || !StepIdPattern().IsMatch(step.Id))
-                Add($"{at}.id", "Use lowercase letters, digits and dashes for the step ID.");
-            else if (!stepIds.Add(step.Id)) Add($"{at}.id", "Step IDs must be unique.");
-            if (string.IsNullOrWhiteSpace(step.Title)) Add($"{at}.title", "Enter the step title in English.");
-            if (string.IsNullOrWhiteSpace(step.TitleAr)) Add($"{at}.titleAr", "Enter the step title in Arabic.");
+                Add($"{at}.id", "builder.rule.stepId");
+            else if (!stepIds.Add(step.Id)) Add($"{at}.id", "builder.rule.stepIdUnique");
+            Require(step.Title, $"{at}.title", "builder.rule.stepTitle");
 
             if (step.Fields is null || step.Fields.Count == 0)
             {
-                Add($"{at}.fields", "Add at least one field to this step.");
+                Add($"{at}.fields", "builder.rule.fieldsNone");
                 continue;
             }
-            if (step.Fields.Count > MaxFieldsPerStep) Add($"{at}.fields", $"Use at most {MaxFieldsPerStep} fields per step.");
+            if (step.Fields.Count > MaxFieldsPerStep) Add($"{at}.fields", "builder.rule.fieldsMax", ("max", MaxFieldsPerStep));
 
             for (var f = 0; f < step.Fields.Count; f++)
-                ValidateField(step.Fields[f], $"{at}.fields[{f}]", fieldKeys, Add);
+                ValidateField(step.Fields[f], $"{at}.fields[{f}]", fieldKeys, Add, Require, lang);
         }
 
         if (!string.IsNullOrWhiteSpace(d.ReferenceField))
         {
             var reference = d.FindField(d.ReferenceField);
-            if (reference is null) Add("referenceField", "The reference field must be one of the service's fields.");
+            if (reference is null) Add("referenceField", "builder.rule.referenceMissing");
             else if (reference.Type is not (FieldTypes.Text or FieldTypes.Email or FieldTypes.Phone))
-                Add("referenceField", "The reference field must be a text field.");
+                Add("referenceField", "builder.rule.referenceType");
         }
 
         return errors;
     }
 
-    private static void ValidateField(FieldDefinition field, string at, HashSet<string> keys, Action<string, string> add)
+    private delegate void AddError(string at, string key, params (string, object?)[] args);
+
+    private static void ValidateField(FieldDefinition field, string at, HashSet<string> keys, AddError add,
+        Action<LocalizedText?, string, string> require, string lang)
     {
         if (string.IsNullOrWhiteSpace(field.Key) || !FieldKeyPattern().IsMatch(field.Key))
-            add($"{at}.key", "Start with a letter and use letters and digits only (e.g. tradeNameEn).");
-        else if (!keys.Add(field.Key)) add($"{at}.key", "Field keys must be unique across the whole service.");
+            add($"{at}.key", "builder.rule.fieldKey");
+        else if (!keys.Add(field.Key)) add($"{at}.key", "builder.rule.fieldKeyUnique");
 
-        if (string.IsNullOrWhiteSpace(field.Label)) add($"{at}.label", "Enter the label in English.");
-        if (string.IsNullOrWhiteSpace(field.LabelAr)) add($"{at}.labelAr", "Enter the label in Arabic.");
-        if (!FieldTypes.All.Contains(field.Type)) add($"{at}.type", "Choose a field type.");
+        require(field.Label, $"{at}.label", "builder.rule.label");
+        if (!FieldTypes.All.Contains(field.Type)) add($"{at}.type", "builder.rule.fieldType");
 
         if (field.Type == FieldTypes.Select)
         {
-            if (field.Options is null || field.Options.Count == 0) add($"{at}.options", "Add at least one option.");
+            if (field.Options is null || field.Options.Count == 0) add($"{at}.options", "builder.rule.optionsNone");
             else
             {
                 var values = new HashSet<string>();
                 for (var o = 0; o < field.Options.Count; o++)
                 {
                     var option = field.Options[o];
-                    if (string.IsNullOrWhiteSpace(option.Value)) add($"{at}.options[{o}].value", "Each option needs a value.");
-                    else if (!values.Add(option.Value)) add($"{at}.options[{o}].value", "Option values must be unique.");
-                    if (string.IsNullOrWhiteSpace(option.Label)) add($"{at}.options[{o}].label", "Each option needs an English label.");
-                    if (string.IsNullOrWhiteSpace(option.LabelAr)) add($"{at}.options[{o}].labelAr", "Each option needs an Arabic label.");
+                    if (string.IsNullOrWhiteSpace(option.Value)) add($"{at}.options[{o}].value", "builder.rule.optionValue");
+                    else if (!values.Add(option.Value)) add($"{at}.options[{o}].value", "builder.rule.optionValueUnique");
+                    require(option.Label, $"{at}.options[{o}].label", "builder.rule.optionLabel");
                 }
             }
         }
 
-        if (field.MinLength is < 0) add($"{at}.minLength", "Minimum length can't be negative.");
+        if (field.MinLength is < 0) add($"{at}.minLength", "builder.rule.minLength");
         if (field.MinLength is { } minL && field.MaxLength is { } maxL && minL > maxL)
-            add($"{at}.maxLength", "Maximum length must be at least the minimum length.");
+            add($"{at}.maxLength", "builder.rule.maxLength");
         if (field.Min is { } min && field.Max is { } max && min > max)
-            add($"{at}.max", "Maximum must be at least the minimum.");
+            add($"{at}.max", "builder.rule.max");
 
         if (!string.IsNullOrEmpty(field.Pattern))
         {
             try { _ = new Regex(field.Pattern, RegexOptions.None, TimeSpan.FromMilliseconds(200)); }
-            catch (ArgumentException) { add($"{at}.pattern", "This is not a valid pattern (regular expression)."); }
+            catch (ArgumentException) { add($"{at}.pattern", "builder.rule.pattern"); }
         }
 
         if (field.PrefillFrom is not null && !ProfileClaims.Contains(field.PrefillFrom))
-            add($"{at}.prefillFrom", "Pre-fill only from name, Emirates ID, email or mobile.");
+            add($"{at}.prefillFrom", "builder.rule.prefill");
     }
 
     [GeneratedRegex("^[A-Z][A-Z0-9_]{2,63}$")]

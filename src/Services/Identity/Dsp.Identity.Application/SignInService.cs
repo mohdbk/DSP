@@ -29,7 +29,7 @@ public sealed class CitizenSignInService(
 
     private ICitizenIdentityProvider Get(string name) =>
         providers.FirstOrDefault(p => p.IsEnabled && string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
-        ?? throw new NotFoundException($"Sign-in provider '{name}' is not available.");
+        ?? throw new NotFoundException("errors.signIn.provider");
 }
 
 /// <summary>Back-office sign-in through the configured staff authenticator.</summary>
@@ -47,7 +47,7 @@ public sealed class StaffSignInService(
         if (user is null)
         {
             logger.LogWarning("Failed staff sign-in for {Username} via {Authenticator}", username, authenticator.Name);
-            throw new ForbiddenException("Incorrect username or password.");
+            throw new ForbiddenException("errors.signIn.credentials");
         }
 
         logger.LogInformation("Staff sign-in for {Subject} via {Authenticator}", user.Subject, authenticator.Name);

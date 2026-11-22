@@ -26,8 +26,8 @@ public sealed class Payment : Entity
 
     public static Payment Create(Guid referenceId, string payerId, decimal amount, string currency, string description)
     {
-        if (amount <= 0) throw new DomainException("Amount must be greater than zero.");
-        if (string.IsNullOrWhiteSpace(payerId)) throw new DomainException("Payer is required.");
+        if (amount <= 0) throw new DomainException("errors.payment.amount");
+        if (string.IsNullOrWhiteSpace(payerId)) throw new DomainException("errors.payment.payer");
         return new Payment
         {
             ReferenceId = referenceId,
@@ -42,7 +42,7 @@ public sealed class Payment : Entity
 
     public void MarkPaid(string method, string transactionReference)
     {
-        if (Status == PaymentStatus.Paid) throw new DomainException("This payment has already been made.");
+        if (Status == PaymentStatus.Paid) throw new DomainException("errors.payment.alreadyPaid");
         Status = PaymentStatus.Paid;
         Method = method;
         TransactionReference = transactionReference;

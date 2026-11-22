@@ -20,7 +20,7 @@ public sealed class ApplicationService(
     /// <summary>The published service, or a given version of it (to show an application as it was filled in).</summary>
     public async Task<ServiceDefinition> GetServiceAsync(string code, int? version, CancellationToken ct) =>
         (version is { } v ? await catalog.FindVersionAsync(code, v, ct) : await catalog.FindPublishedAsync(code, ct))
-        ?? throw new NotFoundException($"Service '{code}' was not found.");
+        ?? throw new NotFoundException("errors.service.notFound");
 
     public async Task<ApplicationDto> CreateDraftAsync(Caller caller, string serviceCode, CancellationToken ct)
     {
@@ -52,7 +52,7 @@ public sealed class ApplicationService(
     /// <summary>The AI pre-review rounds for an application (staff only).</summary>
     public async Task<IReadOnlyList<AiAssessmentDto>> ListAssessmentsAsync(Caller caller, Guid id, CancellationToken ct)
     {
-        if (!caller.IsStaff) throw new ForbiddenException("Back-office access only.");
+        if (!caller.IsStaff) throw new ForbiddenException("errors.staffOnly");
         var app = await ReadVisibleAsync(caller, id, ct);
         return (await assessments.ListForApplicationAsync(app.Id, ct)).Select(AiAssessmentDto.From).ToList();
     }
@@ -140,19 +140,19 @@ public sealed class ApplicationService(
     private async Task<ServiceDefinition> DefinitionForAsync(ServiceApplication app, CancellationToken ct) =>
         await catalog.FindVersionAsync(app.ServiceCode, app.ServiceVersion, ct)
         ?? await catalog.FindPublishedAsync(app.ServiceCode, ct)
-        ?? throw new NotFoundException($"Service '{app.ServiceCode}' was not found.");
+        ?? throw new NotFoundException("errors.service.notFound");
 
     private async Task<ServiceApplication> GetOwnedAsync(Caller caller, Guid id, CancellationToken ct)
     {
-        var app = await applications.GetAsync(id, ct) ?? throw new NotFoundException("Application not found.");
-        if (!app.IsOwnedBy(caller.UserId)) throw new NotFoundException("Application not found.");
+        var app = await applications.GetAsync(id, ct) ?? throw new NotFoundException("errors.application.notFound");
+        if (!app.IsOwnedBy(caller.UserId)) throw new NotFoundException("errors.application.notFound");
         return app;
     }
 
     private async Task<ServiceApplication> ReadVisibleAsync(Caller caller, Guid id, CancellationToken ct)
     {
-        var app = await applications.ReadAsync(id, ct) ?? throw new NotFoundException("Application not found.");
-        if (!caller.IsStaff && !app.IsOwnedBy(caller.UserId)) throw new NotFoundException("Application not found.");
+        var app = await applications.ReadAsync(id, ct) ?? throw new NotFoundException("errors.application.notFound");
+        if (!caller.IsStaff && !app.IsOwnedBy(caller.UserId)) throw new NotFoundException("errors.application.notFound");
         return app;
     }
 }

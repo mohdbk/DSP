@@ -13,8 +13,8 @@ public interface IServiceRules
 {
     string ServiceCode { get; }
 
-    /// <param name="lang">"en" or "ar": the language of the returned messages.</param>
-    IEnumerable<FieldError> Validate(IReadOnlyDictionary<string, string?> data, string lang = Localized.English);
+    /// <param name="messages">Messages in the caller's language.</param>
+    IEnumerable<FieldError> Validate(IReadOnlyDictionary<string, string?> data, IMessages messages);
 }
 
 public sealed class TradeNameReservationRules : IServiceRules
@@ -24,16 +24,14 @@ public sealed class TradeNameReservationRules : IServiceRules
 
     public string ServiceCode => "TRADE_NAME_RESERVATION";
 
-    public IEnumerable<FieldError> Validate(IReadOnlyDictionary<string, string?> data, string lang = Localized.English)
+    public IEnumerable<FieldError> Validate(IReadOnlyDictionary<string, string?> data, IMessages messages)
     {
         if (data.TryGetValue("tradeNameEn", out var name) && !string.IsNullOrWhiteSpace(name))
         {
             var reserved = ReservedWords.FirstOrDefault(w =>
                 name.Contains(w, StringComparison.OrdinalIgnoreCase));
             if (reserved is not null)
-                yield return new FieldError("tradeNameEn", Localized.Pick(lang,
-                    $"Trade names cannot include the reserved word \"{reserved}\".",
-                    $"لا يمكن أن يتضمن الاسم التجاري الكلمة المحجوزة \"{reserved}\"."));
+                yield return new FieldError("tradeNameEn", messages.Format("rules.tradeName.reservedWord", ("word", reserved)));
         }
     }
 }
@@ -42,17 +40,14 @@ public sealed class CommercialAgencyRules : IServiceRules
 {
     public string ServiceCode => "COMMERCIAL_AGENCY_REGISTRATION";
 
-    public IEnumerable<FieldError> Validate(IReadOnlyDictionary<string, string?> data, string lang = Localized.English)
+    public IEnumerable<FieldError> Validate(IReadOnlyDictionary<string, string?> data, IMessages messages)
     {
         if (TryDate(data, "agreementStart", out var start) && TryDate(data, "agreementEnd", out var end))
         {
             if (end <= start)
-                yield return new FieldError("agreementEnd", Localized.Pick(lang,
-                    "The agreement must end after it starts.", "يجب أن ينتهي الاتفاق بعد تاريخ بدايته."));
+                yield return new FieldError("agreementEnd", messages.Format("rules.agency.endBeforeStart"));
             else if (end < start.AddYears(1))
-                yield return new FieldError("agreementEnd", Localized.Pick(lang,
-                    "Commercial agency agreements must run for at least one year.",
-                    "يجب ألا تقل مدة اتفاقية الوكالة التجارية عن سنة واحدة."));
+                yield return new FieldError("agreementEnd", messages.Format("rules.agency.minimumTerm"));
         }
     }
 
