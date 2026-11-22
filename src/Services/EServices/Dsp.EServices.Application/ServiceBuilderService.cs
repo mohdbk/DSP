@@ -77,8 +77,9 @@ public sealed class ServiceBuilderService(IServiceVersionRepository versions)
         var draft = list.FirstOrDefault(v => v.Status == ServiceVersionStatus.Draft)
                     ?? throw new DomainException("There is no draft to publish. Make a change first.");
 
+        var previous = list.Where(v => v.Status == ServiceVersionStatus.Published).ToList();
         draft.Publish(caller.Name); // throws ValidationException while the definition has errors
-        foreach (var live in list.Where(v => v.Status == ServiceVersionStatus.Published)) live.Retire();
+        foreach (var live in previous) live.Retire();
         await versions.SaveChangesAsync(ct);
         return await GetAsync(caller, code, ct);
     }
