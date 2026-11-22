@@ -37,7 +37,10 @@ for svc in "${SERVICES[@]}"; do
 done
 
 if [[ "${EMIT_ARCHIVE:-0}" == "1" ]]; then
-  tar czf /tmp/migrations.tgz src/Services/*/Dsp.*.Infrastructure/Persistence/Migrations deploy/database/scripts
+  # Everything dotnet ef wrote: migrations, designers and model snapshots (wherever EF put them), plus scripts.
+  git_free_list=$( { find src -path '*/Persistence/Migrations/*' -type f; find src -name '*ModelSnapshot.cs'; find deploy/database/scripts -type f; } | sort -u)
+  echo "$git_free_list" | sed 's/^/FILE /'
+  tar czf /tmp/migrations.tgz $git_free_list
   base64 -w 3000 /tmp/migrations.tgz > /tmp/migrations.b64
   echo "MIGSTART $(sha256sum /tmp/migrations.tgz | cut -d' ' -f1) $(wc -l < /tmp/migrations.b64)"
   n=0
