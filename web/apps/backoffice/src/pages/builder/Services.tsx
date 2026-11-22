@@ -2,18 +2,20 @@ import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { formatDate, loc, t, type BuilderServiceSummary } from '@dsp/core';
 import {
-  AegovLink, type ColumnDef, DataTable, IconLabel, listStateProps, Loading, Notice, PageHeader, Plus, Tag,
+  AegovButton, type ColumnDef, DataTable, IconLabel, listStateProps, Loading, Notice, PageHeader, Plus, Tag,
 } from '@dsp/ui';
 import { api } from '../../session';
+import { NewServiceDialog } from './NewService';
 
 const route = getRouteApi('/services');
 
 /** Every e-service, with its live and draft versions. */
-export function ServicesPage() {
+export function ServicesPage({ creating = false }: { creating?: boolean }) {
   const navigate = useNavigate();
   const search = route.useSearch();
   const [services, setServices] = useState<BuilderServiceSummary[]>();
   const [error, setError] = useState<string>();
+  const [newOpen, setNewOpen] = useState(creating);
 
   useEffect(() => {
     api.list<BuilderServiceSummary>('/api/v1/eservices/builder/services').then(setServices).catch(e => setError(e.message));
@@ -65,7 +67,8 @@ export function ServicesPage() {
   return (
     <>
       <PageHeader title={t('builder.pageTitle')} intro={t('builder.intro')}
-        actions={<AegovLink href="/services/new" appearance="solid" variant="primary"><IconLabel icon={Plus}>{t('builder.new')}</IconLabel></AegovLink>} />
+        actions={<AegovButton onAegovButtonClick={() => setNewOpen(true)}><IconLabel icon={Plus}>{t('builder.new')}</IconLabel></AegovButton>} />
+      <NewServiceDialog open={newOpen} onClose={() => { setNewOpen(false); if (creating) navigate({ to: '/services', replace: true }); }} />
       {error && <Notice kind="error">{error}</Notice>}
       {!services && !error && <Loading />}
       {services && (

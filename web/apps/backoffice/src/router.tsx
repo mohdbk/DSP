@@ -9,25 +9,32 @@ import { InboxPage } from './pages/Inbox';
 import { TaskPage } from './pages/Task';
 import { ApplicationDetailPage, ApplicationsPage } from './pages/Applications';
 import { ServicesPage } from './pages/builder/Services';
-import { NewServicePage } from './pages/builder/NewService';
 import { ServiceEditorPage } from './pages/builder/ServiceEditor';
 import { LanguagesPage } from './pages/settings/Languages';
 import { TranslationsPage } from './pages/settings/Translations';
 import { AiSettingsPage } from './pages/settings/AiSettings';
 import { CurrenciesPage } from './pages/settings/Currencies';
 
-/** The back-office frame: government header and footer, staff navigation and the signed-in officer. */
+/** The back-office frame: the internal staff shell (side navigation, no public header), and the signed-in officer. */
 function Root() {
   const user = currentUser();
   return (
-    <PortalFrame service={t('app.backoffice')} homeLabel={t('app.backofficeHome')} publicPaths={['/login']} onSignOut={signOut}
+    <PortalFrame layout="staff" service={t('app.backoffice')} homeLabel={t('app.backofficeHome')} publicPaths={['/login']} onSignOut={signOut}
       user={user && { name: user.name, role: user.title ?? t('staff') }}
       loadUnread={() => countUnread(api)}
       navItems={pathname => [
         { href: '/inbox', label: t('nav.inbox'), active: pathname.startsWith('/inbox') || pathname.startsWith('/tasks'), icon: Tray },
         { href: '/applications', label: t('nav.allApplications'), active: pathname.startsWith('/applications'), icon: Files },
         { href: '/services', label: t('nav.builder'), active: pathname.startsWith('/services'), icon: Wrench },
-        { href: '/settings/languages', label: t('nav.settings'), active: pathname.startsWith('/settings'), icon: GearSix },
+        {
+          href: '/settings/languages', label: t('nav.settings'), active: pathname.startsWith('/settings'), icon: GearSix,
+          children: [
+            { href: '/settings/languages', label: t('settings.languages'), active: pathname.startsWith('/settings/languages') },
+            { href: '/settings/translations', label: t('settings.translations'), active: pathname.startsWith('/settings/translations') },
+            { href: '/settings/currencies', label: t('settings.currencies'), active: pathname.startsWith('/settings/currencies') },
+            { href: '/settings/ai', label: t('settings.ai'), active: pathname.startsWith('/settings/ai') },
+          ],
+        },
       ]} />
   );
 }
@@ -57,7 +64,10 @@ const applicationRoute = createRoute({
 const servicesRoute = createRoute({
   getParentRoute: () => rootRoute, path: '/services', beforeLoad: guard, validateSearch: validateListSearch, component: ServicesPage,
 });
-const newServiceRoute = createRoute({ getParentRoute: () => rootRoute, path: '/services/new', beforeLoad: guard, component: NewServicePage });
+const newServiceRoute = createRoute({
+  getParentRoute: () => rootRoute, path: '/services/new', beforeLoad: guard, validateSearch: validateListSearch,
+  component: () => <ServicesPage creating />,
+});
 const serviceRoute = createRoute({ getParentRoute: () => rootRoute, path: '/services/$code', beforeLoad: guard, component: ServiceEditorPage });
 
 const settingsRoute = createRoute({

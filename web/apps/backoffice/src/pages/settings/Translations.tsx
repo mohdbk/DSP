@@ -5,10 +5,9 @@ import {
   type TranslationRow,
 } from '@dsp/core';
 import {
-  Actions, AegovButton, ChoiceField, type ColumnDef, DataTable, FileField, FloppyDisk, IconLabel, listStateProps, Loading, Notice, ownName, PageHeader, Panel, Tag, TextAreaField, TextField,
+  AegovButton, ChoiceField, type ColumnDef, ConfirmDialog, DataTable, FileField, FloppyDisk, IconLabel, listStateProps, Loading, Modal, Notice, ownName, PageHeader, Panel, Plus, Tag, TextAreaField, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
-import { SettingsNav } from './SettingsNav';
 
 const route = getRouteApi('/settings/translations');
 
@@ -43,6 +42,7 @@ export function TranslationsPage() {
   const [text, setText] = useState('');
   const [newKey, setNewKey] = useState('');
   const [busy, setBusy] = useState<string>();
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string }>();
 
   useEffect(() => {
@@ -67,6 +67,7 @@ export function TranslationsPage() {
       await refreshI18n();
       setMessage({ kind: 'success', text: success });
       setEditing(undefined);
+      setConfirmRemove(false);
     } catch (e) {
       setMessage({ kind: 'error', text: e instanceof ApiError && e.errors.length ? e.errors[0].message : (e as Error).message });
     } finally {
@@ -108,9 +109,14 @@ export function TranslationsPage() {
 
   return (
     <>
-      <PageHeader title={t('settings.translations')} intro={t('settings.translationsIntro')} actions={<SettingsNav current="translations" />}
+      <PageHeader title={t('settings.translations')} intro={t('settings.translationsIntro')}
+        actions={isDefault && (
+          <AegovButton onAegovButtonClick={() => { setNewKey(''); setText(''); setMessage(undefined); setEditing({ key: '', defaultText: '', usedIn: [], isNew: true }); }}>
+            <IconLabel icon={Plus}>{t('settings.addKey')}</IconLabel>
+          </AegovButton>
+        )}
         badges={rows && <Tag variant={missing ? 'aegold' : 'aegreen'}>{t('settings.missingCount', { n: missing })}</Tag>} />
-      {message && <Notice kind={message.kind}>{message.text}</Notice>}
+      {message && !editing && <Notice kind={message.kind}>{message.text}</Notice>}
       <p className="mb-4 text-sm text-aeblack-600">{t('settings.usedInNote')}</p>
 
       <Panel className="mb-6 block">
@@ -144,51 +150,56 @@ export function TranslationsPage() {
           onChange={() => {}} />
       </Panel>
 
-      {editing && (
-        <Panel className="mb-6 block" title={editing.isNew ? t('settings.addKey') : t('settings.editText')}>
-          {editing.isNew
-            ? <TextField id="new-key" label={t('settings.key')} hint={t('settings.keyHint')} dir="ltr" value={newKey} onChange={setNewKey} />
-            : <p className="mb-4"><code className="text-xs"><bdi>{editing.key}</bdi></code></p>}
-          {!isDefault && !editing.isNew && (
-            <p className="mb-4 text-aeblack-700"><span className="font-semibold">{t('settings.defaultText')}: </span><span dir="auto">{editing.defaultText}</span></p>
-          )}
-          <TextAreaField id="text" lang={code} dir={language?.direction} label={language ? ownName(language) : code}
-            hint={t('settings.placeholdersHint')} value={text} onChange={setText} />
-          <Actions align="between">
-            <span>
+      <Modal open={!!editing && !confirmRemove} size="lg" busy={!!busy} onClose={() => setEditing(undefined)}
+        title={editing?.isNew ? t('settings.addKey') : t('settings.editText')}
+        actions={editing && (
+          <>
+            <span className="me-auto">
               {!editing.isNew && (
                 <AegovButton appearance="link" variant="danger" isDisabled={!!busy || (isDefault ? false : !editing.text)}
-                  isLoading={busy === 'remove'}
-                  onAegovButtonClick={() => run('remove', () => (isDefault
-                    ? api.del(`${base}/translations/keys/${encodeURIComponent(editing.key)}`)
-                    : api.put(`${base}/translations/${encodeURIComponent(code)}/${encodeURIComponent(editing.key)}`, { text: null })),
-                  t('settings.removed'))}>
+                  onAegovButtonClick={() => setConfirmRemove(true)}>
                   {isDefault ? t('settings.deleteKey') : t('settings.removeText')}
                 </AegovButton>
               )}
             </span>
-            <span className="flex gap-3">
-              <AegovButton appearance="link" onAegovButtonClick={() => setEditing(undefined)}>{t('cancel')}</AegovButton>
-              <AegovButton isDisabled={!!busy || !text.trim() || (editing.isNew && !newKey.trim())} isLoading={busy === 'save'}
-                onAegovButtonClick={() => run('save', () => api.put(
-                  `${base}/translations/${encodeURIComponent(code)}/${encodeURIComponent(editing.isNew ? newKey.trim() : editing.key)}`,
-                  { text }), t('settings.saved'))}>
-                <IconLabel icon={FloppyDisk}>{t('save')}</IconLabel>
-              </AegovButton>
-            </span>
-          </Actions>
-        </Panel>
-      )}
+            <AegovButton appearance="outline" variant="neutral-max" isDisabled={!!busy} onAegovButtonClick={() => setEditing(undefined)}>{t('cancel')}</AegovButton>
+            <AegovButton isDisabled={!!busy || !text.trim() || (editing.isNew && !newKey.trim())} isLoading={busy === 'save'}
+              onAegovButtonClick={() => run('save', () => api.put(
+                `${base}/translations/${encodeURIComponent(code)}/${encodeURIComponent(editing.isNew ? newKey.trim() : editing.key)}`,
+                { text }), t('settings.saved'))}>
+              <IconLabel icon={FloppyDisk}>{t('save')}</IconLabel>
+            </AegovButton>
+          </>
+        )}>
+        {editing && (
+          <>
+            {message?.kind === 'error' && <Notice kind="error">{message.text}</Notice>}
+            {editing.isNew
+              ? <TextField id="new-key" label={t('settings.key')} hint={t('settings.keyHint')} dir="ltr" value={newKey} onChange={setNewKey} />
+              : <p className="mb-4"><code className="text-xs"><bdi>{editing.key}</bdi></code></p>}
+            {!isDefault && !editing.isNew && (
+              <p className="mb-4 text-aeblack-700"><span className="font-semibold">{t('settings.defaultText')}: </span><span dir="auto">{editing.defaultText}</span></p>
+            )}
+            <TextAreaField id="text" lang={code} dir={language?.direction} label={language ? ownName(language) : code}
+              hint={t('settings.placeholdersHint')} value={text} onChange={setText} />
+          </>
+        )}
+      </Modal>
 
-      {!editing && isDefault && (
-        <Actions align="start">
-          <AegovButton appearance="outline" onAegovButtonClick={() => { setNewKey(''); setText(''); setEditing({ key: '', defaultText: '', usedIn: [], isNew: true }); }}>
-            {t('settings.addKey')}
-          </AegovButton>
-        </Actions>
-      )}
+      <ConfirmDialog open={confirmRemove} busy={busy === 'remove'}
+        title={isDefault ? t('settings.deleteKey') : t('settings.removeText')}
+        message={isDefault ? t('settings.deleteKeyConfirm', { key: editing?.key ?? '' }) : t('settings.removeTextConfirm')}
+        confirmLabel={isDefault ? t('settings.deleteKey') : t('settings.removeText')}
+        onCancel={() => setConfirmRemove(false)}
+        onConfirm={() => {
+          if (!editing) return;
+          void run('remove', () => (isDefault
+            ? api.del(`${base}/translations/keys/${encodeURIComponent(editing.key)}`)
+            : api.put(`${base}/translations/${encodeURIComponent(code)}/${encodeURIComponent(editing.key)}`, { text: null })),
+          t('settings.removed'));
+        }} />
 
-      <div className="mt-6">
+      <div>
         {!rows ? <Loading /> : (
           <DataTable label={t('settings.translations')} data={rows} columns={columns} getRowId={r => r.key} onRowAction={edit} pageSize={25}
             {...listStateProps(search, next => navigate({ to: '/settings/translations', search: next, replace: true }))}

@@ -4,7 +4,6 @@ import {
   Actions, AegovButton, CheckboxField, FloppyDisk, IconLabel, Loading, MarkdownEditor, Notice, NumberField, PageHeader, Panel, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
-import { SettingsNav } from './SettingsNav';
 
 const base = '/api/v1/platform/admin/ai';
 
@@ -81,7 +80,7 @@ export function AiSettingsPage() {
 
   return (
     <>
-      <PageHeader title={t('settings.ai')} intro={t('ai.settings.intro')} actions={<SettingsNav current="ai" />}
+      <PageHeader title={t('settings.ai')} intro={t('ai.settings.intro')}
         badges={settings.paused
           ? <Tag variant="aered">{t('ai.settings.paused')}</Tag>
           : settings.isConfigured

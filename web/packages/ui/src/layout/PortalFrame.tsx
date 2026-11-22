@@ -2,6 +2,7 @@ import { useEffect, useState, Fragment } from 'react';
 import { Outlet, useRouter, useRouterState } from '@tanstack/react-router';
 import { siteName, useLang } from '@dsp/core';
 import { AppShell, type NavItem } from './AppShell';
+import { StaffShell } from './StaffShell';
 import { AccountArea } from '../navigation/AccountArea';
 import { useInternalLinks } from '../navigation/useInternalLinks';
 
@@ -9,7 +10,7 @@ import { useInternalLinks } from '../navigation/useInternalLinks';
  * The root route component of a portal: the government shell, its navigation, the signed-in user with their
  * unread notifications, language switching and in-app link handling. Each portal only supplies its settings.
  */
-export function PortalFrame({ service, homeLabel, navItems, user, notificationsHref, loadUnread, onSignOut, publicPaths }: {
+export function PortalFrame({ service, homeLabel, navItems, user, notificationsHref, loadUnread, onSignOut, publicPaths, layout = 'public' }: {
   service: string;
   /** The footer link back to the portal's home page (e.g. "E-Services home"). */
   homeLabel: string;
@@ -21,6 +22,8 @@ export function PortalFrame({ service, homeLabel, navItems, user, notificationsH
   onSignOut: () => void;
   /** Paths that show the bare shell (sign-in pages). */
   publicPaths: string[];
+  /** "public": the official government header and footer. "staff": the internal side-navigation shell. */
+  layout?: 'public' | 'staff';
 }) {
   const lang = useLang(); // re-render everything when the language changes
   useEffect(() => { document.title = siteName(service); }, [service, lang]);
@@ -34,13 +37,18 @@ export function PortalFrame({ service, homeLabel, navItems, user, notificationsH
     if (signedIn) loadUnread().then(setUnread).catch(() => {});
   }, [pathname, signedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const accountArea = signedIn && user ? (
+    <AccountArea name={user.name} role={user.role} unread={unread} notificationsHref={notificationsHref} onSignOut={onSignOut} />
+  ) : undefined;
+  // TanStack Router memoises route components, so they wouldn't see the new language: remount the page.
+  const page = <div className="contents"><Fragment key={lang}><Outlet /></Fragment></div>;
+
+  if (layout === 'staff')
+    return <StaffShell service={service} nav={signedIn ? navItems(pathname) : []} account={accountArea}>{page}</StaffShell>;
+
   return (
-    <AppShell service={service} homeLabel={homeLabel} nav={signedIn ? navItems(pathname) : []}
-      account={signedIn && user ? (
-        <AccountArea name={user.name} role={user.role} unread={unread} notificationsHref={notificationsHref} onSignOut={onSignOut} />
-      ) : undefined}>
-      {/* TanStack Router memoises route components, so they wouldn't see the new language: remount the page. */}
-      <div className="contents"><Fragment key={lang}><Outlet /></Fragment></div>
+    <AppShell service={service} homeLabel={homeLabel} nav={signedIn ? navItems(pathname) : []} account={accountArea}>
+      {page}
     </AppShell>
   );
 }

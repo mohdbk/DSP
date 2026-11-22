@@ -184,6 +184,14 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   in a left-to-right span (`Money`). Format amounts only with `formatMoney` (web) or `ICurrencies.FormatAsync`
   (services): symbol, position and decimals come from Settings → Currencies; never hard-code `#,0.##` or a code. Dates read `11 November 2026`; keep Latin digits.
 
+### Shells, dialogs
+
+- The citizen portal uses the official AEGOV header (with banner and star rating) and footer (`AppShell`). The back
+  office is internal: `PortalFrame layout="staff"` gives `StaffShell` — side navigation with icons (sub-pages under the
+  active item), a slim app bar, no public banner, badge or footer.
+- Create and edit forms for records (languages, currencies, texts, new service) open in `Modal`; anything that can't be
+  undone (delete, discard, publish) asks with `ConfirmDialog`. Keep large editors (the service builder) on their page.
+
 ### Icons
 
 Phosphor only (`@phosphor-icons/react`, re-exported from `@dsp/ui`), through `Icon` / `IconLabel`: 24px next to body

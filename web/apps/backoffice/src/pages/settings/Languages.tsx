@@ -2,10 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ApiError, formatDate, loc, refreshI18n, t, type FieldError, type LanguageAdmin, type LocalizedText } from '@dsp/core';
 import {
-  Actions, AegovButton, CheckboxField, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, Loading, MultilingualField, Notice, NumberField, ownName, PageHeader, Panel, Plus, Tag, TextField,
+  AegovButton, ConfirmDialog, Modal, CheckboxField, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, Loading, MultilingualField, Notice, NumberField, ownName, PageHeader, Plus, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
-import { SettingsNav } from './SettingsNav';
 
 const route = getRouteApi('/settings/languages');
 const base = '/api/v1/platform/admin/languages';
@@ -56,6 +55,7 @@ export function LanguagesPage() {
       await refreshI18n(); // the portal's own language list and texts follow at once
       setMessage({ kind: 'success', text: success });
       setErrors([]);
+      if (kind === 'save' || kind === 'delete') close();
     } catch (e) {
       if (e instanceof ApiError && e.errors.length) setErrors(e.errors);
       setMessage({ kind: 'error', text: (e as Error).message });
@@ -65,6 +65,7 @@ export function LanguagesPage() {
   }
 
   const err = (field: string) => errors.find(e => e.field === field)?.message;
+  const close = () => { setDraft(undefined); setSelected(undefined); setConfirmDelete(false); setErrors([]); };
   const body = () => ({
     code: draft!.code.trim(), name: draft!.name ?? {}, direction: draft!.direction, sortOrder: draft!.sortOrder,
     showInPortal: draft!.showInPortal, showInBackoffice: draft!.showInBackoffice,
@@ -113,80 +114,79 @@ export function LanguagesPage() {
 
   return (
     <>
-      <PageHeader title={t('settings.languages')} intro={t('settings.languagesIntro')} actions={<SettingsNav current="languages" />} />
-      {message && <Notice kind={message.kind}>{message.text}</Notice>}
+      <PageHeader title={t('settings.languages')} intro={t('settings.languagesIntro')}
+        actions={<AegovButton onAegovButtonClick={() => select('new')}><IconLabel icon={Plus}>{t('settings.addLanguage')}</IconLabel></AegovButton>} />
+      {message && !draft && <Notice kind={message.kind}>{message.text}</Notice>}
 
-      {draft && (
-        <Panel className="mb-6 block" title={selected === 'new' ? t('settings.addLanguage') : t('settings.editLanguage', { language: current ? ownName(current) : '' })}>
-          <div className="grid gap-x-4 md:grid-cols-3">
-            <TextField id="code" label={t('settings.code')} hint={t('settings.codeHint')} dir="ltr" required
-              disabled={selected !== 'new'} value={draft.code} error={err('code')}
-              onChange={v => setDraft({ ...draft, code: v.trim() })} />
-            <ChoiceField id="direction" label={t('settings.direction')} value={draft.direction} error={err('direction')}
-              choices={[{ value: 'ltr', label: t('settings.dir.ltr') }, { value: 'rtl', label: t('settings.dir.rtl') }]}
-              onChange={v => setDraft({ ...draft, direction: v as 'ltr' | 'rtl' })} />
-            <NumberField id="order" label={t('settings.order')} value={draft.sortOrder}
-              onChange={v => setDraft({ ...draft, sortOrder: v ?? 0 })} />
-          </div>
-          <MultilingualField id="name" label={t('settings.languageName')} hint={t('settings.languageNameHint')} value={draft.name}
-            error={c => err(`name.${c}`) ?? err('name')} onChange={v => setDraft({ ...draft, name: v })} />
-          <fieldset className="mb-5">
-            <legend className="mb-2 font-semibold text-aeblack-800">{t('settings.shownIn')}</legend>
-            <CheckboxField id="show-portal" label={t('settings.showInPortal')} disabled={current?.isDefault}
-              checked={draft.showInPortal} onChange={v => setDraft({ ...draft, showInPortal: v })} />
-            <CheckboxField id="show-backoffice" label={t('settings.showInBackoffice')} disabled={current?.isDefault}
-              checked={draft.showInBackoffice} onChange={v => setDraft({ ...draft, showInBackoffice: v })} />
-            <p className="text-sm text-aeblack-600">{t(current?.isDefault ? 'settings.visibilityDefault' : 'settings.visibilityHint')}</p>
-          </fieldset>
-          {selected === 'new' && draft.code && (
-            <TextField id="own-name" lang={draft.code} dir={draft.direction}
-              label={t('settings.ownName')} hint={t('settings.ownNameHint')}
-              value={draft.name?.[draft.code] ?? ''} onChange={v => setDraft({ ...draft, name: { ...(draft.name ?? {}), [draft.code]: v } })} />
-          )}
-
-          <Actions align="between">
-            <span className="flex flex-wrap gap-3">
-              {current && !current.isDefault && (
-                <>
-                  <AegovButton appearance="outline" isDisabled={!!busy} isLoading={busy === 'toggle'}
-                    onAegovButtonClick={() => run('toggle', () => api.post(`${base}/${current.code}/${current.isEnabled ? 'disable' : 'enable'}`),
-                      t(current.isEnabled ? 'settings.disabled' : 'settings.enabled'))}>
-                    {t(current.isEnabled ? 'settings.disable' : 'settings.enable')}
-                  </AegovButton>
-                  <AegovButton appearance="outline" isDisabled={!!busy} isLoading={busy === 'default'}
-                    onAegovButtonClick={() => run('default', () => api.post(`${base}/${current.code}/default`), t('settings.defaultSet'))}>
-                    {t('settings.makeDefault')}
-                  </AegovButton>
-                  <AegovButton appearance="link" variant="danger" isDisabled={!!busy} isLoading={busy === 'delete'}
-                    onAegovButtonClick={() => {
-                      if (!confirmDelete) { setConfirmDelete(true); return; }
-                      void run('delete', () => api.del(`${base}/${current.code}`), t('settings.deleted')).then(() => { setDraft(undefined); setSelected(undefined); });
-                    }}>
-                    {confirmDelete ? t('settings.deleteConfirm') : t('settings.delete')}
-                  </AegovButton>
-                </>
-              )}
-            </span>
-            <span className="flex flex-wrap gap-3">
-              <AegovButton appearance="link" onAegovButtonClick={() => { setDraft(undefined); setSelected(undefined); }}>{t('cancel')}</AegovButton>
-              <AegovButton isDisabled={!!busy} isLoading={busy === 'save'}
-                onAegovButtonClick={() => run('save', () => (selected === 'new' ? api.post(base, body()) : api.put(`${base}/${draft.code}`, body())),
-                  t('settings.saved')).then(() => setSelected(draft.code))}>
-                {selected === 'new' ? <IconLabel icon={Plus}>{t('settings.addLanguage')}</IconLabel> : <IconLabel icon={FloppyDisk}>{t('save')}</IconLabel>}
+      <Modal open={!!draft && !confirmDelete} size="lg" busy={!!busy} onClose={close}
+        title={selected === 'new' ? t('settings.addLanguage') : t('settings.editLanguage', { language: current ? ownName(current) : '' })}
+        actions={draft && (
+          <>
+            <span className="me-auto flex flex-wrap gap-3">
+          {current && !current.isDefault && (
+            <>
+              <AegovButton appearance="outline" isDisabled={!!busy} isLoading={busy === 'toggle'}
+                onAegovButtonClick={() => run('toggle', () => api.post(`${base}/${current.code}/${current.isEnabled ? 'disable' : 'enable'}`),
+                  t(current.isEnabled ? 'settings.disabled' : 'settings.enabled'))}>
+                {t(current.isEnabled ? 'settings.disable' : 'settings.enable')}
               </AegovButton>
+              <AegovButton appearance="outline" isDisabled={!!busy} isLoading={busy === 'default'}
+                onAegovButtonClick={() => run('default', () => api.post(`${base}/${current.code}/default`), t('settings.defaultSet'))}>
+                {t('settings.makeDefault')}
+              </AegovButton>
+              <AegovButton appearance="link" variant="danger" isDisabled={!!busy} onAegovButtonClick={() => setConfirmDelete(true)}>
+                {t('settings.delete')}
+              </AegovButton>
+            </>
+          )}
             </span>
-          </Actions>
-          {selected === 'new' && <p className="mt-3 text-sm text-aeblack-600">{t('settings.newDisabledNote')}</p>}
-        </Panel>
+            <AegovButton appearance="outline" variant="neutral-max" isDisabled={!!busy} onAegovButtonClick={close}>{t('cancel')}</AegovButton>
+          <AegovButton isDisabled={!!busy} isLoading={busy === 'save'}
+            onAegovButtonClick={() => run('save', () => (selected === 'new' ? api.post(base, body()) : api.put(`${base}/${draft.code}`, body())),
+              t('settings.saved'))}>
+            {selected === 'new' ? <IconLabel icon={Plus}>{t('settings.addLanguage')}</IconLabel> : <IconLabel icon={FloppyDisk}>{t('save')}</IconLabel>}
+          </AegovButton>
+          </>
+        )}>
+        {draft && (
+          <>
+            {message && <Notice kind={message.kind}>{message.text}</Notice>}
+      <div className="grid gap-x-4 md:grid-cols-3">
+        <TextField id="code" label={t('settings.code')} hint={t('settings.codeHint')} dir="ltr" required
+          disabled={selected !== 'new'} value={draft.code} error={err('code')}
+          onChange={v => setDraft({ ...draft, code: v.trim() })} />
+        <ChoiceField id="direction" label={t('settings.direction')} value={draft.direction} error={err('direction')}
+          choices={[{ value: 'ltr', label: t('settings.dir.ltr') }, { value: 'rtl', label: t('settings.dir.rtl') }]}
+          onChange={v => setDraft({ ...draft, direction: v as 'ltr' | 'rtl' })} />
+        <NumberField id="order" label={t('settings.order')} value={draft.sortOrder}
+          onChange={v => setDraft({ ...draft, sortOrder: v ?? 0 })} />
+      </div>
+      <MultilingualField id="name" label={t('settings.languageName')} hint={t('settings.languageNameHint')} value={draft.name}
+        error={c => err(`name.${c}`) ?? err('name')} onChange={v => setDraft({ ...draft, name: v })} />
+      <fieldset className="mb-5">
+        <legend className="mb-2 font-semibold text-aeblack-800">{t('settings.shownIn')}</legend>
+        <CheckboxField id="show-portal" label={t('settings.showInPortal')} disabled={current?.isDefault}
+          checked={draft.showInPortal} onChange={v => setDraft({ ...draft, showInPortal: v })} />
+        <CheckboxField id="show-backoffice" label={t('settings.showInBackoffice')} disabled={current?.isDefault}
+          checked={draft.showInBackoffice} onChange={v => setDraft({ ...draft, showInBackoffice: v })} />
+        <p className="text-sm text-aeblack-600">{t(current?.isDefault ? 'settings.visibilityDefault' : 'settings.visibilityHint')}</p>
+      </fieldset>
+      {selected === 'new' && draft.code && (
+        <TextField id="own-name" lang={draft.code} dir={draft.direction}
+          label={t('settings.ownName')} hint={t('settings.ownNameHint')}
+          value={draft.name?.[draft.code] ?? ''} onChange={v => setDraft({ ...draft, name: { ...(draft.name ?? {}), [draft.code]: v } })} />
       )}
+            {selected === 'new' && <p className="text-sm text-aeblack-600">{t('settings.newDisabledNote')}</p>}
+          </>
+        )}
+      </Modal>
 
-      {!draft && (
-        <Actions align="start">
-          <AegovButton onAegovButtonClick={() => select('new')}><IconLabel icon={Plus}>{t('settings.addLanguage')}</IconLabel></AegovButton>
-        </Actions>
-      )}
+      <ConfirmDialog open={confirmDelete} title={t('settings.deleteTitle', { name: draft?.code ?? '' })}
+        message={t('settings.deleteLanguageConfirm')} confirmLabel={t('settings.delete')} busy={busy === 'delete'}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => { if (current) void run('delete', () => api.del(`${base}/${current.code}`), t('settings.deleted')); }} />
 
-      <div className="mt-6">
+      <div>
         <DataTable label={t('settings.languages')} data={languages} columns={columns} getRowId={l => l.code}
           onRowAction={l => select(l.code)}
           {...listStateProps(search, next => navigate({ to: '/settings/languages', search: next, replace: true }))}
