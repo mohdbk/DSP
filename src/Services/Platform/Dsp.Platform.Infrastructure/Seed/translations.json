@@ -2094,10 +2094,6 @@
    "en": "Back office",
    "ar": "المكتب الخلفي"
   },
-  "settings.use.both": {
-   "en": "Portal and back office",
-   "ar": "البوابة والمكتب الخلفي"
-  },
   "settings.use.portal": {
    "en": "Portal",
    "ar": "البوابة"
@@ -4024,9 +4020,6 @@
    "backoffice"
   ],
   "settings.use.backoffice": [
-   "backoffice"
-  ],
-  "settings.use.both": [
    "backoffice"
   ],
   "settings.use.portal": [

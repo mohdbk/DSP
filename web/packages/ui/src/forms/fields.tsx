@@ -117,6 +117,29 @@ export function ChoiceField(props: BaseProps & {
   );
 }
 
+/** Several choices from a list (AEGOV listbox select with multiple selection). */
+export function MultiChoiceField(props: BaseProps & {
+  value: string[];
+  onChange: (value: string[]) => void;
+  choices: Choice[];
+  placeholder?: string;
+}) {
+  return (
+    <Framed props={props}>
+      <AegovSelect key={props.choices.map(c => c.value).join('|')} fieldId={props.id} name={props.id} isMultiple appearance="listbox"
+        value={props.value.join(',')} placeholder={props.placeholder ?? t('form.select')} isClearable
+        isRequired={!!props.required} isDisabled={!!props.disabled} isInvalid={!!props.error}
+        errorMessage={props.error ?? ''} hint={props.hint ?? ''}
+        onAegovSelectChange={e => {
+          const v = e.detail.value as unknown;
+          props.onChange((Array.isArray(v) ? v.map(String) : String(v ?? '').split(',')).filter(Boolean));
+        }}>
+        {props.choices.map(c => <AegovSelectOption key={c.value} value={c.value}>{c.label}</AegovSelectOption>)}
+      </AegovSelect>
+    </Framed>
+  );
+}
+
 export function CheckboxField(props: BaseProps & { checked: boolean; onChange: (checked: boolean) => void }) {
   return (
     <div className="mb-5" dir={props.dir}>

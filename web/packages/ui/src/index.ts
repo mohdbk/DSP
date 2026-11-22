@@ -12,6 +12,7 @@ export * from './navigation/AccountArea';
 export * from './identity/UaePassButton';
 export * from './navigation/useInternalLinks';
 export * from './navigation/routing';
+export * from './navigation/useTabsScrollFix';
 
 // Feedback
 export * from './feedback/Feedback';

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ApiError, loc, t, type BuilderService, type FieldError, type ServiceDefinition } from '@dsp/core';
 import {
-  AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, Loading, Notice, PageHeader, Panel, Tag,
+  AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, Loading, Notice, PageHeader, Panel, Tag, useTabsScrollFix,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { DetailsSection, FormSection, PreviewSection, ReviewSection, VersionsSection, type EditorProps } from './editor';
@@ -13,6 +13,7 @@ const base = '/api/v1/eservices/builder';
 export function ServiceEditorPage() {
   const { code } = useParams({ strict: false }) as { code: string };
   const navigate = useNavigate();
+  const tabsRef = useTabsScrollFix();
   const [server, setServer] = useState<BuilderService>();
   const [def, setDef] = useState<ServiceDefinition>();
   const [dirty, setDirty] = useState(false);
@@ -144,7 +145,7 @@ export function ServiceEditorPage() {
       </Panel>
       {message && <Notice kind={message.kind}>{message.text}</Notice>}
 
-      <AegovTabs isScrollable labelTablist={t('builder.title')}>
+      <AegovTabs ref={tabsRef} isScrollable labelTablist={t('builder.title')}>
         {tabs.map(([id, label, n]) => (
           <AegovTab key={id} slot="tabs" tabId={id}>
             {t(label)}

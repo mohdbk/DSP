@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-table';
 import { AegovPagination } from '@aegov/designsystem-react';
 import { t } from '@dsp/core';
-import { ChoiceField, TextField } from '../forms/fields';
+import { ChoiceField, MultiChoiceField, TextField } from '../forms/fields';
 import { EmptyState } from '../feedback/Feedback';
 
 // The design system has no table. This one renders with React Aria (keyboard navigation, row actions,
@@ -22,11 +22,23 @@ declare module '@tanstack/react-table' {
     filter?: boolean;
     /** How a filter value reads, e.g. a translated status. */
     filterLabel?: (value: string) => string;
+    /** Let people pick several values (rows matching any of them). The cell value may also be a list. */
+    multiple?: boolean;
+    /** The filter's values in this order, instead of the distinct values found in the rows. */
+    filterOptions?: string[];
   }
 }
 
-/** A filter matches the cell's value exactly. */
-const equalsValue: FilterFn<unknown> = (row, columnId, value) => value == null || value === '' || String(row.getValue(columnId) ?? '') === value;
+/** The values of a cell, which is one value or a list (e.g. the portals a text is used in). */
+const valuesOf = (value: unknown): string[] => (Array.isArray(value) ? value.map(String) : [String(value ?? '')]);
+
+/** A filter matches when the cell has the chosen value, or any of the chosen values for a multiple filter. */
+const matchesValue: FilterFn<unknown> = (row, columnId, value) => {
+  const chosen: string[] = Array.isArray(value) ? value : value == null || value === '' ? [] : [String(value)];
+  if (chosen.length === 0) return true;
+  const cell = valuesOf(row.getValue(columnId));
+  return chosen.some(v => cell.includes(v));
+};
 
 export interface DataTableProps<T> {
   /** Accessible name of the table. */
@@ -78,15 +90,17 @@ export function DataTable<T>(props: DataTableProps<T>) {
   const filters = props.filters ?? localFilters;
   const setFilters = props.onFiltersChange ?? setLocalFilters;
   const sorting = useMemo(() => parseSort(sort), [sort]);
+  const multiple = useMemo(() => new Set(columns.filter(c => c.meta?.multiple).map(c => c.id ?? '')), [columns]);
   const columnFilters: ColumnFiltersState = useMemo(
-    () => Object.entries(filters).filter(([, v]) => v).map(([id, value]) => ({ id, value })), [filters]);
+    () => Object.entries(filters).filter(([, v]) => v)
+      .map(([id, value]) => ({ id, value: multiple.has(id) ? value.split(',').filter(Boolean) : value })), [filters, multiple]);
 
   const table = useReactTable({
     data,
     columns,
     getRowId,
     state: { globalFilter: search, sorting, columnFilters, pagination: { pageIndex: page - 1, pageSize } },
-    defaultColumn: { filterFn: equalsValue as FilterFn<T> },
+    defaultColumn: { filterFn: matchesValue as FilterFn<T> },
     globalFilterFn: 'includesString',
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -115,8 +129,18 @@ export function DataTable<T>(props: DataTableProps<T>) {
         {filterable.map(column => {
           const header = column.columnDef.header;
           const name = typeof header === 'string' ? header : column.id;
-          const values = [...column.getFacetedUniqueValues().keys()].map(v => String(v ?? '')).filter(Boolean).sort();
-          const labelOf = column.columnDef.meta?.filterLabel ?? ((v: string) => v);
+          const meta = column.columnDef.meta;
+          const values = meta?.filterOptions
+            ?? [...new Set([...column.getFacetedUniqueValues().keys()].flatMap(valuesOf))].filter(Boolean).sort();
+          const labelOf = meta?.filterLabel ?? ((v: string) => v);
+          if (meta?.multiple) {
+            return (
+              <MultiChoiceField key={column.id} id={`${idBase}-filter-${column.id}`} label={name} placeholder={t('table.all')}
+                value={(filters[column.id] ?? '').split(',').filter(Boolean)}
+                choices={values.map(v => ({ value: v, label: labelOf(v) }))}
+                onChange={v => { setFilters({ ...filters, [column.id]: v.join(',') }); setPage(1); }} />
+            );
+          }
           return (
             <ChoiceField key={column.id} id={`${idBase}-filter-${column.id}`} label={name} as="select"
               placeholder={t('table.all')} value={filters[column.id] ?? ''}
