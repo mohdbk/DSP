@@ -66,17 +66,35 @@ public static class HostingExtensions
         return app;
     }
 
+    private static readonly Dictionary<string, string> FallbackTitles = new()
+    {
+        ["errors.validation"] = "Validation failed",
+        ["errors.notFound"] = "Not found",
+        ["errors.forbidden"] = "Forbidden",
+        ["errors.conflict"] = "Business rule violated",
+        ["errors.unexpected"] = "Unexpected error",
+        ["errors.unexpectedDetail"] = "Something went wrong. Quote the correlation ID when reporting.",
+    };
+
     private static async Task WriteProblemAsync(HttpContext context)
     {
         var ex = context.Features.Get<IExceptionHandlerFeature>()?.Error;
-        var (status, title) = ex switch
+        var (status, titleKey) = ex switch
         {
-            ValidationException => (StatusCodes.Status422UnprocessableEntity, "Validation failed"),
-            NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
-            ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
-            DomainException => (StatusCodes.Status409Conflict, "Business rule violated"),
-            _ => (StatusCodes.Status500InternalServerError, "Unexpected error"),
+            ValidationException => (StatusCodes.Status422UnprocessableEntity, "errors.validation"),
+            NotFoundException => (StatusCodes.Status404NotFound, "errors.notFound"),
+            ForbiddenException => (StatusCodes.Status403Forbidden, "errors.forbidden"),
+            DomainException => (StatusCodes.Status409Conflict, "errors.conflict"),
+            _ => (StatusCodes.Status500InternalServerError, "errors.unexpected"),
         };
+
+        // Domain and application code raise message keys; they become text in the caller's language here.
+        var messages = context.RequestServices.GetService<IMessages>();
+        string Text(string keyOrText)
+        {
+            var text = messages?.Format(keyOrText) ?? keyOrText;
+            return text == keyOrText && FallbackTitles.TryGetValue(keyOrText, out var fallback) ? fallback : text;
+        }
 
         if (status == StatusCodes.Status500InternalServerError)
         {
@@ -87,13 +105,13 @@ public static class HostingExtensions
         context.Response.StatusCode = status;
         context.Response.Headers[CorrelationIdMiddleware.Header] = context.TraceIdentifier;
         await Results.Problem(
-            title: title,
-            detail: status == 500 ? "Something went wrong. Quote the correlation ID when reporting." : ex?.Message,
+            title: Text(titleKey),
+            detail: status == 500 ? Text("errors.unexpectedDetail") : Text(ex?.Message ?? ""),
             statusCode: status,
             extensions: new Dictionary<string, object?>
             {
                 ["correlationId"] = context.TraceIdentifier,
-                ["errors"] = (ex as ValidationException)?.Errors,
+                ["errors"] = (ex as ValidationException)?.Errors.Select(e => new FieldError(e.Field, Text(e.Message))).ToList(),
             }).ExecuteAsync(context);
     }
 }

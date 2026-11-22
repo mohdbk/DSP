@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Dsp.Platform.Application/Dsp.Platform.Application.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/Dsp.BuildingBlocks/Dsp.BuildingBlocks.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Seed/*.json" />
+  </ItemGroup>
+</Project>
