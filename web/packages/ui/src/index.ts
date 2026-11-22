@@ -27,6 +27,9 @@ export * from './forms/ServiceForm';
 
 // Data
 export * from './data/DataTable';
+export * from './data/filtering';
+export * from './data/FilterBar';
+export * from './data/SavedViews';
 export * from './data/DescriptionList';
 export * from './data/ReorderList';
 

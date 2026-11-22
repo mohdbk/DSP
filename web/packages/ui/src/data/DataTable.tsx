@@ -1,13 +1,17 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { Cell, Column, Row, Table, TableBody, TableHeader, type SortDescriptor } from 'react-aria-components';
 import {
-  flexRender, getCoreRowModel, getFacetedRowModel, getFacetedUniqueValues, getFilteredRowModel, getPaginationRowModel,
-  getSortedRowModel, useReactTable, type ColumnDef, type ColumnFiltersState, type FilterFn, type RowData, type SortingState,
+  flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, type ColumnDef, type RowData,
+  type SortingState,
 } from '@tanstack/react-table';
-import { AegovPagination } from '@aegov/designsystem-react';
+import { AegovButton, AegovPagination } from '@aegov/designsystem-react';
 import { t } from '@dsp/core';
-import { ChoiceField, MultiChoiceField, TextField } from '../forms/fields';
+import { TextField } from '../forms/fields';
 import { EmptyState } from '../feedback/Feedback';
+import { Funnel, IconLabel } from '../icons';
+import { FilterChips, FilterDialog, type FilterableColumn } from './FilterBar';
+import { SavedViews } from './SavedViews';
+import { emptyFilters, filterRows, inferType, type ColumnType, type FilterColumn, type FilterState } from './filtering';
 
 // The design system has no table. This one renders with React Aria (keyboard navigation, row actions,
 // sortable columns, screen-reader support, right-to-left) and organises data with TanStack Table
@@ -26,19 +30,17 @@ declare module '@tanstack/react-table' {
     multiple?: boolean;
     /** The filter's values in this order, instead of the distinct values found in the rows. */
     filterOptions?: string[];
+    /** How the column filters (guessed from its values when not given: dates, numbers, or text). */
+    type?: ColumnType;
+    /** Leave the column out of filters and search (e.g. action columns). */
+    filterable?: boolean;
   }
 }
 
 /** The values of a cell, which is one value or a list (e.g. the portals a text is used in). */
 const valuesOf = (value: unknown): string[] => (Array.isArray(value) ? value.map(String) : [String(value ?? '')]);
 
-/** A filter matches when the cell has the chosen value, or any of the chosen values for a multiple filter. */
-const matchesValue: FilterFn<unknown> = (row, columnId, value) => {
-  const chosen: string[] = Array.isArray(value) ? value : value == null || value === '' ? [] : [String(value)];
-  if (chosen.length === 0) return true;
-  const cell = valuesOf(row.getValue(columnId));
-  return chosen.some(v => cell.includes(v));
-};
+
 
 export interface DataTableProps<T> {
   /** Accessible name of the table. */
@@ -58,9 +60,12 @@ export interface DataTableProps<T> {
   /** "column" for ascending, "-column" for descending. */
   sort?: string;
   onSortChange?: (sort: string | undefined) => void;
-  /** Column filters as { columnId: value }. */
+  /** Earlier simple filters as { columnId: value } (read as "is any of" conditions). */
   filters?: Record<string, string>;
   onFiltersChange?: (filters: Record<string, string>) => void;
+  /** Advanced filters (conditions on any column), e.g. kept in the URL. Uncontrolled when omitted. */
+  advanced?: FilterState;
+  onAdvancedChange?: (filters: FilterState) => void;
   emptyTitle: string;
   emptyHint?: ReactNode;
 }
@@ -79,7 +84,8 @@ export function DataTable<T>(props: DataTableProps<T>) {
   const [localSearch, setLocalSearch] = useState('');
   const [localPage, setLocalPage] = useState(1);
   const [localSort, setLocalSort] = useState<string>();
-  const [localFilters, setLocalFilters] = useState<Record<string, string>>({});
+  const [localAdvanced, setLocalAdvanced] = useState<FilterState>(emptyFilters);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const search = props.search ?? localSearch;
   const page = props.page ?? localPage;
@@ -87,25 +93,49 @@ export function DataTable<T>(props: DataTableProps<T>) {
   const setSearch = props.onSearchChange ?? setLocalSearch;
   const setPage = props.onPageChange ?? setLocalPage;
   const setSort = props.onSortChange ?? setLocalSort;
-  const filters = props.filters ?? localFilters;
-  const setFilters = props.onFiltersChange ?? setLocalFilters;
+  const legacy = props.filters ?? {};
+  const advanced: FilterState = props.advanced ?? (props.onAdvancedChange ? emptyFilters : localAdvanced);
+  // Simple filters from older links become "is any of" conditions until the advanced filters are changed.
+  const advancedKey = JSON.stringify(advanced);
+  const legacyKey = JSON.stringify(legacy);
+  const effective: FilterState = useMemo(() => (advanced.conditions.length > 0 || Object.keys(legacy).length === 0 ? advanced : {
+    match: 'all',
+    conditions: Object.entries(legacy).filter(([, v]) => v).map(([column, v]) => ({ id: column, column, op: 'anyOf' as const, values: v.split(',') })),
+  }), [advancedKey, legacyKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const setAdvanced = (next: FilterState) => {
+    (props.onAdvancedChange ?? setLocalAdvanced)(next);
+    if (Object.keys(legacy).length) props.onFiltersChange?.({});
+    setPage(1);
+  };
   const sorting = useMemo(() => parseSort(sort), [sort]);
-  const multiple = useMemo(() => new Set(columns.filter(c => c.meta?.multiple).map(c => c.id ?? '')), [columns]);
-  const columnFilters: ColumnFiltersState = useMemo(
-    () => Object.entries(filters).filter(([, v]) => v)
-      .map(([id, value]) => ({ id, value: multiple.has(id) ? value.split(',').filter(Boolean) : value })), [filters, multiple]);
+
+  // Columns that can be searched and filtered: their value, display label and type.
+  const fields = useMemo(() => columns.flatMap(c => {
+    const def = c as ColumnDef<T, unknown> & { accessorFn?: (row: T, index: number) => unknown };
+    if (!def.accessorFn || c.meta?.filterable === false || !c.id) return [];
+    const header = typeof c.header === 'string' ? c.header : c.id;
+    const values = data.map((row, i) => def.accessorFn!(row, i));
+    const type = c.meta?.type ?? inferType(values, !!c.meta?.filter);
+    const labelOf = c.meta?.filterLabel;
+    const options = type === 'choice'
+      ? (c.meta?.filterOptions ?? [...new Set(values.flatMap(valuesOf))].filter(Boolean).sort())
+        .map(v => ({ value: v, label: labelOf ? labelOf(v) : v }))
+      : undefined;
+    const filterable: FilterableColumn = { id: c.id, label: header, type, options };
+    const searchable: FilterColumn<T> = { id: c.id, value: def.accessorFn, label: labelOf };
+    return [{ filterable, searchable }];
+  }), [columns, data]);
+  const filterColumns = useMemo(() => fields.map(f => f.filterable), [fields]);
+
+  const filtered = useMemo(() => filterRows(data, fields.map(f => f.searchable), search, effective),
+    [data, fields, search, effective]);
 
   const table = useReactTable({
-    data,
+    data: filtered,
     columns,
     getRowId,
-    state: { globalFilter: search, sorting, columnFilters, pagination: { pageIndex: page - 1, pageSize } },
-    defaultColumn: { filterFn: matchesValue as FilterFn<T> },
-    globalFilterFn: 'includesString',
+    state: { sorting, pagination: { pageIndex: page - 1, pageSize } },
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     autoResetPageIndex: false,
@@ -119,36 +149,27 @@ export function DataTable<T>(props: DataTableProps<T>) {
     : undefined;
 
   const idBase = label.replace(/\W+/g, '-').toLowerCase();
-  const filterable = table.getAllLeafColumns().filter(c => c.columnDef.meta?.filter);
 
   return (
     <div>
-      <div className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-4">
-        <TextField id={`${idBase}-search`} type="search" label={t('table.search')} hint={t('table.searchHint')}
-          value={search} onChange={q => { setSearch(q); setPage(1); }} />
-        {filterable.map(column => {
-          const header = column.columnDef.header;
-          const name = typeof header === 'string' ? header : column.id;
-          const meta = column.columnDef.meta;
-          const values = meta?.filterOptions
-            ?? [...new Set([...column.getFacetedUniqueValues().keys()].flatMap(valuesOf))].filter(Boolean).sort();
-          const labelOf = meta?.filterLabel ?? ((v: string) => v);
-          if (meta?.multiple) {
-            return (
-              <MultiChoiceField key={column.id} id={`${idBase}-filter-${column.id}`} label={name} placeholder={t('table.all')}
-                value={(filters[column.id] ?? '').split(',').filter(Boolean)}
-                choices={values.map(v => ({ value: v, label: labelOf(v) }))}
-                onChange={v => { setFilters({ ...filters, [column.id]: v.join(',') }); setPage(1); }} />
-            );
-          }
-          return (
-            <ChoiceField key={column.id} id={`${idBase}-filter-${column.id}`} label={name} as="select"
-              placeholder={t('table.all')} value={filters[column.id] ?? ''}
-              choices={[{ value: '', label: t('table.all') }, ...values.map(v => ({ value: v, label: labelOf(v) }))]}
-              onChange={v => { setFilters({ ...filters, [column.id]: v }); setPage(1); }} />
-          );
-        })}
+      <div className="flex flex-wrap items-end gap-x-3">
+        <div className="min-w-56 flex-1">
+          <TextField id={`${idBase}-search`} type="search" label={t('table.search')} hint={t('table.searchHint')}
+            value={search} onChange={q => { setSearch(q); setPage(1); }} />
+        </div>
+        <div className="mb-5 flex flex-wrap gap-2 pb-7">
+          {filterColumns.length > 0 && (
+            <AegovButton appearance="outline" onAegovButtonClick={() => setFilterOpen(true)}>
+              <IconLabel icon={Funnel}>{effective.conditions.length ? t('table.filtersCount', { n: effective.conditions.length }) : t('table.filters')}</IconLabel>
+            </AegovButton>
+          )}
+          <SavedViews storageKey={`dsp.views.${idBase}`} current={{ q: search, sort, filters: effective }}
+            onApply={v => { setSearch(v.q ?? ''); setSort(v.sort); setAdvanced(v.filters ?? emptyFilters); }} />
+        </div>
       </div>
+      <FilterChips value={effective} columns={filterColumns} onChange={setAdvanced} />
+      <FilterDialog open={filterOpen} value={effective} columns={filterColumns} icon={Funnel}
+        onApply={setAdvanced} onClose={() => setFilterOpen(false)} />
 
       <div className="overflow-x-auto rounded-xl border border-aeblack-100 bg-whitely-50">
         <Table aria-label={label} className="w-full border-collapse text-start"
@@ -192,7 +213,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <span className="text-sm text-aeblack-600" aria-live="polite">
-          {t('table.results', { n: table.getFilteredRowModel().rows.length })}
+          {t('table.results', { n: filtered.length })}
         </span>
         {pages > 1 && (
           <AegovPagination pages={pages} pageCurrent={Math.min(page, pages)}

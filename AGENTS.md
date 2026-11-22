@@ -202,6 +202,14 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   (`A2UiScreens`), never from the model, in our AEGOV catalogue (`A2UiCatalog.Id`); `A2uiSurface` renders only that
   catalogue. Screen actions (`save_fields`, `submit_application`) are carried out directly, without the model.
 
+### Tables
+
+Every list is a `DataTable`: search (several words, "exact phrases", choice labels in the reader's language),
+advanced filters (conditions per column typed text, number, date or choice — guessed from the values or set with
+`meta.type`; combined with all/any; shown as chips), sorting, paging and saved views per browser. State lives in the
+URL via `listStateProps`, so filtered lists can be shared. Mark choice columns with `meta.filter` (and `filterLabel`,
+`filterOptions`, `multiple`); hide action columns with `meta.filterable: false`.
+
 ### Icons
 
 Phosphor only (`@phosphor-icons/react`, re-exported from `@dsp/ui`), through `Icon` / `IconLabel`: 24px next to body
