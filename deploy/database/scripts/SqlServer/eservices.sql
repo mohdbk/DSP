@@ -161,3 +161,114 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    ALTER TABLE [eservices].[ReviewTasks] ADD [AiRecommendation] nvarchar(32) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    ALTER TABLE [eservices].[Applications] ADD [InformationRequestCount] int NOT NULL DEFAULT 0;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    ALTER TABLE [eservices].[Applications] ADD [InformationRequestJson] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    ALTER TABLE [eservices].[Applications] ADD [ServiceVersion] int NOT NULL DEFAULT 1;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    CREATE TABLE [eservices].[AiAssessments] (
+        [Id] uniqueidentifier NOT NULL,
+        [ApplicationId] uniqueidentifier NOT NULL,
+        [Round] int NOT NULL,
+        [Recommendation] nvarchar(32) NOT NULL,
+        [Summary] nvarchar(2000) NOT NULL,
+        [FindingsJson] nvarchar(max) NOT NULL,
+        [QuestionsJson] nvarchar(max) NOT NULL,
+        [Mode] nvarchar(16) NOT NULL,
+        [Model] nvarchar(100) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_AiAssessments] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    CREATE TABLE [eservices].[ServiceVersions] (
+        [Id] uniqueidentifier NOT NULL,
+        [Code] nvarchar(64) NOT NULL,
+        [Version] int NOT NULL,
+        [Status] nvarchar(16) NOT NULL,
+        [Name] nvarchar(200) NOT NULL,
+        [DefinitionJson] nvarchar(max) NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedBy] nvarchar(200) NOT NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedBy] nvarchar(200) NOT NULL,
+        [PublishedAt] datetimeoffset NULL,
+        [PublishedBy] nvarchar(200) NULL,
+        CONSTRAINT [PK_ServiceVersions] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    CREATE INDEX [IX_AiAssessments_ApplicationId_Round] ON [eservices].[AiAssessments] ([ApplicationId], [Round]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    CREATE INDEX [IX_ServiceVersions_Code_Status] ON [eservices].[ServiceVersions] ([Code], [Status]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_ServiceVersions_Code_Version] ON [eservices].[ServiceVersions] ([Code], [Version]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122140039_ServiceBuilderAgenticReviewArabic'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122140039_ServiceBuilderAgenticReviewArabic', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

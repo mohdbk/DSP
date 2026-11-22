@@ -88,6 +88,10 @@ namespace Dsp.Notifications.Infrastructure.Persistence.Migrations.Postgres
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<string>("BodyAr")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -105,6 +109,10 @@ namespace Dsp.Notifications.Infrastructure.Persistence.Migrations.Postgres
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("TitleAr")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
