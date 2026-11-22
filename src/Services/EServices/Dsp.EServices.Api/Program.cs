@@ -106,6 +106,8 @@ builderApi.MapDelete("/services/{code}/draft", async (string code, ClaimsPrincip
 builderApi.MapPost("/services/{code}/publish", async (string code, ClaimsPrincipal user, HttpContext http,
         ServiceBuilderService svc, CancellationToken ct) =>
     await svc.PublishAsync(ToCaller(user, http), code, ct));
+builderApi.MapGet("/services/{code}/ai-readiness", (string code, ClaimsPrincipal user, HttpContext http,
+        AiReadinessService svc, CancellationToken ct) => svc.GetAsync(ToCaller(user, http), code, ct));
 builderApi.MapPost("/validate", async (ServiceDefinition definition, ClaimsPrincipal user, HttpContext http,
         ServiceBuilderService svc, CancellationToken ct) =>
     Results.Ok(new { errors = await svc.ValidateAsync(ToCaller(user, http), definition, ct) }));

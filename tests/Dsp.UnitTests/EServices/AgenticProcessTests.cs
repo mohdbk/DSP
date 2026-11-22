@@ -82,7 +82,7 @@ public class AgenticProcessStepsTests
             new PaymentCompletedHandlerTests.NoCertificates(), _bus, new StatusNotifier(_bus),
             NullLogger<ProcessSteps>.Instance, new EmbeddedServiceCatalog(), _assessments, _reviewer, TestText.Localization, _policy, TestText.Currencies);
 
-        _app = ServiceApplication.Create("TRADE_NAME_RESERVATION", "Trade Name Reservation", WorkflowVersions.AiAssisted,
+        _app = ServiceApplication.Create("TRADE_NAME_RESERVATION", "Trade Name Reservation", WorkflowVersions.Agentic,
             "uaepass:abc", "Fatima", 200, "AED", new Dictionary<string, string?> { ["tradeNameAr"] = "Falcon" });
         _app.Submit("Falcon Trading");
         _apps.AddAsync(_app, default);
@@ -143,6 +143,20 @@ public class AgenticProcessStepsTests
         Assert.False(await _steps.TryAutoApproveAsync(_app.Id, default));
         Assert.Null(_app.Approved);
         Assert.Equal(ApplicationStatus.AiReview, _app.Status);
+    }
+
+    [Fact]
+    public async Task An_ai_assisted_service_leaves_every_decision_to_an_officer()
+    {
+        var assisted = ServiceApplication.Create("TRADE_NAME_RESERVATION", "Trade Name Reservation", WorkflowVersions.AiAssisted,
+            "uaepass:def", "Omar", 200, "AED", new Dictionary<string, string?> { ["tradeNameAr"] = "الصقر" });
+        assisted.Submit("Falcon Two");
+        await _apps.AddAsync(assisted, default);
+        _reviewer.Next = new AiReviewResult(AiRecommendations.Approve, "Looks fine.", [], [], "llm", "test-model");
+        await _steps.RunAiReviewAsync(assisted.Id, default);
+
+        Assert.False(await _steps.TryAutoApproveAsync(assisted.Id, default));
+        Assert.Null(assisted.Approved);
     }
 
     [Fact]
@@ -272,4 +286,59 @@ public class ReferenceSimilarityTests
     [Fact]
     public void Nothing_is_similar_to_an_empty_reference() =>
         Assert.Empty(ReferenceSimilarity.FindSimilar(null, ["Anything"]));
+}
+
+public class AiReadinessTests
+{
+    private static (ServiceApplication, AiAssessment?) Case(bool officerApproves, string recommendation, string mode = "llm",
+        string severity = "info", bool auto = false, int workflow = WorkflowVersions.AiAssisted)
+    {
+        var app = ServiceApplication.Create("SVC", "Service", workflow, "uaepass:x", "X", 100, "AED", new Dictionary<string, string?>());
+        app.Submit(null);
+        app.StartAiReview();
+        var assessment = AiAssessment.Create(app.Id, 1, recommendation, TestText.Text("Summary"),
+            [new AiFinding(severity, null, TestText.Text("Finding"))], [], mode, mode == "llm" ? "m" : null);
+        if (auto) app.ApproveAutomatically();
+        else { app.StartReview(); app.RecordDecision(officerApproves, officerApproves ? null : "No.", "Officer"); }
+        return (app, assessment);
+    }
+
+    [Fact]
+    public void A_service_is_ready_when_officers_approve_almost_every_clear_case()
+    {
+        var cases = Enumerable.Range(0, 60).Select(_ => Case(true, AiRecommendations.Approve))
+            .Append(Case(false, AiRecommendations.Approve))                    // overturned clear case
+            .Append(Case(false, AiRecommendations.Reject, severity: "issue"))  // agreed rejection
+            .Append(Case(true, AiRecommendations.Approve, severity: "warning")) // not clear: a warning
+            .Append(Case(true, AiRecommendations.Approve, mode: "rules"))     // not clear: no model
+            .ToList();
+
+        var r = AiReadiness.Compute(cases);
+
+        Assert.Equal(64, r.Reviewed);
+        Assert.Equal(61, r.ClearCases);
+        Assert.Equal(1, r.Overturned);
+        Assert.True(r.Ready);
+        Assert.False(r.Concern);
+    }
+
+    [Fact]
+    public void Too_few_cases_or_too_many_overturns_is_not_ready()
+    {
+        Assert.False(AiReadiness.Compute(Enumerable.Range(0, 10).Select(_ => Case(true, AiRecommendations.Approve))).Ready);
+
+        var shaky = Enumerable.Range(0, 50).Select(i => Case(i % 10 != 0, AiRecommendations.Approve)).ToList();
+        var r = AiReadiness.Compute(shaky);
+        Assert.False(r.Ready);
+        Assert.True(r.Concern);
+    }
+
+    [Fact]
+    public void Automatic_approvals_are_counted_apart_from_officer_decisions()
+    {
+        var r = AiReadiness.Compute([Case(true, AiRecommendations.Approve, auto: true, workflow: WorkflowVersions.Agentic)]);
+
+        Assert.Equal(1, r.AutoApproved);
+        Assert.Equal(0, r.Reviewed);
+    }
 }

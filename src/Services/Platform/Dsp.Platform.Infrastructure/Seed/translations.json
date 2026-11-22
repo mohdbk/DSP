@@ -1070,6 +1070,10 @@
    "en": "Cancel",
    "ar": "إلغاء"
   },
+  "catalog.agentic": {
+   "en": "Clear cases approved straight away",
+   "ar": "الحالات الواضحة تُعتمد فورًا"
+  },
   "catalog.aiAssisted": {
    "en": "Checked by AI before review",
    "ar": "يُدقق آليًا قبل المراجعة"
@@ -1574,6 +1578,10 @@
    "en": "After you submit, a ministry officer reviews your application. If approved, you pay the fee and receive your certificate.",
    "ar": "بعد التقديم، يراجع موظف الوزارة طلبك. عند الموافقة تدفع الرسوم وتستلم شهادتك."
   },
+  "form.afterSubmitAgentic": {
+   "en": "After you submit, our digital assistant checks your application and may ask you to correct something. If everything is in order it is approved straight away; otherwise a ministry officer reviews it. Once approved, you pay the fee and receive your certificate.",
+   "ar": "بعد التقديم، يتحقق المساعد الرقمي من طلبك وقد يطلب منك تصحيح شيء ما. إذا كان كل شيء سليمًا تتم الموافقة عليه فورًا، وإلا يراجعه موظف الوزارة. بعد الموافقة تدفع الرسوم وتستلم شهادتك."
+  },
   "form.afterSubmitAi": {
    "en": "After you submit, our digital assistant checks your application first and may ask you to correct something. Then a ministry officer reviews it. If approved, you pay the fee and receive your certificate.",
    "ar": "بعد التقديم، يتحقق المساعد الرقمي من طلبك أولًا وقد يطلب منك تصحيح شيء ما، ثم يراجعه موظف الوزارة. عند الموافقة تدفع الرسوم وتستلم شهادتك."
@@ -1929,6 +1937,70 @@
   "process.v2": {
    "en": "AI-assisted review",
    "ar": "مراجعة بمساعدة الذكاء الاصطناعي"
+  },
+  "process.v3": {
+   "en": "Agentic",
+   "ar": "معالجة ذكية مستقلة"
+  },
+  "readiness.agreement": {
+   "en": "Officers agreed with the AI's recommendation",
+   "ar": "وافق الموظفون على توصية الذكاء الاصطناعي"
+  },
+  "readiness.autoApproved": {
+   "en": "Approved by the AI itself",
+   "ar": "اعتمدها الذكاء الاصطناعي بنفسه"
+  },
+  "readiness.clearAccuracy": {
+   "en": "Clear cases officers approved",
+   "ar": "الحالات الواضحة التي وافق عليها الموظفون"
+  },
+  "readiness.collecting": {
+   "en": "Collecting evidence",
+   "ar": "جمع الأدلة"
+  },
+  "readiness.collectingText": {
+   "en": "Officers need to decide at least {n} cases the AI found clear before this service can be judged. {remaining} to go.",
+   "ar": "يجب أن يبت الموظفون في {n} حالة على الأقل وجدها الذكاء الاصطناعي واضحة قبل تقييم هذه الخدمة. المتبقي {remaining}."
+  },
+  "readiness.concern": {
+   "en": "Needs attention",
+   "ar": "تحتاج إلى مراجعة"
+  },
+  "readiness.concernText": {
+   "en": "Officers approve fewer than {threshold} of the cases the AI finds clear. Review the overturned cases and the AI review prompt; for an agentic service, consider moving it back to AI-assisted.",
+   "ar": "يوافق الموظفون على أقل من {threshold} من الحالات التي يجدها الذكاء الاصطناعي واضحة. راجع الحالات التي رُفضت وموجّه مراجعة الذكاء الاصطناعي، وفكّر في إعادة الخدمة إلى المعالجة بمساعدة الذكاء الاصطناعي إن كانت مستقلة."
+  },
+  "readiness.healthy": {
+   "en": "On track",
+   "ar": "ضمن المستوى المطلوب"
+  },
+  "readiness.healthyText": {
+   "en": "Officers still approve at least {threshold} of the clear cases they see, including the audit sample.",
+   "ar": "ما زال الموظفون يوافقون على {threshold} على الأقل من الحالات الواضحة التي يرونها، بما فيها عينة التدقيق."
+  },
+  "readiness.note": {
+   "en": "Based on the last {window} decided applications of this service.",
+   "ar": "بناءً على آخر {window} طلبًا تم البت فيه لهذه الخدمة."
+  },
+  "readiness.overturned": {
+   "en": "Clear cases officers rejected",
+   "ar": "الحالات الواضحة التي رفضها الموظفون"
+  },
+  "readiness.ready": {
+   "en": "Ready for agentic",
+   "ar": "جاهزة للمعالجة الذكية المستقلة"
+  },
+  "readiness.readyText": {
+   "en": "Officers approved at least {threshold} of the cases the AI found clear. You can move this service to the agentic process on the Details tab and publish.",
+   "ar": "وافق الموظفون على {threshold} على الأقل من الحالات التي وجدها الذكاء الاصطناعي واضحة. يمكنك نقل هذه الخدمة إلى المعالجة الذكية المستقلة من تبويب التفاصيل ثم نشرها."
+  },
+  "readiness.reviewed": {
+   "en": "Cases reviewed by the AI and decided by officers",
+   "ar": "حالات راجعها الذكاء الاصطناعي وبتّ فيها الموظفون"
+  },
+  "readiness.title": {
+   "en": "AI readiness",
+   "ar": "جاهزية الذكاء الاصطناعي"
   },
   "received": {
    "en": "Received",
@@ -3188,7 +3260,9 @@
   "builder.processV1": [
    "backoffice"
   ],
-  "builder.processV2": [],
+  "builder.processV2": [
+   "backoffice"
+  ],
   "builder.processV2Auto": [
    "backoffice"
   ],
@@ -3410,6 +3484,10 @@
    "backoffice"
   ],
   "cancel": [
+   "backoffice"
+  ],
+  "catalog.agentic": [
+   "portal",
    "backoffice"
   ],
   "catalog.aiAssisted": [
@@ -3792,6 +3870,9 @@
   "form.afterSubmit": [
    "portal"
   ],
+  "form.afterSubmitAgentic": [
+   "portal"
+  ],
   "form.afterSubmitAi": [
    "portal"
   ],
@@ -4079,11 +4160,57 @@
    "backoffice"
   ],
   "process.v1": [
-   "portal",
    "backoffice"
   ],
   "process.v2": [
-   "portal",
+   "backoffice"
+  ],
+  "process.v3": [
+   "backoffice"
+  ],
+  "readiness.agreement": [
+   "backoffice"
+  ],
+  "readiness.autoApproved": [
+   "backoffice"
+  ],
+  "readiness.clearAccuracy": [
+   "backoffice"
+  ],
+  "readiness.collecting": [
+   "backoffice"
+  ],
+  "readiness.collectingText": [
+   "backoffice"
+  ],
+  "readiness.concern": [
+   "backoffice"
+  ],
+  "readiness.concernText": [
+   "backoffice"
+  ],
+  "readiness.healthy": [
+   "backoffice"
+  ],
+  "readiness.healthyText": [
+   "backoffice"
+  ],
+  "readiness.note": [
+   "backoffice"
+  ],
+  "readiness.overturned": [
+   "backoffice"
+  ],
+  "readiness.ready": [
+   "backoffice"
+  ],
+  "readiness.readyText": [
+   "backoffice"
+  ],
+  "readiness.reviewed": [
+   "backoffice"
+  ],
+  "readiness.title": [
    "backoffice"
   ],
   "received": [

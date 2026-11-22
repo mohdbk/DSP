@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { AegovButton, AegovCard, AegovTimeline, AegovTimelineStep } from '@aegov/designsystem-react';
 import {
-  formatDate, formatMoney, loc, t, type Application, type ApplicationStatus, type Notification, type ServiceSummary,
+  formatDate, formatMoney, loc, t, usesAi, type Application, type ApplicationStatus, type Notification, type ServiceSummary,
 } from '@dsp/core';
 import { DescriptionList } from '../data/DescriptionList';
 import { Money, Tag } from '../feedback/Feedback';
@@ -23,7 +23,7 @@ export function ServiceCard({ service, busy, disabled, onApply }: {
         </span>
         <div className="flex flex-wrap justify-end gap-2">
           <Tag variant="aegold">{loc(service.category)}</Tag>
-          {service.workflowVersion === 2 && <Tag variant="techblue">{t('catalog.aiAssisted')}</Tag>}
+          {usesAi(service.workflowVersion) && <Tag variant="techblue">{t(service.workflowVersion === 3 ? 'catalog.agentic' : 'catalog.aiAssisted')}</Tag>}
         </div>
       </div>
       <h2 className="mt-3 text-h5 font-bold text-aeblack-900">{loc(service.name)}</h2>
@@ -51,7 +51,7 @@ export function ApplicationSummary({ app, extra = [] }: {
       { label: t('applicant'), value: app.applicantName },
       { label: t('submitted'), value: formatDate(app.submittedAt, true) || '—' },
       { label: t('fee'), value: <Money>{formatMoney(app.fee, app.currency)}</Money> },
-      { label: t('workflow'), value: `${t(app.workflowVersion === 2 ? 'process.v2' : 'process.v1')} · v${app.serviceVersion}` },
+      { label: t('workflow'), value: `${t(`process.v${app.workflowVersion}`)} · v${app.serviceVersion}` },
       ...extra,
     ]} />
   );
@@ -74,7 +74,7 @@ const aiJourney: Stage[] = [
 
 /** Where an application is in its process (standard or AI-assisted). */
 export function ApplicationJourney({ app }: { app: Application }) {
-  const journey = app.workflowVersion === 2 ? aiJourney : standardJourney;
+  const journey = usesAi(app.workflowVersion) ? aiJourney : standardJourney;
   const position = app.status === 'Rejected'
     ? journey.findIndex(s => s.key === 'journey.review')
     : journey.findIndex(s => s.statuses.includes(app.status));

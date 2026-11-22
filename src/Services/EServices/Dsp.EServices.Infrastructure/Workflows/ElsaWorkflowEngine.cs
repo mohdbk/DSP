@@ -9,7 +9,8 @@ namespace Dsp.EServices.Infrastructure.Workflows;
 public sealed class ElsaWorkflowEngine(IEventPublisher events, ILogger<ElsaWorkflowEngine> logger) : IWorkflowEngine
 {
     public Task StartApplicationProcessAsync(Guid applicationId, int workflowVersion, CancellationToken ct) =>
-        PublishAsync(workflowVersion == WorkflowVersions.AiAssisted
+        // AI-assisted and agentic share one process; its automatic-approval step only acts for v3.
+        PublishAsync(WorkflowVersions.UsesAi(workflowVersion)
             ? ProcessEvents.ApplicationSubmittedAiAssisted
             : ProcessEvents.ApplicationSubmitted, applicationId, ct);
 

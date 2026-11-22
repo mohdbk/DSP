@@ -5,6 +5,7 @@ import {
   AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, ArrowLeft, ConfirmDialog, IconLabel, Loading, Notice, PageHeader, Panel, PaperPlaneRight, Tag, useTabsScrollFix,
 } from '@dsp/ui';
 import { api } from '../../session';
+import { AiReadinessPanel } from './Readiness';
 import { DetailsSection, FormSection, PreviewSection, ReviewSection, VersionsSection, type EditorProps } from './editor';
 
 const base = '/api/v1/eservices/builder';
@@ -111,7 +112,7 @@ export function ServiceEditorPage() {
           <>
             {liveVersion ? <Tag variant="aegreen">{t('builder.live', { n: liveVersion })}</Tag> : <Tag variant="slate">{t('builder.notLive')}</Tag>}
             {hasDraft && <Tag variant="aegold">{t('builder.draft', { n: draftVersion })}</Tag>}
-            {def.workflowVersion === 2 && <Tag variant="techblue">{t('process.v2')}</Tag>}
+            {def.workflowVersion > 1 && <Tag variant={def.workflowVersion === 3 ? 'aegold' : 'techblue'}>{t(`process.v${def.workflowVersion}`)}</Tag>}
           </>
         )} />
 
@@ -162,7 +163,7 @@ export function ServiceEditorPage() {
         ))}
         <AegovTabPanel tabId="details"><div className="pt-6"><DetailsSection {...props} /></div></AegovTabPanel>
         <AegovTabPanel tabId="form"><div className="pt-6"><FormSection {...props} /></div></AegovTabPanel>
-        <AegovTabPanel tabId="review"><div className="pt-6"><ReviewSection {...props} /></div></AegovTabPanel>
+        <AegovTabPanel tabId="review"><div className="pt-6"><AiReadinessPanel code={code} workflowVersion={def.workflowVersion} /><ReviewSection {...props} /></div></AegovTabPanel>
         <AegovTabPanel tabId="preview"><div className="pt-6"><PreviewSection def={def} /></div></AegovTabPanel>
         <AegovTabPanel tabId="versions"><div className="pt-6"><VersionsSection versions={server.versions} /></div></AegovTabPanel>
       </AegovTabs>
