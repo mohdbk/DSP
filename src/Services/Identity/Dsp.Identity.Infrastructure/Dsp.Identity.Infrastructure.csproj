@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Dsp.Identity.Application/Dsp.Identity.Application.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/Dsp.BuildingBlocks/Dsp.BuildingBlocks.csproj" />
+  </ItemGroup>
+</Project>

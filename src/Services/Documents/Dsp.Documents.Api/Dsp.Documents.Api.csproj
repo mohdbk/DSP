@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../Dsp.Documents.Infrastructure/Dsp.Documents.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

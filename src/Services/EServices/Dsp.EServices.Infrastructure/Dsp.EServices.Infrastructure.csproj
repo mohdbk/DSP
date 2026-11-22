@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Elsa" />
+    <PackageReference Include="Elsa.Persistence.EFCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Dsp.EServices.Application/Dsp.EServices.Application.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/Dsp.BuildingBlocks/Dsp.BuildingBlocks.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Catalog/Definitions/*.json" />
+  </ItemGroup>
+</Project>

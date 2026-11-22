@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Dsp.Payments.Application/Dsp.Payments.Application.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/Dsp.BuildingBlocks/Dsp.BuildingBlocks.csproj" />
+  </ItemGroup>
+</Project>

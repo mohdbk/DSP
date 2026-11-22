@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="AWSSDK.S3" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Dsp.Documents.Application/Dsp.Documents.Application.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/Dsp.BuildingBlocks/Dsp.BuildingBlocks.csproj" />
+  </ItemGroup>
+</Project>
