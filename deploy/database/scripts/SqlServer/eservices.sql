@@ -272,3 +272,58 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122161204_MultilingualPlatform'
+)
+BEGIN
+    DECLARE @var nvarchar(max);
+    SELECT @var = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[eservices].[ReviewTasks]') AND [c].[name] = N'ServiceName');
+    IF @var IS NOT NULL EXEC(N'ALTER TABLE [eservices].[ReviewTasks] DROP CONSTRAINT ' + @var + ';');
+    ALTER TABLE [eservices].[ReviewTasks] ALTER COLUMN [ServiceName] nvarchar(2000) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122161204_MultilingualPlatform'
+)
+BEGIN
+    DECLARE @var1 nvarchar(max);
+    SELECT @var1 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[eservices].[Applications]') AND [c].[name] = N'ServiceName');
+    IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [eservices].[Applications] DROP CONSTRAINT ' + @var1 + ';');
+    ALTER TABLE [eservices].[Applications] ALTER COLUMN [ServiceName] nvarchar(2000) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122161204_MultilingualPlatform'
+)
+BEGIN
+    DECLARE @var2 nvarchar(max);
+    SELECT @var2 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[eservices].[AiAssessments]') AND [c].[name] = N'Summary');
+    IF @var2 IS NOT NULL EXEC(N'ALTER TABLE [eservices].[AiAssessments] DROP CONSTRAINT ' + @var2 + ';');
+    ALTER TABLE [eservices].[AiAssessments] ALTER COLUMN [Summary] nvarchar(4000) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122161204_MultilingualPlatform'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122161204_MultilingualPlatform', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

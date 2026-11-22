@@ -121,3 +121,32 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122161245_MultilingualPlatform'
+)
+BEGIN
+    ALTER TABLE [notifications].[Notifications] ADD [BodyMessage] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122161245_MultilingualPlatform'
+)
+BEGIN
+    ALTER TABLE [notifications].[Notifications] ADD [TitleMessage] nvarchar(4000) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122161245_MultilingualPlatform'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122161245_MultilingualPlatform', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

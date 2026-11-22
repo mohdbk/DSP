@@ -116,8 +116,8 @@ namespace Dsp.EServices.Infrastructure.Persistence.Migrations.SqlServer
 
                     b.Property<string>("Summary")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.HasKey("Id");
 
@@ -177,8 +177,8 @@ namespace Dsp.EServices.Infrastructure.Persistence.Migrations.SqlServer
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -267,8 +267,8 @@ namespace Dsp.EServices.Infrastructure.Persistence.Migrations.SqlServer
 
                     b.Property<string>("ServiceName")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<int>("ServiceVersion")
                         .ValueGeneratedOnAdd()

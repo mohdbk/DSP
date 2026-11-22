@@ -246,3 +246,35 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122161207_MultilingualPlatform') THEN
+    ALTER TABLE eservices."ReviewTasks" ALTER COLUMN "ServiceName" TYPE character varying(2000);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122161207_MultilingualPlatform') THEN
+    ALTER TABLE eservices."Applications" ALTER COLUMN "ServiceName" TYPE character varying(2000);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122161207_MultilingualPlatform') THEN
+    ALTER TABLE eservices."AiAssessments" ALTER COLUMN "Summary" TYPE character varying(4000);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122161207_MultilingualPlatform') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261122161207_MultilingualPlatform', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+

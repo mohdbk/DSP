@@ -97,8 +97,8 @@ namespace Dsp.Payments.Infrastructure.Persistence.Migrations.Postgres
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("Method")
                         .HasMaxLength(50)

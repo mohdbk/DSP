@@ -97,8 +97,8 @@ namespace Dsp.Payments.Infrastructure.Persistence.Migrations.SqlServer
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Method")
                         .HasMaxLength(50)
