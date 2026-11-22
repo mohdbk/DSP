@@ -8,6 +8,8 @@ public static class DependencyInjection
     {
         services.AddScoped<ChatService>();
         services.AddScoped<GuidedConversation>();
+        services.AddScoped<A2UiScreens>();
+        services.AddScoped<AgUiChatRunner>();
         services.AddScoped<ApplicationReviewAgent>();
         return services;
     }

@@ -34,4 +34,17 @@ api.MapGet("/status", async (IAiSettingsProvider settings, CancellationToken ct)
 api.MapPost("/chat", async (ChatRequest request, ChatService chat, CancellationToken ct) =>
     await chat.ChatAsync(request, ct));
 
+// The chat over AG-UI: a stream of server-sent events, with A2UI screens as "a2ui" activity events.
+api.MapPost("/agui", async (AgUiRunInput input, AgUiChatRunner runner, HttpContext http, CancellationToken ct) =>
+{
+    http.Response.ContentType = "text/event-stream";
+    http.Response.Headers.CacheControl = "no-cache";
+    http.Response.Headers["X-Accel-Buffering"] = "no";
+    foreach (var e in await runner.RunAsync(input, ct))
+    {
+        await http.Response.WriteAsync($"data: {System.Text.Json.JsonSerializer.Serialize(e, AgUiJson.Options)}\n\n", ct);
+        await http.Response.Body.FlushAsync(ct);
+    }
+});
+
 app.Run();

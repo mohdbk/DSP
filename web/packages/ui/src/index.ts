@@ -35,6 +35,7 @@ export * from './application/ApplicationViews';
 export * from './application/ApplicationCase';
 export * from './ai/AiReviewPanel';
 export * from './chat/ChatThread';
+export * from './chat/A2uiSurface';
 
 // AEGOV primitives the pages use directly (one import path for everything visual).
 export {
