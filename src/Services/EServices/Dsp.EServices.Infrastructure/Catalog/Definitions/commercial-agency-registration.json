@@ -1,0 +1,55 @@
+{
+  "code": "COMMERCIAL_AGENCY_REGISTRATION",
+  "name": "Commercial Agency Registration",
+  "nameAr": "تسجيل وكالة تجارية",
+  "description": "Register a commercial agency agreement between a UAE agent and a foreign principal.",
+  "category": "Business",
+  "fee": 500,
+  "currency": "AED",
+  "referenceField": "agentCompany",
+  "workflowVersion": 1,
+  "steps": [
+    {
+      "id": "agent",
+      "title": "Agent (UAE company)",
+      "fields": [
+        { "key": "agentCompany", "label": "Agent company name", "type": "text", "required": true, "maxLength": 150 },
+        { "key": "tradeLicenseNumber", "label": "Trade licence number", "type": "text", "required": true, "pattern": "^[A-Za-z0-9-]{4,20}$", "patternMessage": "Enter the licence number as shown on the licence." },
+        { "key": "contactEmail", "label": "Contact email", "type": "email", "required": true, "prefillFrom": "email" },
+        { "key": "contactMobile", "label": "Contact mobile", "type": "phone", "required": true, "pattern": "^(\\+?971|0)?5\\d{8}$", "patternMessage": "Enter a UAE mobile number, e.g. 971501234567.", "prefillFrom": "mobile" }
+      ]
+    },
+    {
+      "id": "principal",
+      "title": "Foreign principal",
+      "fields": [
+        { "key": "principalName", "label": "Principal company name", "type": "text", "required": true, "maxLength": 150 },
+        {
+          "key": "principalCountry", "label": "Principal country", "type": "select", "required": true,
+          "options": [
+            { "value": "DE", "label": "Germany" }, { "value": "FR", "label": "France" }, { "value": "IT", "label": "Italy" },
+            { "value": "JP", "label": "Japan" }, { "value": "KR", "label": "South Korea" }, { "value": "US", "label": "United States" },
+            { "value": "GB", "label": "United Kingdom" }, { "value": "CN", "label": "China" }
+          ]
+        },
+        { "key": "productLines", "label": "Products or services covered", "type": "textarea", "required": true, "minLength": 10, "maxLength": 1000 }
+      ]
+    },
+    {
+      "id": "agreement",
+      "title": "Agency agreement",
+      "fields": [
+        { "key": "agreementStart", "label": "Agreement start date", "type": "date", "required": true },
+        { "key": "agreementEnd", "label": "Agreement end date", "type": "date", "required": true, "help": "Agreements must run for at least one year." },
+        { "key": "agreementFile", "label": "Signed agency agreement (PDF)", "type": "file", "required": true }
+      ]
+    },
+    {
+      "id": "declaration",
+      "title": "Declaration",
+      "fields": [
+        { "key": "declaration", "label": "I confirm the information provided is correct and complete", "type": "checkbox", "required": true }
+      ]
+    }
+  ]
+}

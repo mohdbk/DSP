@@ -1,0 +1,64 @@
+{
+  "code": "TRADE_NAME_RESERVATION",
+  "name": "Trade Name Reservation",
+  "nameAr": "حجز اسم تجاري",
+  "description": "Reserve a trade name for a new business before applying for a trade licence.",
+  "category": "Business",
+  "fee": 200,
+  "currency": "AED",
+  "referenceField": "tradeNameEn",
+  "workflowVersion": 1,
+  "steps": [
+    {
+      "id": "applicant",
+      "title": "Applicant details",
+      "description": "We filled in what we know from your UAE PASS profile. Check and complete it.",
+      "fields": [
+        { "key": "fullName", "label": "Full name", "type": "text", "required": true, "maxLength": 150, "prefillFrom": "name" },
+        { "key": "emiratesId", "label": "Emirates ID", "type": "text", "required": true, "placeholder": "784-1990-1234567-1", "pattern": "^784-\\d{4}-\\d{7}-\\d$", "patternMessage": "Enter the Emirates ID as 784-YYYY-NNNNNNN-N.", "prefillFrom": "emirates_id" },
+        { "key": "email", "label": "Email", "type": "email", "required": true, "prefillFrom": "email" },
+        { "key": "mobile", "label": "Mobile number", "type": "phone", "required": true, "placeholder": "9715XXXXXXXX", "pattern": "^(\\+?971|0)?5\\d{8}$", "patternMessage": "Enter a UAE mobile number, e.g. 971501234567.", "prefillFrom": "mobile" }
+      ]
+    },
+    {
+      "id": "trade-name",
+      "title": "Trade name",
+      "description": "Choose the name you want to reserve and tell us about the business.",
+      "fields": [
+        { "key": "tradeNameEn", "label": "Trade name (English)", "type": "text", "required": true, "minLength": 3, "maxLength": 60, "help": "Names with reserved words such as Ministry or Federal are not allowed." },
+        { "key": "tradeNameAr", "label": "Trade name (Arabic)", "type": "text", "required": true, "minLength": 3, "maxLength": 60 },
+        {
+          "key": "legalForm", "label": "Legal form", "type": "select", "required": true,
+          "options": [
+            { "value": "llc", "label": "Limited Liability Company (LLC)" },
+            { "value": "sole", "label": "Sole Establishment" },
+            { "value": "civil", "label": "Civil Company" }
+          ]
+        },
+        {
+          "key": "activity", "label": "Main business activity", "type": "select", "required": true,
+          "options": [
+            { "value": "general-trading", "label": "General trading" },
+            { "value": "consultancy", "label": "Management consultancy" },
+            { "value": "ecommerce", "label": "E-commerce" },
+            { "value": "tourism", "label": "Tourism services" }
+          ]
+        },
+        { "key": "emirate", "label": "Emirate", "type": "select", "required": true,
+          "options": [
+            { "value": "AUH", "label": "Abu Dhabi" }, { "value": "DXB", "label": "Dubai" }, { "value": "SHJ", "label": "Sharjah" },
+            { "value": "AJM", "label": "Ajman" }, { "value": "UAQ", "label": "Umm Al Quwain" }, { "value": "RAK", "label": "Ras Al Khaimah" },
+            { "value": "FUJ", "label": "Fujairah" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "declaration",
+      "title": "Declaration",
+      "fields": [
+        { "key": "declaration", "label": "I confirm the information provided is correct and complete", "type": "checkbox", "required": true }
+      ]
+    }
+  ]
+}
