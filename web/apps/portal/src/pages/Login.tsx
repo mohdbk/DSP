@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { t } from '@dsp/core';
-import { AegovLink, Loading, Notice, PageHeader, Panel } from '@dsp/ui';
+import { AegovLink, Loading, Notice, PageHeader, Panel, UaePassButton } from '@dsp/ui';
 import { api, currentUser } from '../session';
 
 interface Provider { name: string; displayName: string }
@@ -33,13 +33,18 @@ export function LoginPage() {
         {error && <Notice kind="error">{error}</Notice>}
         {!providers && !error && <Loading />}
         {providers?.length === 0 && <Notice kind="warning">{t('login.none')}</Notice>}
-        <div className="flex flex-col gap-3">
-          {providers?.map(p => (
-            <AegovLink key={p.name} href={`/api/v1/identity/citizen/${p.name}/login?returnUrl=${encodeURIComponent(returnUrl)}`}
-              appearance="solid" variant={p.name === 'uaepass' ? 'neutral-max' : 'primary'} size="lg" isFull>
-              {t('login.with', { name: p.name === 'uaepass' ? t('uaePass') : p.displayName })}
-            </AegovLink>
-          ))}
+        <div className="flex flex-col items-center gap-3">
+          {providers?.map(p => {
+            const href = `/api/v1/identity/citizen/${p.name}/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+            // UAE PASS has its own official button, used unmodified (UAE PASS Buttons Guidelines).
+            return p.name === 'uaepass'
+              ? <UaePassButton key={p.name} href={href} />
+              : (
+                <AegovLink key={p.name} href={href} appearance="solid" variant="primary" size="lg" isFull>
+                  {t('login.with', { name: p.displayName })}
+                </AegovLink>
+              );
+          })}
         </div>
         <p className="mt-5 text-sm text-aeblack-600">{t('login.staging')}</p>
       </Panel>
