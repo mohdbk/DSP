@@ -132,3 +132,60 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211200_ServerListsSavedViews') THEN
+    ALTER TABLE notifications."Notifications" DROP COLUMN "Body";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211200_ServerListsSavedViews') THEN
+    ALTER TABLE notifications."Notifications" DROP COLUMN "BodyAr";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211200_ServerListsSavedViews') THEN
+    ALTER TABLE notifications."Notifications" DROP COLUMN "Title";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211200_ServerListsSavedViews') THEN
+    ALTER TABLE notifications."Notifications" DROP COLUMN "TitleAr";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211200_ServerListsSavedViews') THEN
+    UPDATE notifications."Notifications" SET "TitleMessage" = '' WHERE "TitleMessage" IS NULL;
+    ALTER TABLE notifications."Notifications" ALTER COLUMN "TitleMessage" SET NOT NULL;
+    ALTER TABLE notifications."Notifications" ALTER COLUMN "TitleMessage" SET DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211200_ServerListsSavedViews') THEN
+    UPDATE notifications."Notifications" SET "BodyMessage" = '' WHERE "BodyMessage" IS NULL;
+    ALTER TABLE notifications."Notifications" ALTER COLUMN "BodyMessage" SET NOT NULL;
+    ALTER TABLE notifications."Notifications" ALTER COLUMN "BodyMessage" SET DEFAULT '';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122211200_ServerListsSavedViews') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261122211200_ServerListsSavedViews', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+

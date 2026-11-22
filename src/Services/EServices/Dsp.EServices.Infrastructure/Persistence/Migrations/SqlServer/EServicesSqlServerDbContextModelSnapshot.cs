@@ -291,12 +291,14 @@ namespace Dsp.EServices.Infrastructure.Persistence.Migrations.SqlServer
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicantId");
-
                     b.HasIndex("Number")
                         .IsUnique();
 
+                    b.HasIndex("ApplicantId", "UpdatedAt");
+
                     b.HasIndex("ServiceCode", "ReferenceValue");
+
+                    b.HasIndex("Status", "UpdatedAt");
 
                     b.ToTable("Applications", "eservices");
                 });

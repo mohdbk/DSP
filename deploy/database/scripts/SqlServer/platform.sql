@@ -251,3 +251,41 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211216_ServerListsSavedViews'
+)
+BEGIN
+    CREATE TABLE [platform].[SavedViews] (
+        [Id] uniqueidentifier NOT NULL,
+        [Owner] nvarchar(200) NOT NULL,
+        [ListKey] nvarchar(100) NOT NULL,
+        [Name] nvarchar(100) NOT NULL,
+        [State] nvarchar(max) NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_SavedViews] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211216_ServerListsSavedViews'
+)
+BEGIN
+    CREATE INDEX [IX_SavedViews_Owner_ListKey] ON [platform].[SavedViews] ([Owner], [ListKey]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211216_ServerListsSavedViews'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122211216_ServerListsSavedViews', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

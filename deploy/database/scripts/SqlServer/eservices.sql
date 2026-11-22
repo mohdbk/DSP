@@ -327,3 +327,40 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211128_ServerListsSavedViews'
+)
+BEGIN
+    DROP INDEX [IX_Applications_ApplicantId] ON [eservices].[Applications];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211128_ServerListsSavedViews'
+)
+BEGIN
+    CREATE INDEX [IX_Applications_ApplicantId_UpdatedAt] ON [eservices].[Applications] ([ApplicantId], [UpdatedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211128_ServerListsSavedViews'
+)
+BEGIN
+    CREATE INDEX [IX_Applications_Status_UpdatedAt] ON [eservices].[Applications] ([Status], [UpdatedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122211128_ServerListsSavedViews'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122211128_ServerListsSavedViews', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

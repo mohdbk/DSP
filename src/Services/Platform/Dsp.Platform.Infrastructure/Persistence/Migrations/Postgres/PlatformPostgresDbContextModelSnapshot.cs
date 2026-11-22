@@ -201,6 +201,45 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                     b.ToTable("Languages", "platform");
                 });
 
+            modelBuilder.Entity("Dsp.Platform.Domain.SavedView", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ListKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("character varying(8000)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Owner", "ListKey");
+
+                    b.ToTable("SavedViews", "platform");
+                });
+
             modelBuilder.Entity("Dsp.Platform.Domain.Translation", b =>
                 {
                     b.Property<Guid>("Id")
