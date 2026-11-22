@@ -14,7 +14,7 @@ export function ServicesPage() {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    api.get<BuilderServiceSummary[]>('/api/eservices/builder/services').then(setServices).catch(e => setError(e.message));
+    api.list<BuilderServiceSummary>('/api/v1/eservices/builder/services').then(setServices).catch(e => setError(e.message));
   }, []);
 
   const columns = useMemo<ColumnDef<BuilderServiceSummary, string>[]>(() => [

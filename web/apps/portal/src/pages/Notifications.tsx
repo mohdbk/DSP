@@ -10,11 +10,11 @@ export function NotificationsPage() {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    api.get<Notification[]>('/api/notifications/me').then(setItems).catch(e => setError(e.message));
+    api.list<Notification>('/api/v1/notifications/me').then(setItems).catch(e => setError(e.message));
   }, []);
 
   async function open(n: Notification) {
-    if (!n.isRead) await api.post(`/api/notifications/${n.id}/read`).catch(() => {});
+    if (!n.isRead) await api.post(`/api/v1/notifications/${n.id}/read`).catch(() => {});
     if (n.link) navigate({ href: n.link });
     else setItems(items?.map(i => (i.id === n.id ? { ...i, isRead: true } : i)));
   }

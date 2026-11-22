@@ -16,7 +16,7 @@ export function StatusView({ app, service, onRefresh }: {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    if (app.paymentId) api.get<Payment>(`/api/payments/payments/${app.paymentId}`).then(setPayment).catch(() => {});
+    if (app.paymentId) api.get<Payment>(`/api/v1/payments/payments/${app.paymentId}`).then(setPayment).catch(() => {});
   }, [app.paymentId]);
 
   // The workflow moves on asynchronously (AI pre-review, certificate after payment); poll until it does.
@@ -34,7 +34,7 @@ export function StatusView({ app, service, onRefresh }: {
     setBusy(true);
     setError(undefined);
     try {
-      setPayment(await api.post<Payment>(`/api/payments/payments/${app.paymentId}/pay`));
+      setPayment(await api.post<Payment>(`/api/v1/payments/payments/${app.paymentId}/pay`));
       setTimeout(onRefresh, 1500);
     } catch (e) {
       setError((e as Error).message);

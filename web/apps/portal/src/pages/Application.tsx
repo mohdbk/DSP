@@ -18,10 +18,10 @@ export function ApplicationPage() {
 
   const load = useCallback(async () => {
     try {
-      const a = await api.get<Application>(`/api/eservices/applications/${id}`);
+      const a = await api.get<Application>(`/api/v1/eservices/applications/${id}`);
       setApp(a);
       // The version the application was started on, so the form matches what was filled in.
-      if (!service) setService(await api.get<ServiceDefinition>(`/api/eservices/services/${a.serviceCode}?version=${a.serviceVersion}`));
+      if (!service) setService(await api.get<ServiceDefinition>(`/api/v1/eservices/services/${a.serviceCode}?version=${a.serviceVersion}`));
     } catch (e) {
       setError(e instanceof ApiError && e.status === 404 ? t('app.notFound') : (e as Error).message);
     }

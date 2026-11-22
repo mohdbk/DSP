@@ -12,7 +12,7 @@ public sealed class ApplicationService(
     IEnumerable<IServiceRules> rules,
     IWorkflowEngine workflow,
     StatusNotifier notifier,
-    IAiAssessmentRepository? assessments = null)
+    IAiAssessmentRepository assessments)
 {
     public async Task<IReadOnlyList<ServiceSummaryDto>> ListServicesAsync(CancellationToken ct) =>
         (await catalog.ListPublishedAsync(ct)).Select(ServiceSummaryDto.From).ToList();
@@ -54,7 +54,6 @@ public sealed class ApplicationService(
     {
         if (!caller.IsStaff) throw new ForbiddenException("Back-office access only.");
         var app = await ReadVisibleAsync(caller, id, ct);
-        if (assessments is null) return [];
         return (await assessments.ListForApplicationAsync(app.Id, ct)).Select(AiAssessmentDto.From).ToList();
     }
 

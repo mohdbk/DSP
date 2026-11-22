@@ -13,7 +13,7 @@ export function MyApplicationsPage() {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    api.get<Application[]>('/api/eservices/applications').then(setApps).catch(e => setError(e.message));
+    api.list<Application>('/api/v1/eservices/applications').then(setApps).catch(e => setError(e.message));
   }, []);
 
   const columns = useMemo<ColumnDef<Application, string>[]>(() => [

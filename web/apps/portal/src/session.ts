@@ -16,5 +16,5 @@ export const { api, currentUser, signOut } = createSession<CitizenUser>({
   mapUser: c => ({
     id: c.sub, name: c.name, emiratesId: c.emirates_id, email: c.email, provider: c.idp, accountLevel: c.account_level,
   }),
-  signOutUrl: user => `/api/identity/citizen/${user?.provider ?? 'uaepass'}/logout`,
+  signOutUrl: user => `/api/v1/identity/citizen/${user?.provider ?? 'uaepass'}/logout`,
 });

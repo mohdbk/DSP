@@ -18,7 +18,7 @@ export function TaskPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    api.get<ReviewTask>(`/api/eservices/tasks/${id}`).then(setTask).catch(e => setTaskError(e.message));
+    api.get<ReviewTask>(`/api/v1/eservices/tasks/${id}`).then(setTask).catch(e => setTaskError(e.message));
   }, [id]);
 
   async function decide(approve: boolean) {
@@ -26,7 +26,7 @@ export function TaskPage() {
     setBusy(true);
     setMessage(undefined);
     try {
-      setApp(await api.post<Application>(`/api/eservices/tasks/${id}/decision`, { approve, comment: comment.trim() || null }));
+      setApp(await api.post<Application>(`/api/v1/eservices/tasks/${id}/decision`, { approve, comment: comment.trim() || null }));
       setDone(true);
     } catch (e) {
       setMessage((e as Error).message);

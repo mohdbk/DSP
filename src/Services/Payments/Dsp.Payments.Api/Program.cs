@@ -1,3 +1,4 @@
+using Dsp.SharedKernel;
 using System.Security.Claims;
 using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Web;
@@ -22,9 +23,12 @@ app.MapPost("/internal/payments", async (CreatePaymentRequest req, PaymentServic
     Results.Ok(await svc.CreateAsync(req, ct))).RequireInternalKey().AllowAnonymous();
 
 // Payer-facing.
-var api = app.MapGroup("/api/payments").RequireAuthorization();
-api.MapGet("/payments", async (Guid? referenceId, ClaimsPrincipal user, PaymentService svc, CancellationToken ct) =>
-    await svc.ListAsync(user.UserId(), referenceId, ct));
+app.MapApiDocuments("payments");
+
+var api = app.MapApi("payments").RequireAuthorization();
+api.MapGet("/payments", async (Guid? referenceId, int? page, int? pageSize, ClaimsPrincipal user, PaymentService svc,
+        CancellationToken ct) =>
+    PagedList.From(await svc.ListAsync(user.UserId(), referenceId, ct), page, pageSize));
 api.MapGet("/payments/{id:guid}", async (Guid id, ClaimsPrincipal user, PaymentService svc, CancellationToken ct) =>
     await svc.GetAsync(user.UserId(), user.IsStaff(), id, ct));
 api.MapPost("/payments/{id:guid}/pay", async (Guid id, ClaimsPrincipal user, PaymentService svc, CancellationToken ct) =>

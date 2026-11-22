@@ -13,7 +13,7 @@ export function InboxPage() {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    const load = () => api.get<ReviewTask[]>('/api/eservices/tasks').then(setTasks).catch(e => setError(e.message));
+    const load = () => api.list<ReviewTask>('/api/v1/eservices/tasks').then(setTasks).catch(e => setError(e.message));
     load();
     const timer = setInterval(load, 15000);
     return () => clearInterval(timer);

@@ -19,7 +19,7 @@ export function LoginPage() {
     setBusy(true);
     setError(undefined);
     try {
-      const res = await api.post<{ accessToken: string }>('/api/identity/staff/login', { username, password });
+      const res = await api.post<{ accessToken: string }>('/api/v1/identity/staff/login', { username, password });
       api.setToken(res.accessToken);
       navigate({ to: '/inbox', replace: true });
     } catch (err) {

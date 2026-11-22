@@ -13,11 +13,11 @@ export function useCase(applicationId: string | undefined) {
     if (!applicationId) return;
     (async () => {
       try {
-        const a = await api.get<Application>(`/api/eservices/applications/${applicationId}`);
+        const a = await api.get<Application>(`/api/v1/eservices/applications/${applicationId}`);
         setApp(a);
         const [svc, ai] = await Promise.all([
-          api.get<ServiceDefinition>(`/api/eservices/services/${a.serviceCode}?version=${a.serviceVersion}`),
-          api.get<AiAssessment[]>(`/api/eservices/applications/${a.id}/assessments`),
+          api.get<ServiceDefinition>(`/api/v1/eservices/services/${a.serviceCode}?version=${a.serviceVersion}`),
+          api.get<AiAssessment[]>(`/api/v1/eservices/applications/${a.id}/assessments`),
         ]);
         setService(svc);
         setAssessments(ai);

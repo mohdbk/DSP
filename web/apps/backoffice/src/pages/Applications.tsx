@@ -16,7 +16,7 @@ export function ApplicationsPage() {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    api.get<Application[]>('/api/eservices/applications?all=true').then(setApps).catch(e => setError(e.message));
+    api.list<Application>('/api/v1/eservices/applications?all=true').then(setApps).catch(e => setError(e.message));
   }, []);
 
   const columns = useMemo<ColumnDef<Application, string>[]>(() => [

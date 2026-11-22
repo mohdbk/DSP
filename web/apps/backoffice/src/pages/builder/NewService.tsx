@@ -34,7 +34,7 @@ export function NewServicePage() {
     setError(undefined);
     setErrors([]);
     try {
-      const created = await api.post<BuilderService>('/api/eservices/builder/services', blankService(code.trim(), name.trim(), nameAr.trim()));
+      const created = await api.post<BuilderService>('/api/v1/eservices/builder/services', blankService(code.trim(), name.trim(), nameAr.trim()));
       navigate({ to: '/services/$code', params: { code: created.code }, replace: true });
     } catch (ex) {
       if (ex instanceof ApiError && ex.errors.length) setErrors(ex.errors);

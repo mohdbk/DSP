@@ -32,12 +32,15 @@ string BaseUrl(HttpContext ctx) =>
     string.IsNullOrEmpty(publicBaseUrl) ? $"{ctx.Request.Scheme}://{ctx.Request.Host}" : publicBaseUrl;
 
 string CallbackUri(HttpContext ctx, string provider) =>
+    // Registered with UAE PASS; the gateway forwards this unversioned path to the current version.
     $"{BaseUrl(ctx)}/api/identity/citizen/{provider}/callback";
 
 static string SafeReturnUrl(string? returnUrl) =>
     !string.IsNullOrEmpty(returnUrl) && returnUrl.StartsWith('/') && !returnUrl.StartsWith("//") ? returnUrl : "/";
 
-var api = app.MapGroup("/api/identity");
+app.MapApiDocuments("identity");
+
+var api = app.MapApi("identity");
 
 // Citizens: pluggable external providers (UAE PASS now).
 api.MapGet("/providers", (CitizenSignInService svc) => svc.ListProviders()).AllowAnonymous();
@@ -53,7 +56,7 @@ api.MapGet("/citizen/{provider}/login", (string provider, string? returnUrl, Htt
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Lax,
-            Path = "/api/identity",
+            Path = "/api",
             MaxAge = TimeSpan.FromMinutes(10),
         });
     return Results.Redirect(svc.Start(provider, state, CallbackUri(ctx, provider)));
@@ -65,7 +68,7 @@ api.MapGet("/citizen/{provider}/callback", async (string provider, HttpContext c
     var baseUrl = BaseUrl(ctx);
     var query = ctx.Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString());
     var cookie = ctx.Request.Cookies[StateCookie];
-    ctx.Response.Cookies.Delete(StateCookie, new CookieOptions { Path = "/api/identity" });
+    ctx.Response.Cookies.Delete(StateCookie, new CookieOptions { Path = "/api" });
 
     string expectedState, returnUrl;
     try

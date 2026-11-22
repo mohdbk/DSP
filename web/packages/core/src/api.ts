@@ -1,4 +1,7 @@
-import type { FieldError } from './types';
+import type { FieldError, PagedList } from './types';
+
+/** The largest page the APIs return in one response. */
+export const MAX_PAGE_SIZE = 500;
 import { getLang, loc } from './i18n';
 
 /** Error raised for non-2xx responses, carrying RFC 7807 problem details from the services. */
@@ -17,6 +20,8 @@ export interface ApiClient {
   get<T>(path: string): Promise<T>;
   post<T>(path: string, body?: unknown): Promise<T>;
   put<T>(path: string, body?: unknown): Promise<T>;
+  /** Reads a list endpoint ({ items, page, pageSize, total }) and returns its items (up to the server's maximum page). */
+  list<T>(path: string): Promise<T[]>;
   del<T>(path: string): Promise<T>;
   upload<T>(path: string, file: File): Promise<T>;
   download(path: string): Promise<Blob>;
@@ -63,6 +68,8 @@ export function createApi(storageKey: string, onUnauthorized: () => void): ApiCl
     put: <T,>(path: string, body?: unknown) =>
       request<T>('PUT', path, body === undefined ? undefined : JSON.stringify(body)),
     del: <T,>(path: string) => request<T>('DELETE', path),
+    list: async <T,>(path: string) =>
+      (await request<PagedList<T>>('GET', `${path}${path.includes('?') ? '&' : '?'}pageSize=${MAX_PAGE_SIZE}`)).items,
     upload: <T,>(path: string, file: File) => {
       const form = new FormData();
       form.append('file', file);
@@ -102,17 +109,17 @@ export async function openBlob(blob: Blob, fileName?: string) {
 
 /** Uploads a document for the signed-in user (Documents service) and returns its ID and stored name. */
 export async function uploadDocument(api: ApiClient, file: File): Promise<{ id: string; fileName: string }> {
-  const doc = await api.upload<{ id: string; fileName: string }>('/api/documents/documents', file);
+  const doc = await api.upload<{ id: string; fileName: string }>('/api/v1/documents/documents', file);
   return { id: doc.id, fileName: doc.fileName };
 }
 
 /** Opens a stored document (uploads, certificates) in a new tab, or downloads it. */
 export async function openDocument(api: ApiClient, documentId: string, fileName?: string) {
-  openBlob(await api.download(`/api/documents/documents/${documentId}/content`), fileName);
+  openBlob(await api.download(`/api/v1/documents/documents/${documentId}/content`), fileName);
 }
 
 /** Unread in-app notifications for the signed-in user. */
 export async function countUnread(api: ApiClient): Promise<number> {
-  const items = await api.get<{ isRead: boolean }[]>('/api/notifications/me');
+  const items = await api.list<{ isRead: boolean }>('/api/v1/notifications/me');
   return items.filter(n => !n.isRead).length;
 }

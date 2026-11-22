@@ -10,7 +10,9 @@ Publicly the platform is **MoET E-Services**; DSP is the internal name.
 - Two **process versions** side by side (Elsa): v1 standard (submit → staff review → payment → certificate) and
   v2 **agentic** (an AI pre-review first, which can ask the applicant to fix things, then staff review with the AI's findings).
 - **English and Arabic** everywhere: right-to-left layout, bilingual service definitions, validation messages, chat and notifications.
-- Two **portals**: the citizen E-Service Portal and the staff Back Office, sharing one form renderer.
+- Two **portals**: the citizen E-Service Portal and the staff Back Office, built from one component library
+  (`@dsp/ui`) on the UAE Design System (AEGOV), with React Aria and TanStack Table where AEGOV has no component.
+- **Versioned APIs** (`/api/v1/...`) with OpenAPI contracts, RFC 9457 errors and paged lists.
 - Two **views** of every service, from day one: a form view and a chat view. Both save to the same application through the same API.
 - **Common services** used by every e-service: identity, payments, documents, notifications, workflow.
 
@@ -50,7 +52,7 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | Documents | Uploads and generated certificates in SeaweedFS, SHA-256, owner-scoped access | `DspDocuments` |
 | Notifications | In-app notifications from `ApplicationStatusChanged` events | `DspNotifications` |
 | AI Orchestrator | Chat view (an LLM with tools over the E-Services API using the user's own token, or a guided mode) and the AI pre-review for the agentic process (model review when configured, built-in checks always) | — |
-| Gateway | YARP routing and rate limiting; `/internal/**` is never exposed | — |
+| Gateway | YARP routing (`/api/v1/{service}/**`, deprecated unversioned aliases) and rate limiting; `/internal/**` is never exposed | — |
 
 ## Adding an e-service
 
@@ -129,6 +131,19 @@ Each service owns its EF Core migrations (SQL Server and PostgreSQL). After chan
 migration name in `tools/migrations/REQUEST` and push: the **Generate migrations** workflow adds migrations for every
 database whose model changed, refreshes the idempotent scripts in `deploy/database/scripts` and commits them to the branch.
 CI fails if a model changes without a migration.
+
+## Working on the code
+
+Read [AGENTS.md](AGENTS.md) first: architecture rules, API conventions, the component library, AEGOV, Arabic,
+testing and delivery.
+
+## Frontend
+
+| Package | Contains |
+|---|---|
+| `web/packages/core` (`@dsp/core`) | API client, session, types, English/Arabic strings, formatting |
+| `web/packages/ui` (`@dsp/ui`) | Every visual component: AEGOV-based shell, fields, dynamic service form, data table, reorderable list, application and AI views |
+| `web/apps/portal`, `web/apps/backoffice` | Pages and TanStack Router routes only |
 
 ## Tests and CI
 

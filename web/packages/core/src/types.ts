@@ -1,4 +1,7 @@
-// Shapes returned by the DSP APIs. One definition drives forms in both portals.
+// Shapes returned by the DSP APIs (v1). One definition drives forms in both portals.
+
+/** Every list endpoint returns one page in this shape. */
+export interface PagedList<T> { items: T[]; page: number; pageSize: number; total: number }
 
 export type FieldType =
   | 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'file' | 'checkbox';

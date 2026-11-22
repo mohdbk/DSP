@@ -7,7 +7,7 @@ import {
 import { api } from '../../session';
 import { DetailsSection, FormSection, PreviewSection, ReviewSection, VersionsSection, type EditorProps } from './editor';
 
-const base = '/api/eservices/builder';
+const base = '/api/v1/eservices/builder';
 
 /** Edit a service as data, preview it, and publish it as the next version. */
 export function ServiceEditorPage() {

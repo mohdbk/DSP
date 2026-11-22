@@ -33,7 +33,7 @@ export function ChatView({ app, onApplication }: {
     setBusy(true);
     setError(undefined);
     try {
-      const res = await api.post<ChatResponse>('/api/ai/chat', {
+      const res = await api.post<ChatResponse>('/api/v1/ai/chat', {
         applicationId: app.id, messages, pendingField: state.pendingField, language: getLang(),
       });
       setState({ messages: [...messages, { role: 'assistant', content: res.reply }], pendingField: res.pendingField ?? null, mode: res.mode });

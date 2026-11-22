@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getRouteApi, Navigate, useNavigate } from '@tanstack/react-router';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { t } from '@dsp/core';
 import { AegovLink, Loading, Notice, PageHeader, Panel } from '@dsp/ui';
 import { api, currentUser } from '../session';
@@ -13,12 +13,18 @@ export function LoginPage() {
   const { returnUrl = '/', error: initialError } = route.useSearch();
   const [providers, setProviders] = useState<Provider[]>();
   const [error, setError] = useState(initialError);
+  const navigate = useNavigate();
+  const signedIn = !!currentUser();
 
   useEffect(() => {
-    api.get<Provider[]>('/api/identity/providers').then(setProviders).catch(() => setError(t('login.unavailable')));
+    if (signedIn) navigate({ href: returnUrl.startsWith('/') ? returnUrl : '/', replace: true });
+  }, [signedIn, returnUrl, navigate]);
+
+  useEffect(() => {
+    api.get<Provider[]>('/api/v1/identity/providers').then(setProviders).catch(() => setError(t('login.unavailable')));
   }, []);
 
-  if (currentUser()) return <Navigate href={returnUrl.startsWith('/') ? returnUrl : '/'} replace />;
+  if (signedIn) return <Loading />;
 
   return (
     <div className="mx-auto max-w-xl">
@@ -29,7 +35,7 @@ export function LoginPage() {
         {providers?.length === 0 && <Notice kind="warning">{t('login.none')}</Notice>}
         <div className="flex flex-col gap-3">
           {providers?.map(p => (
-            <AegovLink key={p.name} href={`/api/identity/citizen/${p.name}/login?returnUrl=${encodeURIComponent(returnUrl)}`}
+            <AegovLink key={p.name} href={`/api/v1/identity/citizen/${p.name}/login?returnUrl=${encodeURIComponent(returnUrl)}`}
               appearance="solid" variant={p.name === 'uaepass' ? 'neutral-max' : 'primary'} size="lg" isFull>
               {t('login.with', { name: p.name === 'uaepass' ? t('uaePass') : p.displayName })}
             </AegovLink>

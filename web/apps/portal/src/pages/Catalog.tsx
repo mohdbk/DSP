@@ -11,13 +11,13 @@ export function CatalogPage() {
   const [starting, setStarting] = useState<string>();
 
   useEffect(() => {
-    api.get<ServiceSummary[]>('/api/eservices/services').then(setServices).catch(e => setError(e.message));
+    api.list<ServiceSummary>('/api/v1/eservices/services').then(setServices).catch(e => setError(e.message));
   }, []);
 
   async function start(code: string) {
     setStarting(code);
     try {
-      const app = await api.post<Application>('/api/eservices/applications', { serviceCode: code });
+      const app = await api.post<Application>('/api/v1/eservices/applications', { serviceCode: code });
       navigate({ to: '/applications/$id', params: { id: app.id } });
     } catch (e) {
       setError((e as Error).message);

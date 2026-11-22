@@ -105,7 +105,7 @@ export function ChoiceField(props: BaseProps & {
       <AegovRadioGroup name={props.id} label={labelText(props)} appearance={as === 'cards' ? 'cards' : 'default'}
         isRequired={!!props.required} isDisabled={!!props.disabled} isInvalid={!!props.error}
         errorMessage={props.error ?? ''} hint={props.hint ?? ''}
-        onAegovRadioGroupChange={e => props.onChange(e.detail.value)}>
+        onAegovRadioGroupChange={e => props.onChange(e.detail.value ?? '')}>
         {props.choices.map(c => (
           <AegovRadio key={c.value} fieldId={`${props.id}-${c.value}`} value={c.value} label={c.label}
             hint={c.hint} isChecked={props.value === c.value} />

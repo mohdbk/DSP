@@ -23,7 +23,7 @@ export function FormView({ app, service, onChange, resubmit }: {
   async function saveStep(index: number) {
     const keys = steps[index].fields.map(f => f.key);
     const payload = Object.fromEntries(keys.map(k => [k, values[k] ?? '']));
-    const result = await api.put<SaveResult>(`/api/eservices/applications/${app.id}/data`, { values: payload });
+    const result = await api.put<SaveResult>(`/api/v1/eservices/applications/${app.id}/data`, { values: payload });
     onChange(result.application);
     setErrors(result.errors);
     return result.errors.length === 0;
@@ -45,7 +45,7 @@ export function FormView({ app, service, onChange, resubmit }: {
     setBusy(true);
     setMessage(undefined);
     try {
-      onChange(await api.post<Application>(`/api/eservices/applications/${app.id}/submit`));
+      onChange(await api.post<Application>(`/api/v1/eservices/applications/${app.id}/submit`));
     } catch (e) {
       if (e instanceof ApiError && e.errors.length > 0) {
         setErrors(e.errors);
