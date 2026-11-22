@@ -1,4 +1,5 @@
 import type { FieldError } from './types';
+import { getLang, loc } from './i18n';
 
 /** Error raised for non-2xx responses, carrying RFC 7807 problem details from the services. */
 export class ApiError extends Error {
@@ -16,6 +17,7 @@ export interface ApiClient {
   get<T>(path: string): Promise<T>;
   post<T>(path: string, body?: unknown): Promise<T>;
   put<T>(path: string, body?: unknown): Promise<T>;
+  del<T>(path: string): Promise<T>;
   upload<T>(path: string, file: File): Promise<T>;
   download(path: string): Promise<Blob>;
   token(): string | null;
@@ -32,7 +34,7 @@ export function createApi(storageKey: string, onUnauthorized: () => void): ApiCl
     t ? sessionStorage.setItem(storageKey, t) : sessionStorage.removeItem(storageKey);
 
   async function request<T>(method: string, path: string, body?: BodyInit, json = true): Promise<T> {
-    const headers: Record<string, string> = {};
+    const headers: Record<string, string> = { 'Accept-Language': getLang() };
     const t = token();
     if (t) headers.Authorization = `Bearer ${t}`;
     if (json && body !== undefined) headers['Content-Type'] = 'application/json';
@@ -41,12 +43,12 @@ export function createApi(storageKey: string, onUnauthorized: () => void): ApiCl
     if (res.status === 401) {
       setToken(null);
       onUnauthorized();
-      throw new ApiError(401, 'Your session has ended. Please sign in again.');
+      throw new ApiError(401, loc('Your session has ended. Please sign in again.', 'انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.'));
     }
     if (!res.ok) {
       let problem: { title?: string; detail?: string; errors?: FieldError[]; correlationId?: string } = {};
       try { problem = await res.json(); } catch { /* not JSON */ }
-      throw new ApiError(res.status, problem.detail || problem.title || `Request failed (${res.status})`,
+      throw new ApiError(res.status, problem.detail || problem.title || loc(`Request failed (${res.status})`, `تعذر تنفيذ الطلب (${res.status})`),
         problem.errors ?? [], problem.correlationId);
     }
     if (res.status === 204) return undefined as T;
@@ -60,6 +62,7 @@ export function createApi(storageKey: string, onUnauthorized: () => void): ApiCl
       request<T>('POST', path, body === undefined ? undefined : JSON.stringify(body)),
     put: <T,>(path: string, body?: unknown) =>
       request<T>('PUT', path, body === undefined ? undefined : JSON.stringify(body)),
+    del: <T,>(path: string) => request<T>('DELETE', path),
     upload: <T,>(path: string, file: File) => {
       const form = new FormData();
       form.append('file', file);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Alert } from '@dsp/shared';
+import { Alert, t } from '@dsp/shared';
 import { api, currentUser } from '../session';
 
 /** Staff sign-in with ministry credentials (local accounts now; Active Directory later). */
@@ -31,18 +31,18 @@ export function LoginPage() {
   return (
     <div className="login-wrap">
       <form className="card" onSubmit={submit}>
-        <h1>Staff sign in</h1>
-        <p className="muted">Use your ministry account.</p>
+        <h1>{t('staffLogin.title')}</h1>
+        <p className="muted">{t('staffLogin.intro')}</p>
         {error && <Alert kind="error">{error}</Alert>}
         <div className="field">
-          <label htmlFor="username">Username</label>
-          <input id="username" type="text" autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} required />
+          <label htmlFor="username">{t('staffLogin.username')}</label>
+          <input id="username" type="text" dir="ltr" autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} required />
         </div>
         <div className="field">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t('staffLogin.password')}</label>
           <input id="password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
         </div>
-        <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+        <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? t('staffLogin.signingIn') : t('staffLogin.signIn')}</button>
       </form>
     </div>
   );

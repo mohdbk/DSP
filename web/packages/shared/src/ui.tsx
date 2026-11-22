@@ -1,44 +1,49 @@
 import type { ReactNode } from 'react';
 import type { ApplicationStatus } from './types';
-
-const statusLabels: Record<ApplicationStatus, string> = {
-  Draft: 'Draft',
-  Submitted: 'Submitted',
-  UnderReview: 'Under review',
-  AwaitingPayment: 'Awaiting payment',
-  Paid: 'Paid',
-  Approved: 'Completed',
-  Rejected: 'Rejected',
-};
+import { getLang, setLang, t, type TKey } from './i18n';
 
 export function StatusBadge({ status }: { status: ApplicationStatus }) {
-  return <span className={`badge badge-${status}`}>{statusLabels[status] ?? status}</span>;
+  return <span className={`badge badge-${status}`}>{statusLabel(status)}</span>;
 }
 
-export const statusLabel = (s: ApplicationStatus) => statusLabels[s] ?? s;
+export const statusLabel = (s: ApplicationStatus) => t(`status.${s}` as TKey);
 
+/** Dates in the UI language. Arabic keeps Latin digits, as UAE government services do. */
 export function formatDate(value?: string | null, withTime = false) {
   if (!value) return '';
   const d = new Date(value);
+  const locale = getLang() === 'ar' ? 'ar-AE-u-nu-latn' : 'en-GB';
   return withTime
-    ? d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    ? d.toLocaleString(locale, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 export function formatMoney(amount: number, currency: string) {
-  return `${amount.toLocaleString('en-AE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${currency}`;
+  const value = amount.toLocaleString('en-AE', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  return getLang() === 'ar' && currency === 'AED' ? `${value} درهم` : `${value} ${currency}`;
 }
 
 export function Alert({ kind = 'info', children }: { kind?: 'info' | 'error' | 'success' | 'warning'; children: ReactNode }) {
   return <div className={`alert alert-${kind}`} role={kind === 'error' ? 'alert' : 'status'}>{children}</div>;
 }
 
-export function Spinner({ label = 'Loading…' }: { label?: string }) {
-  return <div className="spinner" role="status"><span className="dot" />{label}</div>;
+export function Spinner({ label }: { label?: string }) {
+  return <div className="spinner" role="status"><span className="dot" />{label ?? t('loading')}</div>;
 }
 
 export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
   return <div className="empty"><h3>{title}</h3>{children}</div>;
+}
+
+/** Switches between English and Arabic; the layout flips to right-to-left. */
+export function LanguageSwitch() {
+  const next = getLang() === 'ar' ? 'en' : 'ar';
+  return (
+    <button type="button" className="btn btn-ghost btn-sm lang-switch" lang={next} aria-label={t('lang.switchLabel')}
+      onClick={() => setLang(next)}>
+      {t('lang.switch')}
+    </button>
+  );
 }
 
 /** Ministry header bar shared by both portals. */
@@ -54,7 +59,7 @@ export function Header({ title, subtitle, nav, right }: { title: string; subtitl
           </div>
         </div>
         {nav && <nav className="main-nav">{nav}</nav>}
-        <div className="header-right">{right}</div>
+        <div className="header-right">{right}<LanguageSwitch /></div>
       </div>
     </header>
   );
@@ -63,8 +68,8 @@ export function Header({ title, subtitle, nav, right }: { title: string; subtitl
 export function Footer() {
   return (
     <footer className="app-footer">
-      <div>Ministry of Economy and Tourism · Digital Transformation</div>
-      <div className="muted">Digital Services Platform · proof of concept</div>
+      <div>{t('footer.ministry')}</div>
+      <div className="muted">{t('footer.platform')}</div>
     </footer>
   );
 }

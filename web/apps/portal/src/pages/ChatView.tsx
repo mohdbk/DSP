@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, type Application, type ChatMessage, type ChatResponse } from '@dsp/shared';
+import { Alert, getLang, t, type Application, type ChatMessage, type ChatResponse } from '@dsp/shared';
 import { api } from '../session';
 
 interface ChatState { messages: ChatMessage[]; pendingField: string | null; mode?: string }
@@ -37,6 +37,7 @@ export function ChatView({ app, onApplication }: {
         applicationId: app.id,
         messages,
         pendingField: state.pendingField,
+        language: getLang(),
       });
       setState({ messages: [...messages, { role: 'assistant', content: res.reply }], pendingField: res.pendingField ?? null, mode: res.mode });
       onApplication(res.application);
@@ -50,16 +51,16 @@ export function ChatView({ app, onApplication }: {
   return (
     <div className="card chat">
       <div className="chat-mode">
-        {state.mode === 'llm' ? 'AI assistant' : 'Guided assistant'} · answers are saved to your application as you go
+        {state.mode === 'llm' ? t('chat.ai') : t('chat.guided')} · {t('chat.saved')}
       </div>
       <div className="chat-log" ref={logRef} aria-live="polite">
-        {state.messages.map((m, i) => <div key={i} className={`msg ${m.role}`}>{m.content}</div>)}
-        {busy && <div className="msg assistant typing">Typing…</div>}
+        {state.messages.map((m, i) => <div key={i} className={`msg ${m.role}`} dir="auto">{m.content}</div>)}
+        {busy && <div className="msg assistant typing">{t('chat.typing')}</div>}
       </div>
       {error && <Alert kind="error">{error}</Alert>}
       <form className="chat-input" onSubmit={e => { e.preventDefault(); if (input.trim() && !busy) send(input.trim()); }}>
-        <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type your answer…" aria-label="Your message" disabled={busy} />
-        <button className="btn btn-primary" disabled={busy || !input.trim()}>Send</button>
+        <input value={input} onChange={e => setInput(e.target.value)} placeholder={t('chat.placeholder')} aria-label={t('chat.message')} disabled={busy} dir="auto" />
+        <button className="btn btn-primary" disabled={busy || !input.trim()}>{t('chat.send')}</button>
       </form>
     </div>
   );

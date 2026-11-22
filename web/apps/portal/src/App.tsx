@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
-import { Footer, Header, type Notification } from '@dsp/shared';
+import { Footer, Header, t, useLang, type Notification } from '@dsp/shared';
 import { api, currentUser, signOut } from './session';
 import { LoginPage, AuthCallbackPage } from './pages/Login';
 import { CatalogPage } from './pages/Catalog';
@@ -9,6 +9,7 @@ import { ApplicationPage } from './pages/Application';
 import { NotificationsPage } from './pages/Notifications';
 
 export function App() {
+  useLang(); // re-render everything when the language changes
   return (
     <Routes>
       <Route path="/login" element={<Shell bare><LoginPage /></Shell>} />
@@ -41,24 +42,24 @@ function Shell({ children, bare }: { children: React.ReactNode; bare?: boolean }
   return (
     <>
       <Header
-        title="MoET E-Services"
-        subtitle="Ministry of Economy and Tourism"
+        title={t('app.portal')}
+        subtitle={t('app.portalSub')}
         nav={!bare && user ? (
           <>
-            <NavLink to="/" end>Services</NavLink>
-            <NavLink to="/applications">My applications</NavLink>
+            <NavLink to="/" end>{t('nav.services')}</NavLink>
+            <NavLink to="/applications">{t('nav.myApplications')}</NavLink>
           </>
         ) : undefined}
         right={!bare && user ? (
           <>
-            <NavLink to="/notifications" className="bell" aria-label={`Notifications, ${unread} unread`}>
+            <NavLink to="/notifications" className="bell" aria-label={t('notifications.unread', { n: unread })}>
               🔔{unread > 0 && <span className="count">{unread}</span>}
             </NavLink>
             <div className="user-chip">
               <div>{user.name}</div>
-              <div className="role">{user.accountLevel ? `UAE PASS · ${user.accountLevel}` : 'UAE PASS'}</div>
+              <div className="role">{user.accountLevel ? `${t('uaePass')} · ${user.accountLevel}` : t('uaePass')}</div>
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={signOut}>Sign out</button>
+            <button className="btn btn-ghost btn-sm" onClick={signOut}>{t('signOut')}</button>
           </>
         ) : undefined}
       />

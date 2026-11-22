@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Alert, EmptyState, formatDate, Spinner, type Notification } from '@dsp/shared';
+import { Alert, EmptyState, formatDate, loc, Spinner, t, type Notification } from '@dsp/shared';
 import { api } from '../session';
 
 export function NotificationsPage() {
@@ -20,17 +20,17 @@ export function NotificationsPage() {
 
   return (
     <>
-      <div className="page-head"><h1>Notifications</h1></div>
+      <div className="page-head"><h1>{t('notifications.title')}</h1></div>
       {error && <Alert kind="error">{error}</Alert>}
       {!items && !error && <Spinner />}
-      {items?.length === 0 && <EmptyState title="You're all caught up" />}
+      {items?.length === 0 && <EmptyState title={t('notifications.empty')} />}
       <div className="notice-list">
         {items?.map(n => (
           <button key={n.id} className={`card notice ${n.isRead ? '' : 'unread'}`}
-            style={{ textAlign: 'left', cursor: 'pointer', font: 'inherit' }} onClick={() => open(n)}>
+            style={{ textAlign: 'start', cursor: 'pointer', font: 'inherit' }} onClick={() => open(n)}>
             <div style={{ flex: 1 }}>
-              <strong>{n.title}</strong>
-              <div>{n.body}</div>
+              <strong>{loc(n.title, n.titleAr)}</strong>
+              <div>{loc(n.body, n.bodyAr)}</div>
             </div>
             <div className="muted" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{formatDate(n.createdAt, true)}</div>
           </button>

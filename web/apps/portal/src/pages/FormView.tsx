@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import {
-  Alert, ApiError, DynamicForm, openBlob, Stepper,
+  Alert, ApiError, DynamicForm, loc, openBlob, Stepper, t,
   type Application, type DocumentInfo, type FieldDefinition, type FieldError, type FormData, type SaveResult, type ServiceDefinition,
 } from '@dsp/shared';
 import { api } from '../session';
 
 /** Traditional view: one step at a time, rendered from the service definition. */
-export function FormView({ app, service, onChange }: {
+export function FormView({ app, service, onChange, resubmit }: {
   app: Application;
   service: ServiceDefinition;
   onChange: (app: Application) => void;
+  /** The AI pre-review asked for more information: edit and send the application back. */
+  resubmit?: boolean;
 }) {
   const steps = service.steps;
   const [current, setCurrent] = useState(0);
@@ -52,7 +54,7 @@ export function FormView({ app, service, onChange }: {
         setErrors(e.errors);
         const stepWithError = steps.findIndex(s => s.fields.some(f => e.errors.some(er => er.field === f.key)));
         if (stepWithError >= 0) setCurrent(stepWithError);
-        setMessage('Some details need your attention.');
+        setMessage(t('form.attention'));
       } else {
         setMessage((e as Error).message);
       }
@@ -69,42 +71,42 @@ export function FormView({ app, service, onChange }: {
 
   return (
     <div className="card">
-      <Stepper steps={[...steps, { id: 'review', title: 'Review', fields: [] }]} current={current}
+      <Stepper steps={[...steps, { id: 'review', title: t('form.review'), fields: [] }]} current={current}
         onSelect={i => !busy && i <= current && setCurrent(i)} />
       {message && <Alert kind="error">{message}</Alert>}
 
       {!reviewing ? (
         <>
-          <h2>{steps[current].title}</h2>
+          <h2>{loc(steps[current].title, steps[current].titleAr)}</h2>
           <DynamicForm step={steps[current]} values={values} errors={errors} fileNames={fileNames}
             onChange={(k, v) => setValues(prev => ({ ...prev, [k]: v }))}
             onUpload={upload} />
           <div className="actions">
-            {current > 0 && <button className="btn btn-ghost" disabled={busy} onClick={() => setCurrent(current - 1)}>Back</button>}
+            {current > 0 && <button className="btn btn-ghost" disabled={busy} onClick={() => setCurrent(current - 1)}>{t('back')}</button>}
             <button className="btn btn-primary" disabled={busy} onClick={next}>
-              {busy ? 'Saving…' : current === steps.length - 1 ? 'Save and review' : 'Save and continue'}
+              {busy ? t('form.saving') : current === steps.length - 1 ? t('form.saveReview') : t('form.saveContinue')}
             </button>
           </div>
         </>
       ) : (
         <>
-          <h2>Review your application</h2>
+          <h2>{t('form.reviewTitle')}</h2>
           {steps.map((s, i) => (
             <section key={s.id} style={{ marginBottom: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3>{s.title}</h3>
-                <button className="link" onClick={() => setCurrent(i)}>Change</button>
+                <h3>{loc(s.title, s.titleAr)}</h3>
+                <button className="link" onClick={() => setCurrent(i)}>{t('form.change')}</button>
               </div>
               <DynamicForm step={{ ...s, description: null }} values={app.data} readOnly fileNames={fileNames}
                 onOpenFile={async docId => openBlob(await api.download(`/api/documents/documents/${docId}/content`))} />
             </section>
           ))}
-          <Alert kind="info">
-            After you submit, a ministry officer reviews your application. If approved, you pay the fee and receive your certificate.
-          </Alert>
+          {!resubmit && <Alert kind="info">{app.workflowVersion === 2 ? t('form.afterSubmitAi') : t('form.afterSubmit')}</Alert>}
           <div className="actions">
-            <button className="btn btn-ghost" disabled={busy} onClick={() => setCurrent(steps.length - 1)}>Back</button>
-            <button className="btn btn-primary" disabled={busy} onClick={submit}>{busy ? 'Submitting…' : 'Submit application'}</button>
+            <button className="btn btn-ghost" disabled={busy} onClick={() => setCurrent(steps.length - 1)}>{t('back')}</button>
+            <button className="btn btn-primary" disabled={busy} onClick={submit}>
+              {busy ? t('form.submitting') : resubmit ? t('form.resubmit') : t('form.submit')}
+            </button>
           </div>
         </>
       )}
