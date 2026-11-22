@@ -12,7 +12,7 @@ import { NotificationsPage } from './pages/Notifications';
 function Root() {
   const user = currentUser();
   return (
-    <PortalFrame service={t('app.portal')} publicPaths={['/login', '/auth']} onSignOut={signOut}
+    <PortalFrame service={t('app.portal')} homeLabel={t('app.portalHome')} publicPaths={['/login', '/auth']} onSignOut={signOut}
       user={user && { name: user.name, role: user.accountLevel ? `${t('uaePass')} · ${user.accountLevel}` : t('uaePass') }}
       notificationsHref="/notifications"
       loadUnread={() => countUnread(api)}

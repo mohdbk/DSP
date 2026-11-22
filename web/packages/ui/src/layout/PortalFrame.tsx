@@ -9,8 +9,10 @@ import { useInternalLinks } from '../navigation/useInternalLinks';
  * The root route component of a portal: the government shell, its navigation, the signed-in user with their
  * unread notifications, language switching and in-app link handling. Each portal only supplies its settings.
  */
-export function PortalFrame({ service, navItems, user, notificationsHref, loadUnread, onSignOut, publicPaths }: {
+export function PortalFrame({ service, homeLabel, navItems, user, notificationsHref, loadUnread, onSignOut, publicPaths }: {
   service: string;
+  /** The footer link back to the portal's home page (e.g. "E-Services home"). */
+  homeLabel: string;
   /** The navigation for the current path (shown only when signed in). */
   navItems: (pathname: string) => NavItem[];
   user: { name: string; role: string } | null;
@@ -32,7 +34,7 @@ export function PortalFrame({ service, navItems, user, notificationsHref, loadUn
   }, [pathname, signedIn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <AppShell service={service} nav={signedIn ? navItems(pathname) : []}
+    <AppShell service={service} homeLabel={homeLabel} nav={signedIn ? navItems(pathname) : []}
       account={signedIn && user ? (
         <AccountArea name={user.name} role={user.role} unread={unread} notificationsHref={notificationsHref} onSignOut={onSignOut} />
       ) : undefined}>

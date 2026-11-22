@@ -17,9 +17,11 @@ export interface NavItem { href: string; label: string; active?: boolean }
  * The page frame of both portals: the mandatory AEGOV government header and footer around the page.
  * The navigation and account area are repeated in the small-screen menu, as the header requires.
  */
-export function AppShell({ service, nav = [], account, children }: {
+export function AppShell({ service, homeLabel, nav = [], account, children }: {
   /** The portal's name, shown under the logo area for orientation. */
   service: string;
+  /** The footer link back to the portal's home page. */
+  homeLabel: string;
   nav?: NavItem[];
   /** Account area (user, notifications, sign out); omitted on sign-in pages. */
   account?: ReactNode;
@@ -68,7 +70,7 @@ export function AppShell({ service, nav = [], account, children }: {
         <div className="aegov-footer__group">
           <h2>{t('footer.services')}</h2>
           <ul role="list">
-            <li><a href="/">{service}</a></li>
+            <li><a href="/">{homeLabel}</a></li>
           </ul>
         </div>
         <p slot="copyright">© {new Date().getFullYear()} {t('entity.name')}. {t('footer.rights')} · {t('footer.platform')}</p>
