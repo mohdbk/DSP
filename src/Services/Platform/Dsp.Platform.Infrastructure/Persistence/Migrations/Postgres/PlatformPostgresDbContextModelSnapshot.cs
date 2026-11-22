@@ -29,6 +29,9 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AuditSamplePercent")
+                        .HasColumnType("integer");
+
                     b.Property<string>("BaseUrl")
                         .IsRequired()
                         .HasMaxLength(500)

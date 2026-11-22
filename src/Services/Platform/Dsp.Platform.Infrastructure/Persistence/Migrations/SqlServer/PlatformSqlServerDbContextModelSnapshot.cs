@@ -29,6 +29,9 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.SqlServer
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("AuditSamplePercent")
+                        .HasColumnType("int");
+
                     b.Property<string>("BaseUrl")
                         .IsRequired()
                         .HasMaxLength(500)
