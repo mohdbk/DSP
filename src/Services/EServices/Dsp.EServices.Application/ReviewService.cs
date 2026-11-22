@@ -31,8 +31,7 @@ public sealed class ReviewService(
 
         app.RecordDecision(decision.Approve, decision.Comment, caller.UserId);
         task.Complete(caller.UserId, decision.Approve);
-        await applications.SaveChangesAsync(ct);
-        await tasks.SaveChangesAsync(ct);
+        await applications.SaveChangesAsync(ct); // one DbContext per request: saves the task too
 
         // Resume the workflow waiting at the staff decision step.
         await workflow.SignalStaffDecisionAsync(app.Id, ct);

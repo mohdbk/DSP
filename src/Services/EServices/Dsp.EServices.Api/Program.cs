@@ -16,7 +16,7 @@ app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
 
-await app.EnsureDatabaseAsync<EServicesDbContext>();
+await app.MigrateDatabaseAsync<EServicesDbContext>();
 
 static Caller ToCaller(ClaimsPrincipal user) => new(
     user.UserId(),

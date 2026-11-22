@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Services/Identity/Dsp.Identity.Infrastructure/Dsp.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Services/EServices/Dsp.EServices.Infrastructure/Dsp.EServices.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Services/Payments/Dsp.Payments.Infrastructure/Dsp.Payments.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Services/Documents/Dsp.Documents.Infrastructure/Dsp.Documents.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Services/Notifications/Dsp.Notifications.Infrastructure/Dsp.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Services/AiOrchestrator/Dsp.AiOrchestrator.Infrastructure/Dsp.AiOrchestrator.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

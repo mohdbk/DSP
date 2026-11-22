@@ -15,7 +15,7 @@ app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
 
-await app.EnsureDatabaseAsync<NotificationsDbContext>();
+await app.MigrateDatabaseAsync<NotificationsDbContext>();
 
 var api = app.MapGroup("/api/notifications").RequireAuthorization();
 api.MapGet("/me", async (ClaimsPrincipal user, NotificationService svc, CancellationToken ct) =>

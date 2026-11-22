@@ -31,11 +31,21 @@ public static class HostingExtensions
             o.UseUtcTimestamp = true;
         });
 
-        // OpenTelemetry: traces and metrics; exported only when an OTLP endpoint is configured.
+        // OpenTelemetry: logs, traces and metrics, exported over OTLP (to the Grafana stack) when an endpoint is set.
+        // Health probes are left out of traces so they don't drown real traffic.
         var otel = builder.Services.AddOpenTelemetry()
-            .ConfigureResource(r => r.AddService(serviceName))
-            .WithTracing(t => t.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation())
-            .WithMetrics(m => m.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation());
+            .ConfigureResource(r => r
+                .AddService(serviceName, serviceNamespace: "dsp")
+                .AddAttributes([new("deployment.environment", builder.Environment.EnvironmentName)]))
+            .WithLogging()
+            .WithTracing(t => t
+                .AddAspNetCoreInstrumentation(o => o.Filter = ctx => ctx.Request.Path != "/health")
+                .AddHttpClientInstrumentation()
+                .AddSource("Elsa.Workflows"))
+            .WithMetrics(m => m
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddMeter("Microsoft.AspNetCore.Hosting", "Microsoft.AspNetCore.Server.Kestrel", "System.Net.Http"));
         if (!string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]))
             otel.UseOtlpExporter();
 

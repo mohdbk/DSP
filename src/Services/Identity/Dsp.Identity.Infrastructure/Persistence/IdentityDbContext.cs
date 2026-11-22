@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Dsp.Identity.Infrastructure.Persistence;
 
-public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : DbContext(options)
+/// <summary>The service model. Provider-specific subclasses carry their own migrations.</summary>
+public abstract class IdentityDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<StaffAccount> StaffAccounts => Set<StaffAccount>();
 

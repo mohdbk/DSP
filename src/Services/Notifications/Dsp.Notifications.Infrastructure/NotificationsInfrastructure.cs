@@ -9,13 +9,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dsp.Notifications.Infrastructure;
 
-public sealed class NotificationsDbContext(DbContextOptions<NotificationsDbContext> options) : DbContext(options)
+/// <summary>The service model. Provider-specific subclasses carry their own migrations.</summary>
+public abstract class NotificationsDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("notifications");
+        modelBuilder.AddMessagingTables();
         modelBuilder.Entity<Notification>(e =>
         {
             e.ToTable("Notifications");
@@ -50,10 +52,9 @@ public static class DependencyInjection
     public static IServiceCollection AddNotificationsInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<NotificationsDbContext>(o =>
-            o.UseDspDatabase(configuration, "Notifications"));
+        services.AddDspDbContext<NotificationsDbContext, NotificationsSqlServerDbContext, NotificationsPostgresDbContext>(configuration, "Notifications");
         services.AddScoped<INotificationRepository, NotificationRepository>();
-        services.AddDspMessaging(configuration, "notifications");
+        services.AddDspMessaging<NotificationsDbContext>(configuration, "notifications");
         services.AddEventSubscription<ApplicationStatusChanged, ApplicationStatusChangedHandler>();
         return services;
     }

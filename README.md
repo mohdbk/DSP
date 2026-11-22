@@ -63,7 +63,9 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | `Internal__ApiKey` | E-Services, Payments, Documents | Service-to-service calls under `/internal` |
 | `RabbitMq__Url` | E-Services, Payments, Notifications | `amqp://user:pass@host:5672` |
 | `Database__Provider` | services with a database | `SqlServer` (default, FedNet) or `Postgres` (Railway POC) |
-| `ConnectionStrings__<Service>` | each service | One database per service |
+| `ConnectionStrings__<Service>` | each service | One database and one login per service ([deploy/database](deploy/database/README.md)) |
+| `Database__MigrateOnStartup` | services with a database | `true` in the POC; `false` in FedNet, where the pipeline applies reviewed scripts |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | all | Sends logs, traces and metrics to the Grafana stack ([deploy/observability](deploy/observability/README.md)) |
 | `UaePass__ClientId`, `UaePass__ClientSecret`, `UaePass__BaseUrl` | Identity | Staging: `sandbox_stage` / `https://stg-id.uaepass.ae/idshub` |
 | `Identity__PublicBaseUrl` | Identity | Citizen portal URL (UAE PASS redirect) |
 | `Staff__InitialPassword` | Identity | Seeds the first staff accounts on an empty database |
@@ -79,11 +81,37 @@ dotnet build Dsp.sln
 cd web && npm install && npm run dev:portal   # http://localhost:5173, proxies /api to the gateway on :8080
 ```
 
+## Reliability
+
+- **Transactional outbox.** Services never publish to RabbitMQ directly. Events are written to an `OutboxMessages`
+  table in the same transaction as the business change, and a background dispatcher sends them after commit on a
+  publisher-confirm channel, retrying in order until the broker accepts them.
+- **Idempotent consumers.** Each handled event ID is recorded in `InboxMessages`; redeliveries are skipped.
+  Handlers also check current state, so a retry after a partial failure is safe.
+- **Dead-letter queues.** A message that fails twice goes to `dsp.<service>.dead-letter` instead of being dropped.
+
+## Tests and CI
+
+```bash
+dotnet test Dsp.sln
+```
+
+| Project | Covers |
+|---|---|
+| `tests/Dsp.UnitTests` | Validation, business rules, application state machine, use cases (with fakes), UAE PASS client, staff sign-in, tokens, payments, outbox/inbox, guided chat, every service definition in the catalog |
+| `tests/Dsp.ArchitectureTests` | Clean architecture rules: Domain and Application stay free of frameworks and infrastructure; services never reference each other |
+
+GitHub Actions (`.github/workflows`):
+
+- **CI:** build, tests with coverage, vulnerable NuGet packages, model changes without a migration, portal type check and build, `npm audit`.
+- **Security:** CodeQL (C#, TypeScript), Trivy (dependencies, secrets, Dockerfile misconfiguration), Gitleaks, dependency review on pull requests; weekly schedule.
+- **Dependabot:** NuGet, npm, Docker base images and Actions.
+
 ## POC shortcuts (not for production)
 
-- Databases are created with `EnsureCreated`; production uses reviewed EF Core migrations.
 - Payments are simulated; the government payment gateway plugs into `IPaymentProcessor`.
 - Staff sign in with local accounts; Active Directory plugs into `IStaffAuthenticator`.
 - The Railway POC runs on PostgreSQL because SQL Server crashes on Railway hosts; FedNet uses SQL Server with the same code.
-- One database server hosts all service databases with one login; production uses a login per service.
-- Event publishing has no outbox yet.
+- Services apply their own migrations at startup on Railway; FedNet applies the reviewed scripts with a separate migrator login.
+- Grafana runs as a single all-in-one container without persistent storage.
+- The outbox dispatcher assumes one replica per service; add row locking before scaling out.

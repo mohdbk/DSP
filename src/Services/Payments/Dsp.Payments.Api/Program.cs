@@ -15,7 +15,7 @@ app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
 
-await app.EnsureDatabaseAsync<PaymentsDbContext>();
+await app.MigrateDatabaseAsync<PaymentsDbContext>();
 
 // Service-to-service: other services create payment requests.
 app.MapPost("/internal/payments", async (CreatePaymentRequest req, PaymentService svc, CancellationToken ct) =>

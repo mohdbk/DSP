@@ -1,10 +1,12 @@
+using Dsp.BuildingBlocks.Messaging;
 using Dsp.EServices.Application;
 using Dsp.EServices.Domain.Applications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dsp.EServices.Infrastructure.Persistence;
 
-public sealed class EServicesDbContext(DbContextOptions<EServicesDbContext> options) : DbContext(options)
+/// <summary>The service model. Provider-specific subclasses carry their own migrations.</summary>
+public abstract class EServicesDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<ServiceApplication> Applications => Set<ServiceApplication>();
     public DbSet<ReviewTask> ReviewTasks => Set<ReviewTask>();
@@ -12,6 +14,7 @@ public sealed class EServicesDbContext(DbContextOptions<EServicesDbContext> opti
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("eservices");
+        modelBuilder.AddMessagingTables();
 
         modelBuilder.Entity<ServiceApplication>(e =>
         {

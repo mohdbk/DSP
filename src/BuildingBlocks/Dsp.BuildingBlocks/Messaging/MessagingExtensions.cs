@@ -1,32 +1,37 @@
 using Dsp.Contracts;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Dsp.BuildingBlocks.Messaging;
 
 public static class MessagingExtensions
 {
     /// <summary>
-    /// Registers the event bus. Uses RabbitMQ when <c>RabbitMq:Url</c> is set, otherwise a logging bus.
-    /// <paramref name="queueName"/> is the durable queue this service consumes from.
+    /// Registers reliable messaging for a service backed by <typeparamref name="TContext"/>:
+    /// outbox-based publishing, the outbox dispatcher, the idempotent inbox and the RabbitMQ consumer.
+    /// The context's model must call <see cref="MessagingModel.AddMessagingTables"/>.
     /// </summary>
-    public static IServiceCollection AddDspMessaging(this IServiceCollection services, IConfiguration configuration,
-        string queueName)
+    public static IServiceCollection AddDspMessaging<TContext>(this IServiceCollection services,
+        IConfiguration configuration, string serviceName) where TContext : DbContext
     {
-        var options = new RabbitMqOptions { ClientName = queueName };
+        var options = new RabbitMqOptions { ClientName = serviceName };
         configuration.GetSection("RabbitMq").Bind(options);
-        services.TryAddSingleton(new SubscriptionRegistry { QueueName = queueName });
+
+        services.AddSingleton(new SubscriptionRegistry { ServiceName = serviceName });
+        services.AddScoped<IEventBus, OutboxEventBus<TContext>>();
+        services.AddScoped<IInboxStore, EfInboxStore<TContext>>();
+        services.AddHostedService<OutboxDispatcher<TContext>>();
 
         if (string.IsNullOrWhiteSpace(options.Url))
         {
-            services.AddSingleton<IEventBus, LoggingEventBus>();
+            services.AddSingleton<IMessagePublisher, LoggingPublisher>();
             return services;
         }
 
         services.AddSingleton(options);
         services.AddSingleton<RabbitMqConnection>();
-        services.AddSingleton<IEventBus, RabbitMqEventBus>();
+        services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
         services.AddHostedService<RabbitMqSubscriber>();
         return services;
     }

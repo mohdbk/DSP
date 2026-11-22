@@ -10,4 +10,5 @@ WORKDIR /app
 ENV PORT=8080
 EXPOSE 8080
 COPY --from=build /app/publish .
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Dsp.AiOrchestrator.Api.dll"]

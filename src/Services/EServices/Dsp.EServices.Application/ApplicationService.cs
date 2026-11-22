@@ -82,8 +82,8 @@ public sealed class ApplicationService(
         var service = GetService(app.ServiceCode);
         var reference = service.ReferenceField is null ? null : app.GetData().GetValueOrDefault(service.ReferenceField);
         app.Submit(reference);
-        await applications.SaveChangesAsync(ct);
-        await notifier.NotifyAsync(app, "Your application was submitted.", ct);
+        await notifier.NotifyAsync(app, "Your application was submitted.", ct); // staged in the outbox
+        await applications.SaveChangesAsync(ct);                                  // commits change + event
 
         // Hand over to the core process workflow (review, payment, certificate).
         await workflow.StartApplicationProcessAsync(app.Id, ct);

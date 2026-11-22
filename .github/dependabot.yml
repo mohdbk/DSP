@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      dotnet:
+        patterns: ["Microsoft.*", "System.*", "Npgsql*"]
+      elsa:
+        patterns: ["Elsa*"]
+      opentelemetry:
+        patterns: ["OpenTelemetry*"]
+      testing:
+        patterns: ["xunit*", "Microsoft.NET.Test.Sdk", "coverlet*", "NetArchTest*"]
+
+  - package-ecosystem: npm
+    directory: "/web"
+    schedule:
+      interval: weekly
+    groups:
+      react:
+        patterns: ["react*", "@types/react*"]
+      build:
+        patterns: ["vite", "@vitejs/*", "typescript"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+
+  - package-ecosystem: docker
+    directories:
+      - "/src/Services/*"
+      - "/src/Gateway"
+      - "/web/apps/*"
+      - "/deploy/database/postgres"
+    schedule:
+      interval: monthly

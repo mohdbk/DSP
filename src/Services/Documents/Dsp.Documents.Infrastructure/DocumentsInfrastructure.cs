@@ -11,7 +11,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Dsp.Documents.Infrastructure;
 
-public sealed class DocumentsDbContext(DbContextOptions<DocumentsDbContext> options) : DbContext(options)
+/// <summary>The service model. Provider-specific subclasses carry their own migrations.</summary>
+public abstract class DocumentsDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<StoredDocument> Documents => Set<StoredDocument>();
 
@@ -114,8 +115,7 @@ public static class DependencyInjection
     public static IServiceCollection AddDocumentsInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<DocumentsDbContext>(o =>
-            o.UseDspDatabase(configuration, "Documents"));
+        services.AddDspDbContext<DocumentsDbContext, DocumentsSqlServerDbContext, DocumentsPostgresDbContext>(configuration, "Documents");
         services.AddScoped<IDocumentRepository, DocumentRepository>();
 
         var storage = new StorageOptions();

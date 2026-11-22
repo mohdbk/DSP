@@ -1,0 +1,15 @@
+title = "DSP gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public UAE PASS staging sandbox credentials documented by UAE PASS, and test fixtures"
+regexes = [
+  '''sandbox_stage''',
+  '''unit-test-signing-key-that-is-long-enough-1234567890''',
+  '''a-completely-different-signing-key-0987654321-abcdef''',
+]
+paths = [
+  '''tests/''',
+]

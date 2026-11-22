@@ -18,7 +18,7 @@ app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
 
-await app.EnsureDatabaseAsync<IdentityDbContext>();
+await app.MigrateDatabaseAsync<IdentityDbContext>();
 await using (var scope = app.Services.CreateAsyncScope())
 {
     await scope.ServiceProvider.GetRequiredService<StaffAccountSeeder>()
