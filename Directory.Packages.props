@@ -27,10 +27,10 @@
     <PackageVersion Include="Yarp.ReverseProxy" Version="2.*" />
 
     <!-- Testing -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.*" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.*" />
     <PackageVersion Include="xunit" Version="2.9.*" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.*" />
-    <PackageVersion Include="coverlet.collector" Version="6.*" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.*" />
+    <PackageVersion Include="coverlet.collector" Version="10.*" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.*" />
     <PackageVersion Include="NetArchTest.Rules" Version="1.3.*" />
 
