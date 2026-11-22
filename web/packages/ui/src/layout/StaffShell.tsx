@@ -47,7 +47,8 @@ export function StaffShell({ service, nav = [], account, children }: {
               </button>
             )}
             <img src={logo} alt={t('entity.name')} className={`h-10 w-auto max-w-40 ${hasNav ? 'lg:hidden' : ''}`} />
-            <span className="truncate font-semibold text-aeblack-900">{service}</span>
+            {/* On phones the logo alone: there is no room for the portal name beside it. */}
+            <span className="hidden truncate font-semibold text-aeblack-900 sm:inline">{service}</span>
           </div>
           <div className="flex items-center gap-4">
             {account && <div className="hidden items-center gap-4 lg:flex">{account}</div>}
@@ -57,8 +58,8 @@ export function StaffShell({ service, nav = [], account, children }: {
 
         <main id="main" className="w-full max-w-screen-2xl flex-1 px-4 py-8 lg:px-8">{children}</main>
 
-        <footer className="border-t border-aeblack-100 px-4 py-4 text-sm text-aeblack-600 lg:px-8">
-          © {new Date().getFullYear()} {t('entity.name')}. {t('footer.rights')}
+        <footer dir={dirOf(getLang())} className="border-t border-aeblack-100 px-4 py-4 text-sm text-aeblack-600 lg:px-8">
+          {t('footer.copyright', { year: new Date().getFullYear(), ministry: t('entity.name') })}
         </footer>
       </div>
 
