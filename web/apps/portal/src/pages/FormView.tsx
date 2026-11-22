@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ApiError, loc, openDocument, t, uploadDocument, type Application, type FieldError, type FormData, type SaveResult, type ServiceDefinition } from '@dsp/core';
-import { Actions, AegovButton, Notice, Panel, ServiceAnswers, StepFields, StepProgress } from '@dsp/ui';
+import {
+  Actions, AegovButton, ArrowLeft, ArrowRight, IconLabel, Notice, Panel, PaperPlaneRight, PencilSimple, ServiceAnswers, StepFields, StepProgress,
+} from '@dsp/ui';
 import { api } from '../session';
 
 /** The form view: one step at a time, rendered from the service definition, then a review before submitting. */
@@ -77,10 +79,10 @@ export function FormView({ app, service, onChange, resubmit }: {
             onFileName={(k, name) => setFileNames(n => ({ ...n, [k]: name }))} />
           <Actions align="between">
             {current > 0
-              ? <AegovButton appearance="outline" isDisabled={busy} onAegovButtonClick={() => setCurrent(current - 1)}>{t('back')}</AegovButton>
+              ? <AegovButton appearance="outline" isDisabled={busy} onAegovButtonClick={() => setCurrent(current - 1)}><IconLabel icon={ArrowLeft} mirror>{t('back')}</IconLabel></AegovButton>
               : <span />}
             <AegovButton isLoading={busy} onAegovButtonClick={next}>
-              {current === steps.length - 1 ? t('form.saveReview') : t('form.saveContinue')}
+              <IconLabel icon={ArrowRight} mirror>{current === steps.length - 1 ? t('form.saveReview') : t('form.saveContinue')}</IconLabel>
             </AegovButton>
           </Actions>
         </>
@@ -89,11 +91,11 @@ export function FormView({ app, service, onChange, resubmit }: {
           <h2 className="mb-4 text-h5 font-bold text-aeblack-900">{t('form.reviewTitle')}</h2>
           <ServiceAnswers steps={steps} values={app.data} fileNames={fileNames}
             onOpenFile={id => openDocument(api, id)}
-            stepAction={i => <AegovButton appearance="link" size="sm" onAegovButtonClick={() => setCurrent(i)}>{t('form.change')}</AegovButton>} />
+            stepAction={i => <AegovButton appearance="link" size="sm" onAegovButtonClick={() => setCurrent(i)}><IconLabel icon={PencilSimple}>{t('form.change')}</IconLabel></AegovButton>} />
           {!resubmit && <div className="mt-6"><Notice kind="info">{app.workflowVersion === 2 ? t('form.afterSubmitAi') : t('form.afterSubmit')}</Notice></div>}
           <Actions align="between">
-            <AegovButton appearance="outline" isDisabled={busy} onAegovButtonClick={() => setCurrent(steps.length - 1)}>{t('back')}</AegovButton>
-            <AegovButton isLoading={busy} onAegovButtonClick={submit}>{resubmit ? t('form.resubmit') : t('form.submit')}</AegovButton>
+            <AegovButton appearance="outline" isDisabled={busy} onAegovButtonClick={() => setCurrent(steps.length - 1)}><IconLabel icon={ArrowLeft} mirror>{t('back')}</IconLabel></AegovButton>
+            <AegovButton isLoading={busy} onAegovButtonClick={submit}><IconLabel icon={PaperPlaneRight} mirror>{resubmit ? t('form.resubmit') : t('form.submit')}</IconLabel></AegovButton>
           </Actions>
         </>
       )}
