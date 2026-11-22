@@ -25,6 +25,8 @@ export interface ApiClient {
   del<T>(path: string): Promise<T>;
   upload<T>(path: string, file: File): Promise<T>;
   download(path: string): Promise<Blob>;
+  /** POSTs and reads a server-sent event stream (AG-UI), calling onEvent for each JSON event in order. */
+  stream(path: string, body: unknown, onEvent: (event: Record<string, unknown>) => void, signal?: AbortSignal): Promise<void>;
   token(): string | null;
   setToken(token: string | null): void;
 }
@@ -76,6 +78,29 @@ export function createApi(storageKey: string, onUnauthorized: () => void): ApiCl
       return request<T>('POST', path, form, false);
     },
     download: (path: string) => request<Blob>('GET', path),
+    stream: async (path, body, onEvent, signal) => {
+      const headers: Record<string, string> = { 'Accept-Language': getLang(), 'Content-Type': 'application/json', Accept: 'text/event-stream' };
+      const t = token();
+      if (t) headers.Authorization = `Bearer ${t}`;
+      const res = await fetch(path, { method: 'POST', headers, body: JSON.stringify(body), signal });
+      if (res.status === 401) { setToken(null); onUnauthorized(); throw new ApiError(401, text('errors.sessionEnded')); }
+      if (!res.ok || !res.body) throw new ApiError(res.status, text('errors.requestFailed', { status: res.status }));
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      for (;;) {
+        const { value, done } = await reader.read();
+        buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done });
+        let end: number;
+        while ((end = buffer.indexOf('\n\n')) >= 0) {
+          const chunk = buffer.slice(0, end);
+          buffer = buffer.slice(end + 2);
+          const data = chunk.split('\n').filter(l => l.startsWith('data:')).map(l => l.slice(5).trimStart()).join('\n');
+          if (data) onEvent(JSON.parse(data) as Record<string, unknown>);
+        }
+        if (done) return;
+      }
+    },
     token,
     setToken,
   };

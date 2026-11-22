@@ -195,6 +195,13 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
 - Create and edit forms for records (languages, currencies, texts, new service) open in `Modal`; anything that can't be
   undone (delete, discard, publish) asks with `ConfirmDialog`. Keep large editors (the service builder) on their page.
 
+### Chat (AG-UI and A2UI)
+
+- The chat runs over AG-UI (`POST /api/v1/ai/agui`, server-sent events): `RUN_*`, `TEXT_MESSAGE_*`, `STATE_SNAPSHOT`
+  and A2UI 1.0 screens as `ACTIVITY_SNAPSHOT` with `activityType: "a2ui"`. Screens come from the service definition
+  (`A2UiScreens`), never from the model, in our AEGOV catalogue (`A2UiCatalog.Id`); `A2uiSurface` renders only that
+  catalogue. Screen actions (`save_fields`, `submit_application`) are carried out directly, without the model.
+
 ### Icons
 
 Phosphor only (`@phosphor-icons/react`, re-exported from `@dsp/ui`), through `Icon` / `IconLabel`: 24px next to body

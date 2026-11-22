@@ -1114,6 +1114,50 @@
    "en": "This certifies that the application below was approved.",
    "ar": "نشهد بأنه تمت الموافقة على الطلب الموضح أدناه."
   },
+  "chat.a2ui.cannotSubmit": {
+   "en": "The application can't be sent yet:\n{errors}",
+   "ar": "لا يمكن تقديم الطلب بعد:\n{errors}"
+  },
+  "chat.a2ui.changeInForm": {
+   "en": "Change something in the form",
+   "ar": "تعديل في النموذج"
+  },
+  "chat.a2ui.checkNote": {
+   "en": "The fee is payable only after the ministry approves your application.",
+   "ar": "تُدفع الرسوم فقط بعد موافقة الوزارة على طلبك."
+  },
+  "chat.a2ui.checkTitle": {
+   "en": "Check your answers",
+   "ar": "راجع إجاباتك"
+  },
+  "chat.a2ui.fix": {
+   "en": "Some answers need a change. Check the highlighted fields.",
+   "ar": "تحتاج بعض الإجابات إلى تعديل. راجع الحقول المحددة."
+  },
+  "chat.a2ui.saved": {
+   "en": "Saved. Here is what's next.",
+   "ar": "تم الحفظ. إليك الخطوة التالية."
+  },
+  "chat.a2ui.sent": {
+   "en": "Here are my answers.",
+   "ar": "هذه إجاباتي."
+  },
+  "chat.a2ui.submitSent": {
+   "en": "Submit my application.",
+   "ar": "قدّم طلبي."
+  },
+  "chat.a2ui.submitted": {
+   "en": "Your application {number} has been submitted. You can follow it from My applications.",
+   "ar": "تم تقديم طلبك {number}. يمكنك متابعته من طلباتي."
+  },
+  "chat.a2ui.unknown": {
+   "en": "That action isn't available here.",
+   "ar": "هذا الإجراء غير متاح هنا."
+  },
+  "chat.a2ui.useFormTab": {
+   "en": "Open the Form tab above to change any answer; it's the same application.",
+   "ar": "افتح تبويب النموذج في الأعلى لتعديل أي إجابة، فهو الطلب نفسه."
+  },
   "chat.ai": {
    "en": "AI assistant",
    "ar": "المساعد الذكي"
@@ -1141,6 +1185,10 @@
   "chat.ask.text": {
    "en": "What is the {label}?{help}",
    "ar": "ما هو {label}؟{help}"
+  },
+  "chat.error": {
+   "en": "The assistant couldn't answer just now. Try again, or continue in the form.",
+   "ar": "تعذّر على المساعد الرد الآن. حاول مرة أخرى أو أكمل في النموذج."
   },
   "chat.guided": {
    "en": "Guided assistant",
@@ -1201,6 +1249,10 @@
   "chat.saved": {
    "en": "answers are saved to your application as you go",
    "ar": "تُحفظ الإجابات في طلبك أولًا بأول"
+  },
+  "chat.screen": {
+   "en": "Questions from the assistant",
+   "ar": "أسئلة من المساعد"
   },
   "chat.send": {
    "en": "Send",
@@ -3520,6 +3572,39 @@
   "certificate.statement": [
    "services"
   ],
+  "chat.a2ui.cannotSubmit": [
+   "services"
+  ],
+  "chat.a2ui.changeInForm": [
+   "services"
+  ],
+  "chat.a2ui.checkNote": [
+   "services"
+  ],
+  "chat.a2ui.checkTitle": [
+   "services"
+  ],
+  "chat.a2ui.fix": [
+   "services"
+  ],
+  "chat.a2ui.saved": [
+   "services"
+  ],
+  "chat.a2ui.sent": [
+   "services"
+  ],
+  "chat.a2ui.submitSent": [
+   "services"
+  ],
+  "chat.a2ui.submitted": [
+   "services"
+  ],
+  "chat.a2ui.unknown": [
+   "services"
+  ],
+  "chat.a2ui.useFormTab": [
+   "portal"
+  ],
   "chat.ai": [
    "portal"
   ],
@@ -3539,6 +3624,10 @@
    "services"
   ],
   "chat.ask.text": [
+   "services"
+  ],
+  "chat.error": [
+   "portal",
    "services"
   ],
   "chat.guided": [
@@ -3583,6 +3672,10 @@
   ],
   "chat.saved": [
    "portal"
+  ],
+  "chat.screen": [
+   "portal",
+   "backoffice"
   ],
   "chat.send": [
    "portal"
@@ -3856,7 +3949,8 @@
   ],
   "fee": [
    "portal",
-   "backoffice"
+   "backoffice",
+   "services"
   ],
   "footer.about": [
    "portal",
@@ -3924,7 +4018,8 @@
   ],
   "form.saveContinue": [
    "portal",
-   "backoffice"
+   "backoffice",
+   "services"
   ],
   "form.saveReview": [
    "portal"
@@ -3935,7 +4030,8 @@
    "backoffice"
   ],
   "form.submit": [
-   "portal"
+   "portal",
+   "services"
   ],
   "form.submitting": [],
   "form.uploadFailed": [
