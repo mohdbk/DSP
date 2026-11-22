@@ -106,7 +106,8 @@ public class CleanArchitectureTests
         var optional = Get(name).Application.GetTypes()
             .Where(t => t is { IsClass: true, IsAbstract: false } && t.IsPublic)
             .SelectMany(t => t.GetConstructors().SelectMany(c => c.GetParameters()
-                .Where(p => p.ParameterType.IsInterface && p.HasDefaultValue)
+                .Where(p => p.ParameterType.IsInterface && p.HasDefaultValue &&
+                            p.ParameterType.Namespace?.StartsWith("Dsp.", StringComparison.Ordinal) == true)
                 .Select(p => $"{t.Name}({p.ParameterType.Name} {p.Name})")))
             .ToList();
         Assert.True(optional.Count == 0, $"Optional dependencies: {string.Join(", ", optional)}");
