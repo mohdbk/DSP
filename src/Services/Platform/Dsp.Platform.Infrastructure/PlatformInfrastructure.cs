@@ -22,6 +22,7 @@ public abstract class PlatformDbContext(DbContextOptions options) : DbContext(op
     public DbSet<Translation> Translations => Set<Translation>();
     public DbSet<AiSettings> AiSettings => Set<AiSettings>();
     public DbSet<Currency> Currencies => Set<Currency>();
+    public DbSet<SavedView> SavedViews => Set<SavedView>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +58,16 @@ public abstract class PlatformDbContext(DbContextOptions options) : DbContext(op
             e.Property(x => x.Symbol).HasMaxLength(10);
             e.Property(x => x.SymbolPosition).HasMaxLength(6);
             e.Property(x => x.UpdatedBy).HasMaxLength(200);
+        });
+        modelBuilder.Entity<SavedView>(e =>
+        {
+            e.ToTable("SavedViews");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.Owner, x.ListKey });
+            e.Property(x => x.Owner).HasMaxLength(200);
+            e.Property(x => x.ListKey).HasMaxLength(100);
+            e.Property(x => x.Name).HasMaxLength(SavedView.MaxNameLength);
+            e.Property(x => x.State).HasMaxLength(SavedView.MaxStateLength);
         });
         modelBuilder.Entity<AiSettings>(e =>
         {
@@ -127,6 +138,20 @@ public sealed class TranslationRepository(PlatformDbContext db) : ITranslationRe
 
     public async Task RemoveKeyAsync(string key, CancellationToken ct) =>
         db.Translations.RemoveRange(await db.Translations.Where(t => t.Key == key).ToListAsync(ct));
+}
+
+public sealed class SavedViewRepository(PlatformDbContext db) : ISavedViewRepository
+{
+    public async Task<IReadOnlyList<SavedView>> ListAsync(string owner, string listKey, CancellationToken ct) =>
+        await db.SavedViews.Where(v => v.Owner == owner && v.ListKey == listKey).ToListAsync(ct);
+
+    public Task<SavedView?> GetAsync(Guid id, CancellationToken ct) => db.SavedViews.FirstOrDefaultAsync(v => v.Id == id, ct);
+
+    public async Task AddAsync(SavedView view, CancellationToken ct) => await db.SavedViews.AddAsync(view, ct);
+
+    public void Remove(SavedView view) => db.SavedViews.Remove(view);
+
+    public Task SaveChangesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
 }
 
 public sealed class CurrencyRepository(PlatformDbContext db, PlatformCache cache) : ICurrencyRepository
@@ -279,6 +304,7 @@ public static class DependencyInjection
         services.AddScoped<ITranslationRepository, TranslationRepository>();
         services.AddScoped<IAiSettingsRepository, AiSettingsRepository>();
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+        services.AddScoped<ISavedViewRepository, SavedViewRepository>();
         services.AddScoped<ICurrencies, LocalCurrencies>(); // before AddDspLocalization, which then keeps it
         services.AddSingleton<ISecretProtector, AesSecretProtector>();
         services.AddHttpClient(nameof(AiConnectionTester));

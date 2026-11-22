@@ -60,6 +60,8 @@ public static class WorkflowVersions
 
     public static bool IsKnown(int version) => version is Standard or AiAssisted or Agentic;
 
+    public static readonly IReadOnlyList<int> All = [Standard, AiAssisted, Agentic];
+
     /// <summary>The AI reviews applications (AI-assisted and agentic).</summary>
     public static bool UsesAi(int version) => version is AiAssisted or Agentic;
 }

@@ -1,4 +1,4 @@
-import type { FieldError, PagedList } from './types';
+import { listQueryString, type FieldError, type ListParams, type PagedList } from './types';
 
 /** The largest page the APIs return in one response. */
 export const MAX_PAGE_SIZE = 500;
@@ -22,6 +22,8 @@ export interface ApiClient {
   put<T>(path: string, body?: unknown): Promise<T>;
   /** Reads a list endpoint ({ items, page, pageSize, total }) and returns its items (up to the server's maximum page). */
   list<T>(path: string): Promise<T[]>;
+  /** Reads one page of a list endpoint, searched, filtered and sorted by the server. */
+  page<T>(path: string, params: ListParams): Promise<PagedList<T>>;
   del<T>(path: string): Promise<T>;
   upload<T>(path: string, file: File): Promise<T>;
   download(path: string): Promise<Blob>;
@@ -77,6 +79,8 @@ export function createApi(storageKey: string, onUnauthorized: () => void): ApiCl
     del: <T,>(path: string) => request<T>('DELETE', path),
     list: async <T,>(path: string) =>
       (await request<PagedList<T>>('GET', `${path}${path.includes('?') ? '&' : '?'}pageSize=${MAX_PAGE_SIZE}`)).items,
+    page: <T,>(path: string, params: ListParams) =>
+      request<PagedList<T>>('GET', `${path}${path.includes('?') ? '&' : '?'}${listQueryString(params)}`),
     upload: <T,>(path: string, file: File) => {
       const form = new FormData();
       form.append('file', file);

@@ -12,7 +12,8 @@ Publicly the platform is **MoET E-Services**; DSP is the internal name.
 - **Multilingual** everywhere, managed at run time: add, enable, disable or delete languages and edit every text (including the ministry and product names) in the Back Office. English and Arabic ship; only one language is required.
 - Two **portals**: the citizen E-Service Portal and the staff Back Office, built from one component library
   (`@dsp/ui`) on the UAE Design System (AEGOV), with React Aria and TanStack Table where AEGOV has no component.
-- **Versioned APIs** (`/api/v1/...`) with OpenAPI contracts, RFC 9457 errors and paged lists.
+- **Versioned APIs** (`/api/v1/...`) with OpenAPI contracts, RFC 9457 errors and server-side lists: every table is
+  searched, filtered (typed conditions), sorted and paged by its endpoint, with saved views per person.
 - Two **views** of every service, from day one: a form view and a chat view. Both save to the same application through the same API.
 - **Common services** used by every e-service: identity, payments, documents, notifications, workflow.
 
@@ -53,7 +54,7 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | Notifications | In-app notifications from `ApplicationStatusChanged` events | `DspNotifications` |
 | AI Orchestrator | Chat view (an LLM with tools over the E-Services API using the user's own token, or a guided mode) and the AI review for the agentic process (model review when configured, built-in checks always) | — |
 | Platform | Languages, every text of the portals and services (with import and export), AI model settings | `DspPlatform` |
-| Gateway | YARP routing (`/api/v1/{service}/**`, deprecated unversioned aliases) and rate limiting; `/internal/**` is never exposed | — |
+| Gateway | YARP routing (`/api/v1/{service}/**`) and rate limiting; `/internal/**` is never exposed | — |
 
 ## Adding an e-service
 

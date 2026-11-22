@@ -3,8 +3,40 @@
 
 import type { LocalizedText } from './i18n';
 
-/** Every list endpoint returns one page in this shape. */
-export interface PagedList<T> { items: T[]; page: number; pageSize: number; total: number }
+/** A value a list's filter can offer, with its name when the value isn't readable as is. */
+export interface ListOption { value: string; label?: LocalizedText | null }
+
+/**
+ * Every list endpoint returns one page in this shape. Search, filters, sorting and paging all run on the server;
+ * facets lists, per choice column, the values the filters can offer.
+ */
+export interface PagedList<T> {
+  items: T[]; page: number; pageSize: number; total: number;
+  facets?: Record<string, ListOption[]> | null;
+}
+
+/** What a list is asked for: search words, sort ("field" or "-field"), page, page size and filter conditions. */
+export interface ListParams {
+  q?: string;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+  /** { match: 'all' | 'any', conditions: [{ column, op, value, value2, values }] } */
+  filter?: unknown;
+}
+
+/** A list's query string: the reader's offset from UTC goes along so "on 3 May" means their calendar day. */
+export function listQueryString(params: ListParams): string {
+  const qs = new URLSearchParams();
+  if (params.q?.trim()) qs.set('q', params.q.trim());
+  if (params.sort) qs.set('sort', params.sort);
+  if (params.page && params.page > 1) qs.set('page', String(params.page));
+  if (params.pageSize) qs.set('pageSize', String(params.pageSize));
+  const filter = params.filter as { conditions?: unknown[] } | undefined;
+  if (filter?.conditions?.length) qs.set('filter', JSON.stringify(params.filter));
+  qs.set('tz', String(-new Date().getTimezoneOffset()));
+  return qs.toString();
+}
 
 export type FieldType =
   | 'text' | 'textarea' | 'email' | 'phone' | 'number' | 'date' | 'select' | 'file' | 'checkbox';

@@ -55,6 +55,25 @@ public class ApplicationServiceTests
     }
 
     [Fact]
+    public async Task Lists_are_searched_and_filtered_on_the_server()
+    {
+        var draft = await _service.CreateDraftAsync(Citizen, "TRADE_NAME_RESERVATION", default);
+        var staff = new Caller("staff:khalid", "Khalid", true, new Dictionary<string, string?>());
+
+        // Applicants see their own drafts; staff only see submitted applications.
+        Assert.Equal(1, (await _service.ListAsync(Citizen, false, new ListQuery(), default)).Total);
+        Assert.Equal(0, (await _service.ListAsync(staff, true, new ListQuery(), default)).Total);
+
+        // Search finds the service by its name and the status by its name; conditions narrow down.
+        var byName = await _service.ListAsync(Citizen, false, new ListQuery(Q: "trade name"), default);
+        Assert.Equal(draft.Id, Assert.Single(byName.Items).Id);
+        var none = await _service.ListAsync(Citizen, false,
+            new ListQuery(Filter: """{"conditions":[{"column":"status","op":"anyOf","values":["Approved"]}]}"""), default);
+        Assert.Empty(none.Items);
+        Assert.Contains("TRADE_NAME_RESERVATION", byName.Facets!["service"].Select(o => o.Value));
+    }
+
+    [Fact]
     public async Task Unknown_service_is_not_found()
     {
         await Assert.ThrowsAsync<NotFoundException>(() => _service.CreateDraftAsync(Citizen, "NOPE", default));
@@ -160,11 +179,9 @@ public class ApplicationServiceTests
 
         public Task<ServiceApplication?> ReadAsync(Guid id, CancellationToken ct) => GetAsync(id, ct);
 
-        public Task<IReadOnlyList<ServiceApplication>> ListForApplicantAsync(string applicantId, CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<ServiceApplication>>(_items.Where(a => a.ApplicantId == applicantId).ToList());
-
-        public Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<ServiceApplication>>(_items.Take(take).ToList());
+        public Task<PagedList<ServiceApplication>> QueryAsync(string? applicantId, ListFields<ServiceApplication> fields, ListQuery query,
+            CancellationToken ct) =>
+            Task.FromResult(fields.Page(_items.Where(a => applicantId is null ? a.Status != ApplicationStatus.Draft : a.ApplicantId == applicantId), query));
 
         public Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<ServiceApplication>>(_items.Where(a => a.ServiceCode == serviceCode && a.Approved != null).Take(take).ToList());

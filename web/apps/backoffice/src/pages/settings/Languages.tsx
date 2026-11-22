@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ApiError, formatDate, loc, refreshI18n, t, type FieldError, type LanguageAdmin, type LocalizedText } from '@dsp/core';
 import {
-  AegovButton, ConfirmDialog, Modal, CheckboxField, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, Loading, MultilingualField, Notice, NumberField, ownName, PageHeader, Plus, Tag, TextField,
+  AegovButton, ConfirmDialog, Modal, CheckboxField, ChoiceField, type ColumnDef, DataTable, FloppyDisk, IconLabel, listStateProps, MultilingualField, Notice, NumberField, ownName, PageHeader, Plus, Tag, TextField,
 } from '@dsp/ui';
 import { api } from '../../session';
 
@@ -23,7 +23,10 @@ const shownVariant: Record<string, 'aegold' | 'seablue' | 'slate'> = { portal: '
 export function LanguagesPage() {
   const navigate = useNavigate();
   const search = route.useSearch();
-  const [languages, setLanguages] = useState<LanguageAdmin[]>();
+  // The rows on the page shown (the table loads them from the server) and how many languages there are.
+  const [languages, setLanguages] = useState<LanguageAdmin[]>([]);
+  const [count, setCount] = useState(0);
+  const [reloadKey, setReloadKey] = useState(0);
   const [selected, setSelected] = useState<string | 'new'>();
   const [draft, setDraft] = useState<Draft>();
   const [errors, setErrors] = useState<FieldError[]>([]);
@@ -31,19 +34,18 @@ export function LanguagesPage() {
   const [busy, setBusy] = useState<string>();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const load = () => api.get<LanguageAdmin[]>(base).then(setLanguages).catch(e => setMessage({ kind: 'error', text: e.message }));
-  useEffect(() => { void load(); }, []);
+  const load = () => setReloadKey(n => n + 1);
 
-  const current = languages?.find(l => l.code === selected);
+  const current = languages.find(l => l.code === selected);
   const select = (code: string | 'new') => {
     setSelected(code);
     setErrors([]);
     setMessage(undefined);
     setConfirmDelete(false);
-    const l = languages?.find(x => x.code === code);
+    const l = languages.find(x => x.code === code);
     setDraft(l
       ? { code: l.code, name: l.name, direction: l.direction, sortOrder: l.sortOrder, showInPortal: l.showInPortal, showInBackoffice: l.showInBackoffice }
-      : { code: '', name: null, direction: 'ltr', sortOrder: (languages?.length ?? 0) * 10, showInPortal: false, showInBackoffice: true });
+      : { code: '', name: null, direction: 'ltr', sortOrder: count * 10, showInPortal: false, showInBackoffice: true });
   };
 
   async function run(kind: string, action: () => Promise<unknown>, success: string) {
@@ -51,7 +53,7 @@ export function LanguagesPage() {
     setMessage(undefined);
     try {
       await action();
-      await load();
+      load();
       await refreshI18n(); // the portal's own language list and texts follow at once
       setMessage({ kind: 'success', text: success });
       setErrors([]);
@@ -103,14 +105,12 @@ export function LanguagesPage() {
     },
     {
       id: 'completion', header: t('settings.completion'),
-      accessorFn: l => String(l.total ? Math.round((l.translated / l.total) * 100) : 0).padStart(3, '0'),
-      cell: c => `${Number(c.getValue())}% (${c.row.original.translated}/${c.row.original.total})`,
+      accessorFn: l => String(l.total ? Math.round((l.translated / l.total) * 100) : 100),
+      cell: c => `${Number(c.getValue())}% (${c.row.original.translated}/${c.row.original.total})`, meta: { type: 'number' },
     },
-    { id: 'order', header: t('settings.order'), accessorFn: l => String(l.sortOrder).padStart(5, '0'), cell: c => c.row.original.sortOrder },
-    { id: 'updated', header: t('updated'), accessorFn: l => l.updatedAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.updatedBy}` },
+    { id: 'order', header: t('settings.order'), accessorFn: l => String(l.sortOrder), meta: { type: 'number' } },
+    { id: 'updated', header: t('updated'), accessorFn: l => l.updatedAt, cell: c => `${formatDate(c.getValue(), true)} · ${c.row.original.updatedBy}`, meta: { type: 'date' } },
   ], []);
-
-  if (!languages) return message ? <Notice kind="error">{message.text}</Notice> : <Loading />;
 
   return (
     <>
@@ -187,7 +187,8 @@ export function LanguagesPage() {
         onConfirm={() => { if (current) void run('delete', () => api.del(`${base}/${current.code}`), t('settings.deleted')); }} />
 
       <div>
-        <DataTable label={t('settings.languages')} data={languages} columns={columns} getRowId={l => l.code}
+        <DataTable label={t('settings.languages')} source={base} listKey="backoffice.languages" reloadKey={reloadKey}
+          onLoad={p => { setLanguages(p.items); setCount(p.total); }} columns={columns} getRowId={l => l.code}
           onRowAction={l => select(l.code)}
           {...listStateProps(search, next => navigate({ to: '/settings/languages', search: next, replace: true }))}
           emptyTitle={t('settings.noLanguages')} />

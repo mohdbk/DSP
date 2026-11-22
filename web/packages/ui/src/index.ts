@@ -30,6 +30,7 @@ export * from './data/DataTable';
 export * from './data/filtering';
 export * from './data/FilterBar';
 export * from './data/SavedViews';
+export * from './data/ApiContext';
 export * from './data/DescriptionList';
 export * from './data/ReorderList';
 

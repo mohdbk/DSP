@@ -35,6 +35,15 @@ public interface ICurrencyRepository
     Task SaveChangesAsync(CancellationToken ct);
 }
 
+public interface ISavedViewRepository
+{
+    Task<IReadOnlyList<SavedView>> ListAsync(string owner, string listKey, CancellationToken ct);
+    Task<SavedView?> GetAsync(Guid id, CancellationToken ct);
+    Task AddAsync(SavedView view, CancellationToken ct);
+    void Remove(SavedView view);
+    Task SaveChangesAsync(CancellationToken ct);
+}
+
 public interface IAiSettingsRepository
 {
     Task<AiSettings> GetAsync(CancellationToken ct);
@@ -129,6 +138,18 @@ public sealed record AiTestResultDto(bool Ok, string MessageKey, string? Detail,
 /// <summary>The signed-in staff member making a change.</summary>
 public sealed record StaffCaller(string UserId, string Name, bool IsStaff);
 
+public sealed record SavedViewDto(Guid Id, string List, string Name, System.Text.Json.JsonElement State, DateTimeOffset UpdatedAt)
+{
+    public static SavedViewDto From(SavedView v)
+    {
+        using var doc = System.Text.Json.JsonDocument.Parse(v.State);
+        return new(v.Id, v.ListKey, v.Name, doc.RootElement.Clone(), v.UpdatedAt);
+    }
+}
+
+/// <summary>Saving a view: the list, a name and the list state ({ q, sort, filter }).</summary>
+public sealed record SavedViewRequest(string List, string Name, System.Text.Json.JsonElement State);
+
 // ---- Use cases ----
 
 /// <summary>Languages: listing for everyone, and managing them for staff.</summary>
@@ -141,17 +162,19 @@ public sealed class LanguageService(ILanguageRepository languages, ITranslationR
     public async Task<IReadOnlyList<LanguageDto>> ListAllAsync(CancellationToken ct) =>
         (await languages.ListAsync(ct)).OrderBy(l => l.SortOrder).ThenBy(l => l.Code).Select(LanguageDto.From).ToList();
 
-    public async Task<IReadOnlyList<LanguageAdminDto>> ListForAdminAsync(StaffCaller caller, CancellationToken ct)
+    /// <summary>One page of languages with how complete each one's texts are, searched, filtered and sorted on the server.</summary>
+    public async Task<PagedList<LanguageAdminDto>> ListForAdminAsync(StaffCaller caller, ListQuery query, CancellationToken ct)
     {
         EnsureStaff(caller);
         var all = await languages.ListAsync(ct);
         var allTranslations = await translations.ListAsync(null, ct);
         var defaultCode = all.FirstOrDefault(l => l.IsDefault)?.Code;
         var keys = allTranslations.Where(t => t.LanguageCode == defaultCode).Select(t => t.Key).ToHashSet();
-        return all.OrderBy(l => l.SortOrder).ThenBy(l => l.Code).Select(l => new LanguageAdminDto(
+        var rows = all.Select(l => new LanguageAdminDto(
                 l.Code, l.Name, l.Direction, l.IsEnabled, l.IsDefault, l.SortOrder, l.ShowInPortal, l.ShowInBackoffice,
                 allTranslations.Count(t => t.LanguageCode == l.Code && keys.Contains(t.Key)), keys.Count, l.UpdatedAt, l.UpdatedBy))
             .ToList();
+        return PlatformLists.Languages.Page(rows, query);
     }
 
     public async Task<LanguageDto> CreateAsync(StaffCaller caller, LanguageRequest request, CancellationToken ct)
@@ -247,26 +270,19 @@ public sealed class TranslationService(ILanguageRepository languages, ITranslati
         return new CatalogDto(language.Code, defaultLanguage, language.Direction, strings);
     }
 
-    /// <summary>One page of keys with the default text and the text in <paramref name="code"/>.</summary>
-    public async Task<PagedList<TranslationRowDto>> ListAsync(StaffCaller caller, string code, string? search, bool missingOnly,
-        int? page, int? pageSize, CancellationToken ct)
+    /// <summary>One page of keys with the default text and the text in <paramref name="code"/>, searched, filtered and sorted on the server.</summary>
+    public async Task<PagedList<TranslationRowDto>> ListAsync(StaffCaller caller, string code, ListQuery query, CancellationToken ct)
     {
         LanguageService.EnsureStaff(caller);
         var defaultCode = await DefaultCodeAsync(ct);
         var defaults = await translations.ListAsync(defaultCode, ct);
         var target = (await translations.ListAsync(code, ct)).ToDictionary(t => t.Key);
 
-        var rows = defaults.OrderBy(t => t.Key, StringComparer.Ordinal)
+        var rows = defaults
             .Select(d => target.TryGetValue(d.Key, out var t)
                 ? new TranslationRowDto(d.Key, d.Text, t.Text, t.UpdatedAt, t.UpdatedBy, usage.UsedIn(d.Key))
-                : new TranslationRowDto(d.Key, d.Text, null, null, null, usage.UsedIn(d.Key)))
-            .Where(r => !missingOnly || r.Text is null)
-            .Where(r => string.IsNullOrWhiteSpace(search) ||
-                        r.Key.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        r.DefaultText.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        (r.Text?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false))
-            .ToList();
-        return PagedList.From(rows, page, pageSize);
+                : new TranslationRowDto(d.Key, d.Text, null, null, null, usage.UsedIn(d.Key)));
+        return PlatformLists.Translations.Page(rows, query);
     }
 
     /// <summary>Sets (or with an empty text removes) one key's text in one language. New keys start in the default language.</summary>
@@ -417,10 +433,11 @@ public sealed class CurrencyService(ICurrencyRepository currencies)
     public async Task<IReadOnlyList<CurrencyInfo>> ListAllAsync(CancellationToken ct) =>
         Ordered(await currencies.ListAsync(ct)).Select(ToInfo).ToList();
 
-    public async Task<IReadOnlyList<CurrencyAdminDto>> ListForAdminAsync(StaffCaller caller, CancellationToken ct)
+    /// <summary>One page of currencies, searched, filtered and sorted on the server.</summary>
+    public async Task<PagedList<CurrencyAdminDto>> ListForAdminAsync(StaffCaller caller, ListQuery query, CancellationToken ct)
     {
         LanguageService.EnsureStaff(caller);
-        return Ordered(await currencies.ListAsync(ct)).Select(CurrencyAdminDto.From).ToList();
+        return PlatformLists.Currencies.Page(Ordered(await currencies.ListAsync(ct)).Select(CurrencyAdminDto.From), query);
     }
 
     public async Task<CurrencyAdminDto> CreateAsync(StaffCaller caller, CurrencyRequest request, CancellationToken ct)
@@ -562,5 +579,92 @@ public static class DependencyInjection
             .AddScoped<TranslationService>()
             .AddScoped<AiSettingsService>()
             .AddScoped<CurrencyService>()
+            .AddScoped<SavedViewService>()
             .AddScoped<PlatformSeeder>();
+}
+
+
+/// <summary>The searchable, filterable and sortable columns of the settings lists (ids match the back-office tables).</summary>
+public static class PlatformLists
+{
+    private static IReadOnlyList<ListOption> Values(params string[] values) => values.Select(v => new ListOption(v)).ToList();
+
+    private static string LanguageState(bool isDefault, bool isEnabled) => isDefault ? "default" : isEnabled ? "enabled" : "disabled";
+
+    public static readonly ListFields<LanguageAdminDto> Languages =
+        new ListFields<LanguageAdminDto>(q => q.OrderBy(l => l.SortOrder).ThenBy(l => l.Code))
+            .Text("language", l => l.Code + " " + string.Join(" ", l.Name.Values))
+            .Choice("status", l => LanguageState(l.IsDefault, l.IsEnabled), Values("default", "enabled", "disabled"))
+            .Tags("shownIn", l => ShownIn(l), Values("portal", "backoffice", "none"))
+            .Choice("direction", l => l.Direction, Values("ltr", "rtl"))
+            .Number("completion", l => l.Total == 0 ? 100 : Math.Round(100m * l.Translated / l.Total))
+            .Number("order", l => l.SortOrder)
+            .Date("updated", l => l.UpdatedAt);
+
+    public static readonly ListFields<CurrencyAdminDto> Currencies =
+        new ListFields<CurrencyAdminDto>(q => q.OrderBy(c => c.SortOrder).ThenBy(c => c.Code))
+            .Text("currency", c => c.Code + " " + c.Symbol + " " + string.Join(" ", c.Name.Values))
+            .Choice("status", c => LanguageState(c.IsDefault, c.IsEnabled), Values("default", "enabled", "disabled"))
+            .Number("decimals", c => c.Decimals)
+            .Number("order", c => c.SortOrder)
+            .Date("updated", c => c.UpdatedAt);
+
+    public static readonly ListFields<TranslationRowDto> Translations =
+        new ListFields<TranslationRowDto>(q => q.OrderBy(r => r.Key, StringComparer.Ordinal))
+            .Text("key", r => r.Key)
+            .Text("default", r => r.DefaultText)
+            .Text("text", r => r.Text)
+            .Tags("usedIn", r => r.UsedIn.Count == 0 ? Unused : r.UsedIn, Values("portal", "backoffice", "services", "unused"))
+            .Choice("state", r => r.Text == null ? "missing" : "translated", Values("translated", "missing"))
+            .Date("updated", r => r.UpdatedAt);
+
+    private static readonly IReadOnlyList<string> Unused = ["unused"];
+
+    private static IEnumerable<string> ShownIn(LanguageAdminDto l)
+    {
+        if (l.ShowInPortal) yield return "portal";
+        if (l.ShowInBackoffice) yield return "backoffice";
+        if (!l.ShowInPortal && !l.ShowInBackoffice) yield return "none";
+    }
+}
+
+
+/// <summary>Each person's saved views of the lists (search, sort, filters), for both portals.</summary>
+public sealed class SavedViewService(ISavedViewRepository views)
+{
+    public async Task<IReadOnlyList<SavedViewDto>> ListAsync(StaffCaller caller, string list, CancellationToken ct) =>
+        (await views.ListAsync(caller.UserId, (list ?? "").Trim(), ct)).OrderBy(v => v.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(SavedViewDto.From).ToList();
+
+    /// <summary>Saves a view; one with the same name on the same list is replaced.</summary>
+    public async Task<SavedViewDto> SaveAsync(StaffCaller caller, SavedViewRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(caller.UserId)) throw new ForbiddenException("errors.staffOnly");
+        if (request.State.ValueKind != System.Text.Json.JsonValueKind.Object)
+            throw new ValidationException([new FieldError("state", "errors.view.state")]);
+        var state = request.State.GetRawText();
+        var list = (request.List ?? "").Trim();
+        var existing = await views.ListAsync(caller.UserId, list, ct);
+        var same = existing.FirstOrDefault(v => string.Equals(v.Name, (request.Name ?? "").Trim(), StringComparison.CurrentCultureIgnoreCase));
+        if (same is not null)
+        {
+            same.Update(request.Name ?? "", state);
+        }
+        else
+        {
+            if (existing.Count >= SavedView.MaxPerList) throw new ValidationException([new FieldError("name", "errors.view.tooMany")]);
+            same = SavedView.Create(caller.UserId, list, request.Name ?? "", state);
+            await views.AddAsync(same, ct);
+        }
+        await views.SaveChangesAsync(ct);
+        return SavedViewDto.From(same);
+    }
+
+    public async Task DeleteAsync(StaffCaller caller, Guid id, CancellationToken ct)
+    {
+        var view = await views.GetAsync(id, ct) ?? throw new NotFoundException("errors.view.notFound");
+        view.EnsureOwnedBy(caller.UserId);
+        views.Remove(view);
+        await views.SaveChangesAsync(ct);
+    }
 }

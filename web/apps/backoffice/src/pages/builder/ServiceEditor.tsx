@@ -164,7 +164,7 @@ export function ServiceEditorPage() {
         <AegovTabPanel tabId="form"><div className="pt-6"><FormSection {...props} /></div></AegovTabPanel>
         <AegovTabPanel tabId="review"><div className="pt-6"><AiReadinessPanel code={code} workflowVersion={def.workflowVersion} /><ReviewSection {...props} /></div></AegovTabPanel>
         <AegovTabPanel tabId="preview"><div className="pt-6"><PreviewSection def={def} /></div></AegovTabPanel>
-        <AegovTabPanel tabId="versions"><div className="pt-6"><VersionsSection versions={server.versions} /></div></AegovTabPanel>
+        <AegovTabPanel tabId="versions"><div className="pt-6"><VersionsSection code={server.code} reloadKey={server.versions.length + ':' + server.versions.map(v => v.status).join()} /></div></AegovTabPanel>
       </AegovTabs>
     </>
   );

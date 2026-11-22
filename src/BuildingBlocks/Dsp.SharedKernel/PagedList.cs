@@ -1,13 +1,20 @@
 namespace Dsp.SharedKernel;
 
 /// <summary>
-/// The one shape every list endpoint returns: <c>{ items, page, pageSize, total }</c>.
-/// Pages are 1-based; <see cref="MaxPageSize"/> bounds a single response.
+/// The one shape every list endpoint returns: <c>{ items, page, pageSize, total, facets }</c>.
+/// Pages are 1-based; <see cref="MaxPageSize"/> bounds a single response. <c>facets</c> lists, per choice column,
+/// the values the filters can offer (from all matching rows, not just this page).
 /// </summary>
-public sealed record PagedList<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total)
+public sealed record PagedList<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total,
+    IReadOnlyDictionary<string, IReadOnlyList<ListOption>>? Facets = null)
 {
     public const int DefaultPageSize = 50;
     public const int MaxPageSize = 500;
+
+    /// <summary>The same page with each row turned into another shape (e.g. an entity into its DTO).</summary>
+    public PagedList<TOut> Map<TOut>(Func<T, TOut> map) => new(Items.Select(map).ToList(), Page, PageSize, Total, Facets);
+
+    public PagedList<T> WithFacets(IReadOnlyDictionary<string, IReadOnlyList<ListOption>> facets) => this with { Facets = facets };
 }
 
 public static class PagedList

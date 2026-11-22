@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { formatDate, loc, t, type BuilderServiceSummary } from '@dsp/core';
 import {
-  AegovButton, type ColumnDef, DataTable, IconLabel, listStateProps, Loading, Notice, PageHeader, Plus, Tag,
+  AegovButton, type ColumnDef, DataTable, IconLabel, listStateProps, PageHeader, Plus, Tag,
 } from '@dsp/ui';
-import { api } from '../../session';
 import { NewServiceDialog } from './NewService';
 
 const route = getRouteApi('/services');
@@ -13,13 +12,7 @@ const route = getRouteApi('/services');
 export function ServicesPage({ creating = false }: { creating?: boolean }) {
   const navigate = useNavigate();
   const search = route.useSearch();
-  const [services, setServices] = useState<BuilderServiceSummary[]>();
-  const [error, setError] = useState<string>();
   const [newOpen, setNewOpen] = useState(creating);
-
-  useEffect(() => {
-    api.list<BuilderServiceSummary>('/api/v1/eservices/builder/services').then(setServices).catch(e => setError(e.message));
-  }, []);
 
   const columns = useMemo<ColumnDef<BuilderServiceSummary, string>[]>(() => [
     {
@@ -43,10 +36,7 @@ export function ServicesPage({ creating = false }: { creating?: boolean }) {
           {c.row.original.draftVersion && <Tag variant="aegold">{t('builder.draft', { n: c.row.original.draftVersion })}</Tag>}
         </span>
       ),
-      meta: {
-        filter: true,
-        filterLabel: v => (v === 'draft' ? t('builder.notLive') : v === 'live' ? t('builder.vstatus.Published') : `${t('builder.vstatus.Published')} + ${t('builder.vstatus.Draft')}`),
-      },
+      meta: { filter: true, filterLabel: v => t(`builder.state.${v}`) },
     },
     {
       id: 'process', header: t('builder.process'), accessorFn: s => String(s.workflowVersion),
@@ -54,7 +44,7 @@ export function ServicesPage({ creating = false }: { creating?: boolean }) {
       meta: { filter: true, filterLabel: v => t(`process.v${v}`) },
     },
     {
-      id: 'updated', header: t('builder.lastChange'), accessorFn: s => s.updatedAt,
+      id: 'updated', header: t('builder.lastChange'), accessorFn: s => s.updatedAt, meta: { type: 'date' },
       cell: c => (
         <span>
           {formatDate(c.getValue(), true)}
@@ -69,14 +59,11 @@ export function ServicesPage({ creating = false }: { creating?: boolean }) {
       <PageHeader title={t('builder.pageTitle')} intro={t('builder.intro')}
         actions={<AegovButton onAegovButtonClick={() => setNewOpen(true)}><IconLabel icon={Plus}>{t('builder.new')}</IconLabel></AegovButton>} />
       <NewServiceDialog open={newOpen} onClose={() => { setNewOpen(false); if (creating) navigate({ to: '/services', replace: true }); }} />
-      {error && <Notice kind="error">{error}</Notice>}
-      {!services && !error && <Loading />}
-      {services && (
-        <DataTable label={t('builder.pageTitle')} data={services} columns={columns} getRowId={s => s.code}
-          onRowAction={s => navigate({ to: '/services/$code', params: { code: s.code } })}
-          {...listStateProps(search, next => navigate({ to: '/services', search: next, replace: true }))}
-          emptyTitle={t('builder.empty')} />
-      )}
+      <DataTable label={t('builder.pageTitle')} source="/api/v1/eservices/builder/services" listKey="backoffice.services"
+        columns={columns} getRowId={s => s.code}
+        onRowAction={s => navigate({ to: '/services/$code', params: { code: s.code } })}
+        {...listStateProps(search, next => navigate({ to: '/services', search: next, replace: true }))}
+        emptyTitle={t('builder.empty')} />
     </>
   );
 }

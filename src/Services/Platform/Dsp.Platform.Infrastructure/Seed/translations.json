@@ -954,6 +954,18 @@
    "en": "Saving…",
    "ar": "جارٍ الحفظ…"
   },
+  "builder.state.draft": {
+   "en": "Not published",
+   "ar": "غير منشور"
+  },
+  "builder.state.live": {
+   "en": "Live",
+   "ar": "منشور"
+  },
+  "builder.state.live-draft": {
+   "en": "Live, with a draft",
+   "ar": "منشور ولديه مسودة"
+  },
   "builder.step": {
    "en": "Step {n}",
    "ar": "الخطوة {n}"
@@ -1609,6 +1621,26 @@
   "errors.validation": {
    "en": "Some details need your attention",
    "ar": "بعض البيانات تحتاج إلى مراجعتك"
+  },
+  "errors.view.list": {
+   "en": "This list can’t have saved views.",
+   "ar": "لا يمكن حفظ طرق عرض لهذه القائمة."
+  },
+  "errors.view.name": {
+   "en": "Enter a name of up to 100 characters.",
+   "ar": "أدخل اسماً لا يزيد على 100 حرف."
+  },
+  "errors.view.notFound": {
+   "en": "That saved view no longer exists.",
+   "ar": "طريقة العرض المحفوظة هذه لم تعد موجودة."
+  },
+  "errors.view.state": {
+   "en": "There is nothing to save in this view.",
+   "ar": "لا يوجد ما يمكن حفظه في طريقة العرض هذه."
+  },
+  "errors.view.tooMany": {
+   "en": "You can save up to 50 views for a list. Delete one first.",
+   "ar": "يمكنك حفظ 50 طريقة عرض كحد أقصى لكل قائمة. احذف واحدة أولاً."
   },
   "fee": {
    "en": "Fee",
@@ -3647,6 +3679,15 @@
    "backoffice"
   ],
   "builder.saving": [],
+  "builder.state.draft": [
+   "backoffice"
+  ],
+  "builder.state.live": [
+   "backoffice"
+  ],
+  "builder.state.live-draft": [
+   "backoffice"
+  ],
   "builder.step": [],
   "builder.stepDesc": [
    "backoffice"
@@ -4139,6 +4180,21 @@
    "services"
   ],
   "errors.validation": [
+   "services"
+  ],
+  "errors.view.list": [
+   "services"
+  ],
+  "errors.view.name": [
+   "services"
+  ],
+  "errors.view.notFound": [
+   "services"
+  ],
+  "errors.view.state": [
+   "services"
+  ],
+  "errors.view.tooMany": [
    "services"
   ],
   "fee": [
