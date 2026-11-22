@@ -14,7 +14,7 @@ import { ServiceEditorPage } from './pages/builder/ServiceEditor';
 function Root() {
   const user = currentUser();
   return (
-    <PortalFrame service={t('app.backoffice')} publicPaths={['/login']} onSignOut={signOut}
+    <PortalFrame service={t('app.backoffice')} homeLabel={t('app.backofficeHome')} publicPaths={['/login']} onSignOut={signOut}
       user={user && { name: user.name, role: user.title ?? t('staff') }}
       loadUnread={() => countUnread(api)}
       navItems={pathname => [
