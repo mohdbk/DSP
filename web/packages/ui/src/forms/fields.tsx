@@ -3,7 +3,7 @@ import {
   AegovCheckbox, AegovDatepicker, AegovFileupload, AegovFormField, AegovInput, AegovLabel, AegovRadio,
   AegovRadioGroup, AegovSelect, AegovSelectOption, AegovTextarea,
 } from '@aegov/designsystem-react';
-import { getLang, t } from '@dsp/core';
+import { dirOf, getLang, t } from '@dsp/core';
 
 // The form fields of both portals — the dynamic e-service form, the service builder and sign-in all use these.
 // Each wraps the AEGOV control with its label, hint and error, so every field behaves and looks the same.
@@ -27,9 +27,29 @@ function labelText({ label, required, markOptional }: BaseProps) {
   return markOptional && !required ? `${label} ${t('form.optional')}` : label;
 }
 
+/**
+ * A value in another direction or language (an Arabic field on an English page, a URL on an Arabic page) sets
+ * dir/lang on the control only: the label, hint and error stay in the page's direction, so labels don't jump to the
+ * other side. The hint and error then go in slots with the page's direction (the control's own would inherit its).
+ */
+function valueProps(props: BaseProps) {
+  return props.dir || props.lang ? { dir: props.dir, lang: props.lang } : {};
+}
+
+function OwnDirectionTexts({ props }: { props: BaseProps }) {
+  if (!props.dir) return null;
+  const page = dirOf(getLang());
+  return (
+    <>
+      <span slot="hint" dir={page}>{props.hint ?? ''}</span>
+      <span slot="error" dir={page}>{props.error ?? ''}</span>
+    </>
+  );
+}
+
 function Framed({ props, children }: { props: BaseProps; children: ReactNode }) {
   return (
-    <div className="mb-5" dir={props.dir} lang={props.lang}>
+    <div className="mb-5">
       <AegovFormField>
         <AegovLabel>{labelText(props)}</AegovLabel>
         {children}
@@ -46,11 +66,13 @@ export function TextField(props: BaseProps & {
 }) {
   return (
     <Framed props={props}>
-      <AegovInput fieldId={props.id} name={props.id} type={props.type ?? 'text'} value={props.value}
+      <AegovInput fieldId={props.id} name={props.id} type={props.type ?? 'text'} value={props.value} {...valueProps(props)}
         placeholder={props.placeholder ?? undefined} isRequired={!!props.required} isDisabled={!!props.disabled}
-        isInvalid={!!props.error} errorMessage={props.error ?? ''} hint={props.hint ?? ''}
+        isInvalid={!!props.error} errorMessage={props.dir ? '' : props.error ?? ''} hint={props.dir ? '' : props.hint ?? ''}
         isRevealable={props.type === 'password'}
-        onAegovInputValue={e => props.onChange(e.detail.value)} />
+        onAegovInputValue={e => props.onChange(e.detail.value)}>
+        <OwnDirectionTexts props={props} />
+      </AegovInput>
     </Framed>
   );
 }
@@ -71,9 +93,12 @@ export function TextAreaField(props: BaseProps & {
   return (
     <Framed props={props}>
       <AegovTextarea fieldId={props.id} name={props.id} value={props.value} maxlength={props.maxLength ?? undefined}
+        {...valueProps(props)}
         placeholder={props.placeholder ?? undefined} isRequired={!!props.required} isDisabled={!!props.disabled}
-        isInvalid={!!props.error} errorMessage={props.error ?? ''} hint={props.hint ?? ''}
-        onAegovTextareaValue={e => props.onChange(e.detail.value)} />
+        isInvalid={!!props.error} errorMessage={props.dir ? '' : props.error ?? ''} hint={props.dir ? '' : props.hint ?? ''}
+        onAegovTextareaValue={e => props.onChange(e.detail.value)}>
+        <OwnDirectionTexts props={props} />
+      </AegovTextarea>
     </Framed>
   );
 }
