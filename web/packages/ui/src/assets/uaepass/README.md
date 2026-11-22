@@ -3,8 +3,14 @@
 Official artwork from the UAE PASS Buttons Guidelines (version 2), downloaded from
 https://docs.uaepass.ae/guidelines/design-guidelines/uaepass-button-guideline.
 Only the files the portals use are kept: "Sign in with UAE PASS", black, default corner radius, in English and
-Arabic, one file per state (active, focus, pressed, disabled). They are the official PNGs (310 × 54): the official
-SVGs draw the title as live text in SF Pro / GE SS Two, which most devices don't have, so the lettering changes.
+Arabic, one file per state (active, focus, pressed, disabled). They are the official SVGs (310 × 54), which stay sharp
+at any screen density. (The official PNGs exist only at 1x, so phones blur them.)
+
+Fonts: the guidelines don't name a typeface, but the official artwork sets the title as live text in
+**SF Pro Text Semibold**, 19 px (English) and **GE SS Two Medium**, 17 px (Arabic). Neither can be bundled: SF Pro is
+licensed by Apple for its own platforms only, and GE SS Two is a commercial typeface. An SVG used as an image can't
+use the page's fonts either, so devices without them draw the title in their own sans-serif. For identical
+lettering everywhere, ask UAE PASS onboarding for the artwork with the title converted to outlines (or 2×/3× PNGs).
 
 Never edit, recolour, crop or redraw these files, and never rebuild the button in code. To change style, take
 another file from the official set. Rules that apply (from the guidelines):
