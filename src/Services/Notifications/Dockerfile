@@ -5,7 +5,7 @@ COPY Directory.Build.props Directory.Packages.props ./
 COPY src/ src/
 RUN dotnet publish src/Services/Notifications/Dsp.Notifications.Api/Dsp.Notifications.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
 WORKDIR /app
 ENV PORT=8080
 EXPOSE 8080
