@@ -1562,6 +1562,10 @@
    "en": "Government services for businesses, investors and visitors, online.",
    "ar": "الخدمات الحكومية للشركات والمستثمرين والزوار، إلكترونيًا."
   },
+  "footer.copyright": {
+   "en": "© {year} {ministry}. All rights reserved.",
+   "ar": "© {year} {ministry}. جميع الحقوق محفوظة."
+  },
   "footer.rights": {
    "en": "All rights reserved.",
    "ar": "جميع الحقوق محفوظة."
@@ -3780,10 +3784,11 @@
    "portal",
    "backoffice"
   ],
-  "footer.rights": [
+  "footer.copyright": [
    "portal",
    "backoffice"
   ],
+  "footer.rights": [],
   "form.afterSubmit": [
    "portal"
   ],

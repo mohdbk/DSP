@@ -1,5 +1,5 @@
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
-import { countUnread, t } from '@dsp/core';
+import { countUnread, t, useLang } from '@dsp/core';
 import {
   EmptyState, Files, PortalFrame, requireSignedIn, Tray, validateListSearch,
 } from '@dsp/ui';
@@ -12,6 +12,7 @@ import { NotificationsPage } from './pages/Notifications';
 
 /** The portal frame: government header and footer, navigation and the signed-in citizen. */
 function Root() {
+  useLang(); // the portal name and labels below follow the language
   const user = currentUser();
   return (
     <PortalFrame service={t('app.portal')} homeLabel={t('app.portalHome')} publicPaths={['/login', '/auth']} onSignOut={signOut}
