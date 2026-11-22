@@ -11,7 +11,7 @@ namespace Dsp.UnitTests.EServices;
 
 public class InformationRequestTests
 {
-    private static readonly LocalizedText Question = new("Write the Arabic name in Arabic letters.", "اكتب الاسم بالعربية.");
+    private static readonly LocalizedText Question = TestText.Text("Write the Arabic name in Arabic letters.", "اكتب الاسم بالعربية.");
 
     private static ServiceApplication InAiReview()
     {

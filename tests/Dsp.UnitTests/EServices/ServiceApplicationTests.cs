@@ -129,7 +129,7 @@ public class ServiceRulesTests
     [InlineData("The MINISTRY Shop", false)]
     public void Trade_names_cannot_use_reserved_words(string name, bool valid)
     {
-        var errors = new TradeNameReservationRules().Validate(new Dictionary<string, string?> { ["tradeNameEn"] = name });
+        var errors = new TradeNameReservationRules().Validate(new Dictionary<string, string?> { ["tradeNameEn"] = name }, TestText.Messages());
 
         Assert.Equal(valid, !errors.Any());
     }
@@ -144,7 +144,7 @@ public class ServiceRulesTests
         {
             ["agreementStart"] = start,
             ["agreementEnd"] = end,
-        });
+        }, TestText.Messages());
 
         Assert.Equal(valid, !errors.Any());
     }
