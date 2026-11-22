@@ -134,6 +134,7 @@ IF NOT EXISTS (
 )
 BEGIN
     EXEC sp_rename N'[platform].[AiSettings].[ReviewEnabled]', N'Paused', 'COLUMN';
+    EXEC(N'UPDATE [platform].[AiSettings] SET [Paused] = 0;');
 END;
 
 IF NOT EXISTS (

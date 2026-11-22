@@ -115,6 +115,7 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122164209_PromptsPauseLanguageVisibility') THEN
     ALTER TABLE platform."AiSettings" RENAME COLUMN "ReviewEnabled" TO "Paused";
+    UPDATE platform."AiSettings" SET "Paused" = FALSE;
     END IF;
 END $EF$;
 

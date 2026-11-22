@@ -21,6 +21,9 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                 table: "AiSettings",
                 newName: "Paused");
 
+            // EF reused the old "use the model for the review" column (true) as Paused: start unpaused.
+            migrationBuilder.Sql("UPDATE platform.\"AiSettings\" SET \"Paused\" = FALSE;");
+
             migrationBuilder.AddColumn<bool>(
                 name: "HiddenInBackoffice",
                 schema: "platform",
@@ -82,6 +85,8 @@ namespace Dsp.Platform.Infrastructure.Persistence.Migrations.Postgres
                 schema: "platform",
                 table: "AiSettings",
                 newName: "ReviewEnabled");
+
+            migrationBuilder.Sql("UPDATE platform.\"AiSettings\" SET \"ReviewEnabled\" = TRUE;");
 
             migrationBuilder.AddColumn<bool>(
                 name: "ChatEnabled",
