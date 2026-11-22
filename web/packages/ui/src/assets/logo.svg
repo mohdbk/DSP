@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="56" viewBox="0 0 240 56" role="img" aria-label="MoET E-Services">
+  <rect x="0" y="4" width="48" height="48" rx="10" fill="#92722A"/>
+  <text x="24" y="38" text-anchor="middle" font-family="Noto Kufi Arabic, Tahoma, sans-serif" font-size="26" font-weight="700" fill="#FFFFFF">م</text>
+  <text x="60" y="26" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700" fill="#232528">MoET E-Services</text>
+  <text x="60" y="46" font-family="Inter, Arial, sans-serif" font-size="12" fill="#5E6267">Digital Services Platform</text>
+</svg>

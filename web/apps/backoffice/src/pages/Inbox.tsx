@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Alert, EmptyState, formatDate, RecommendationChip, Spinner, t, type ReviewTask } from '@dsp/shared';
+import { useEffect, useMemo, useState } from 'react';
+import { getRouteApi, useNavigate } from '@tanstack/react-router';
+import { formatDate, t, type ReviewTask, type TKey } from '@dsp/core';
+import { DataTable, listStateProps, Loading, Notice, PageHeader, RecommendationTag, Tag, type ColumnDef } from '@dsp/ui';
 import { api } from '../session';
+
+const route = getRouteApi('/inbox');
 
 export function InboxPage() {
   const navigate = useNavigate();
+  const search = route.useSearch();
   const [tasks, setTasks] = useState<ReviewTask[]>();
   const [error, setError] = useState<string>();
 
@@ -15,49 +19,35 @@ export function InboxPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const now = Date.now();
+  const columns = useMemo<ColumnDef<ReviewTask, string>[]>(() => [
+    { id: 'number', header: t('inbox.application'), accessorFn: x => x.applicationNumber, cell: c => <strong><bdi>{c.getValue()}</bdi></strong> },
+    { id: 'service', header: t('service'), accessorFn: x => x.serviceName, meta: { filter: true } },
+    { id: 'applicant', header: t('applicant'), accessorFn: x => x.applicantName },
+    { id: 'reference', header: t('reference'), accessorFn: x => x.referenceValue ?? '', cell: c => c.getValue() ? <bdi>{c.getValue()}</bdi> : '—' },
+    {
+      id: 'ai', header: t('inbox.ai'), accessorFn: x => x.aiRecommendation ?? '',
+      cell: c => <RecommendationTag value={c.getValue() || null} short />,
+      meta: { filter: true, filterLabel: v => t(`ai.recShort.${v}` as TKey) },
+    },
+    { id: 'received', header: t('received'), accessorFn: x => x.createdAt, cell: c => formatDate(c.getValue(), true) },
+    {
+      id: 'due', header: t('sla'), accessorFn: x => x.dueAt,
+      cell: c => new Date(c.getValue()).getTime() < Date.now()
+        ? <Tag variant="aered">{t('overdue')}</Tag>
+        : <span className="text-aeblack-600">{t('due', { date: formatDate(c.getValue()) })}</span>,
+    },
+  ], []);
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>{t('inbox.title')}</h1>
-          <p className="muted">{t('inbox.intro')}</p>
-        </div>
-        {tasks && <span className="tag">{t('inbox.open', { n: tasks.length })}</span>}
-      </div>
-      {error && <Alert kind="error">{error}</Alert>}
-      {!tasks && !error && <Spinner />}
-      {tasks?.length === 0 && <EmptyState title={t('inbox.empty')}>{t('inbox.emptyHint')}</EmptyState>}
-      {tasks && tasks.length > 0 && (
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>{t('inbox.application')}</th><th>{t('service')}</th><th>{t('applicant')}</th><th>{t('reference')}</th>
-                <th>{t('inbox.ai')}</th><th>{t('received')}</th><th>{t('sla')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.map(task => {
-                const overdue = new Date(task.dueAt).getTime() < now;
-                return (
-                  <tr key={task.id} className="clickable" onClick={() => navigate(`/tasks/${task.id}`)}>
-                    <td><strong><bdi>{task.applicationNumber}</bdi></strong></td>
-                    <td>{task.serviceName}</td>
-                    <td>{task.applicantName}</td>
-                    <td>{task.referenceValue ? <bdi>{task.referenceValue}</bdi> : '—'}</td>
-                    <td><RecommendationChip value={task.aiRecommendation} short /></td>
-                    <td>{formatDate(task.createdAt, true)}</td>
-                    <td>{overdue
-                      ? <span className="badge badge-Rejected">{t('overdue')}</span>
-                      : <span className="muted">{t('due', { date: formatDate(task.dueAt) })}</span>}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      <PageHeader title={t('inbox.title')} intro={t('inbox.intro')} badges={tasks && <Tag variant="aegold">{t('inbox.open', { n: tasks.length })}</Tag>} />
+      {error && <Notice kind="error">{error}</Notice>}
+      {!tasks && !error && <Loading />}
+      {tasks && (
+        <DataTable label={t('inbox.title')} data={tasks} columns={columns} getRowId={x => x.id}
+          onRowAction={x => navigate({ to: '/tasks/$id', params: { id: x.id } })}
+          {...listStateProps(search, next => navigate({ to: '/inbox', search: next, replace: true }))}
+          emptyTitle={t('inbox.empty')} emptyHint={t('inbox.emptyHint')} />
       )}
     </>
   );

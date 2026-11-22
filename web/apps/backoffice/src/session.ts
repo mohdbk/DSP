@@ -1,18 +1,11 @@
-import { createApi, readClaims } from '@dsp/shared';
-
-export const api = createApi('dsp.backoffice.token', () => {
-  if (!location.pathname.startsWith('/login')) location.assign('/login');
-});
+import { createSession } from '@dsp/core';
 
 export interface StaffUser { id: string; name: string; title?: string; email?: string }
 
-export function currentUser(): StaffUser | null {
-  const claims = readClaims(api.token());
-  if (!claims || claims.role !== 'staff') return null;
-  return { id: claims.sub, name: claims.name, title: claims.title, email: claims.email };
-}
-
-export function signOut() {
-  api.setToken(null);
-  location.assign('/login');
-}
+export const { api, currentUser, signOut } = createSession<StaffUser>({
+  storageKey: 'dsp.backoffice.token',
+  role: 'staff',
+  loginPath: '/login',
+  mapUser: c => ({ id: c.sub, name: c.name, title: c.title, email: c.email }),
+  signOutUrl: () => '/login',
+});

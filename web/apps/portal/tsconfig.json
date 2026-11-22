@@ -11,5 +11,5 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": false
   },
-  "include": ["src", "../../packages/shared/src"]
+  "include": ["src", "../../packages/core/src", "../../packages/ui/src"]
 }

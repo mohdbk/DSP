@@ -99,3 +99,20 @@ export async function openBlob(blob: Blob, fileName?: string) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
+
+/** Uploads a document for the signed-in user (Documents service) and returns its ID and stored name. */
+export async function uploadDocument(api: ApiClient, file: File): Promise<{ id: string; fileName: string }> {
+  const doc = await api.upload<{ id: string; fileName: string }>('/api/documents/documents', file);
+  return { id: doc.id, fileName: doc.fileName };
+}
+
+/** Opens a stored document (uploads, certificates) in a new tab, or downloads it. */
+export async function openDocument(api: ApiClient, documentId: string, fileName?: string) {
+  openBlob(await api.download(`/api/documents/documents/${documentId}/content`), fileName);
+}
+
+/** Unread in-app notifications for the signed-in user. */
+export async function countUnread(api: ApiClient): Promise<number> {
+  const items = await api.get<{ isRead: boolean }[]>('/api/notifications/me');
+  return items.filter(n => !n.isRead).length;
+}

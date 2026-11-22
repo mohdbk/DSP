@@ -9,16 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@dsp/shared": "*",
+    "@dsp/core": "*",
+    "@dsp/ui": "*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.0.0"
+    "@tanstack/react-router": "^1.170.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "^5.6.0",
-    "vite": "^7.0.0"
+    "vite": "^7.0.0",
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/vite": "^4.1.0"
   }
 }

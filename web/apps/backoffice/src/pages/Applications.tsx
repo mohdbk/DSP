@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { getRouteApi, useNavigate, useParams } from '@tanstack/react-router';
+import { formatDate, openDocument, t, type Application, type ApplicationStatus, type TKey } from '@dsp/core';
 import {
-  AiReviewPanel, Alert, DynamicForm, EmptyState, formatDate, formatMoney, loc, openBlob, Spinner, StatusBadge, t,
-  type AiAssessment, type Application, type ServiceDefinition,
-} from '@dsp/shared';
+  AegovButton, ApplicationCase, DataTable, listStateProps, Loading, Notice, PageHeader, StatusBadge, type ColumnDef,
+} from '@dsp/ui';
 import { api } from '../session';
+import { useCase } from './useCase';
+
+const route = getRouteApi('/applications');
 
 export function ApplicationsPage() {
   const navigate = useNavigate();
+  const search = route.useSearch();
   const [apps, setApps] = useState<Application[]>();
   const [error, setError] = useState<string>();
 
@@ -15,106 +19,60 @@ export function ApplicationsPage() {
     api.get<Application[]>('/api/eservices/applications?all=true').then(setApps).catch(e => setError(e.message));
   }, []);
 
+  const columns = useMemo<ColumnDef<Application, string>[]>(() => [
+    { id: 'number', header: t('number'), accessorFn: a => a.number, cell: c => <strong><bdi>{c.getValue()}</bdi></strong> },
+    { id: 'service', header: t('service'), accessorFn: a => a.serviceName, meta: { filter: true } },
+    { id: 'applicant', header: t('applicant'), accessorFn: a => a.applicantName },
+    { id: 'reference', header: t('reference'), accessorFn: a => a.referenceValue ?? '', cell: c => c.getValue() ? <bdi>{c.getValue()}</bdi> : '—' },
+    {
+      id: 'process', header: t('workflow'), accessorFn: a => String(a.workflowVersion),
+      cell: c => t(c.getValue() === '2' ? 'process.v2' : 'process.v1'),
+      meta: { filter: true, filterLabel: v => t(v === '2' ? 'process.v2' : 'process.v1') },
+    },
+    {
+      id: 'status', header: t('status'), accessorFn: a => a.status, cell: c => <StatusBadge status={c.getValue() as ApplicationStatus} />,
+      meta: { filter: true, filterLabel: v => t(`status.${v}` as TKey) },
+    },
+    { id: 'updated', header: t('updated'), accessorFn: a => a.updatedAt, cell: c => formatDate(c.getValue(), true) },
+  ], []);
+
   return (
     <>
-      <div className="page-head"><h1>{t('apps.title')}</h1></div>
-      {error && <Alert kind="error">{error}</Alert>}
-      {!apps && !error && <Spinner />}
-      {apps?.length === 0 && <EmptyState title={t('apps.empty')} />}
-      {apps && apps.length > 0 && (
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr><th>{t('number')}</th><th>{t('service')}</th><th>{t('applicant')}</th><th>{t('reference')}</th><th>{t('status')}</th><th>{t('updated')}</th></tr>
-            </thead>
-            <tbody>
-              {apps.map(a => (
-                <tr key={a.id} className="clickable" onClick={() => navigate(`/applications/${a.id}`)}>
-                  <td><strong><bdi>{a.number}</bdi></strong></td>
-                  <td>{a.serviceName} {a.workflowVersion === 2 && <span className="ai-tag" title={t('process.v2')}>✨</span>}</td>
-                  <td>{a.applicantName}</td>
-                  <td>{a.referenceValue ? <bdi>{a.referenceValue}</bdi> : '—'}</td>
-                  <td><StatusBadge status={a.status} /></td>
-                  <td>{formatDate(a.updatedAt, true)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <PageHeader title={t('apps.title')} />
+      {error && <Notice kind="error">{error}</Notice>}
+      {!apps && !error && <Loading />}
+      {apps && (
+        <DataTable label={t('apps.title')} data={apps} columns={columns} getRowId={a => a.id}
+          onRowAction={a => navigate({ to: '/applications/$id', params: { id: a.id } })}
+          {...listStateProps(search, next => navigate({ to: '/applications', search: next, replace: true }))}
+          emptyTitle={t('apps.empty')} />
       )}
     </>
   );
 }
 
 export function ApplicationDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams({ strict: false }) as { id: string };
   const navigate = useNavigate();
-  const [app, setApp] = useState<Application>();
-  const [service, setService] = useState<ServiceDefinition>();
-  const [assessments, setAssessments] = useState<AiAssessment[]>();
-  const [error, setError] = useState<string>();
+  const { app, service, assessments, error } = useCase(id);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const a = await api.get<Application>(`/api/eservices/applications/${id}`);
-        setApp(a);
-        const [svc, ai] = await Promise.all([
-          api.get<ServiceDefinition>(`/api/eservices/services/${a.serviceCode}?version=${a.serviceVersion}`),
-          api.get<AiAssessment[]>(`/api/eservices/applications/${a.id}/assessments`),
-        ]);
-        setService(svc);
-        setAssessments(ai);
-      } catch (e) {
-        setError((e as Error).message);
-      }
-    })();
-  }, [id]);
-
-  if (error) return <Alert kind="error">{error}</Alert>;
-  if (!app || !service) return <Spinner />;
+  if (error) return <Notice kind="error">{error}</Notice>;
+  if (!app || !service) return <Loading />;
 
   return (
-    <>
-      <div className="page-head">
-        <div>
-          <div className="muted"><bdi>{app.number}</bdi></div>
-          <h1>{loc(service.name, service.nameAr)}</h1>
-          <StatusBadge status={app.status} />
-        </div>
-        <button className="btn btn-ghost" onClick={() => navigate('/applications')}>{t('apps.back')}</button>
-      </div>
-      <div className="split">
-        <div className="card">
-          {service.steps.map(s => (
-            <section key={s.id} style={{ marginBottom: 16 }}>
-              <h3>{loc(s.title, s.titleAr)}</h3>
-              <DynamicForm step={{ ...s, description: null }} values={app.data} readOnly
-                onOpenFile={async docId => openBlob(await api.download(`/api/documents/documents/${docId}/content`))} />
-            </section>
-          ))}
-        </div>
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="card">
-            <dl className="kv">
-              <dt>{t('applicant')}</dt><dd>{app.applicantName}</dd>
-              <dt>{t('submitted')}</dt><dd>{formatDate(app.submittedAt, true)}</dd>
-              <dt>{t('workflow')}</dt><dd>{t(app.workflowVersion === 2 ? 'process.v2' : 'process.v1')} · v{app.serviceVersion}</dd>
-              <dt>{t('decision')}</dt><dd>{app.approved == null ? '—' : app.approved ? t('approved') : t('rejected')}</dd>
-              {app.decisionComment && <><dt>{t('comment')}</dt><dd>{app.decisionComment}</dd></>}
-              <dt>{t('fee')}</dt><dd>{formatMoney(app.fee, app.currency)}</dd>
-              <dt>{t('completed')}</dt><dd>{formatDate(app.completedAt, true) || '—'}</dd>
-            </dl>
-            {app.certificateDocumentId && (
-              <button className="btn btn-secondary" style={{ marginTop: 16, width: '100%' }}
-                onClick={async () => openBlob(await api.download(`/api/documents/documents/${app.certificateDocumentId}/content`))}>
-                {t('apps.viewCertificate')}
-              </button>
-            )}
-          </div>
-          <AiReviewPanel assessments={assessments} workflowVersion={app.workflowVersion} />
-        </aside>
-      </div>
-    </>
+    <ApplicationCase app={app} service={service} assessments={assessments} onOpenFile={docId => openDocument(api, docId)}
+      summaryExtra={[
+        { label: t('decision'), value: app.approved == null ? '—' : app.approved ? t('approved') : t('rejected') },
+        ...(app.decisionComment ? [{ label: t('comment'), value: app.decisionComment }] : []),
+        { label: t('completed'), value: formatDate(app.completedAt, true) || '—' },
+      ]}
+      actions={(
+        <>
+          {app.certificateDocumentId && (
+            <AegovButton appearance="outline" onAegovButtonClick={() => openDocument(api, app.certificateDocumentId!)}>{t('apps.viewCertificate')}</AegovButton>
+          )}
+          <AegovButton appearance="link" onAegovButtonClick={() => navigate({ to: '/applications' })}>{t('apps.back')}</AegovButton>
+        </>
+      )} />
   );
 }
