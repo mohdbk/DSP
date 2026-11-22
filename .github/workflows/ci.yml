@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dotnet:
+    name: .NET build, tests and vulnerable packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore Dsp.sln
+
+      - name: Build
+        run: dotnet build Dsp.sln -c Release --no-restore
+
+      - name: Test
+        run: >
+          dotnet test Dsp.sln -c Release --no-build
+          --logger "trx;LogFilePrefix=results"
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+
+      - name: Check for vulnerable NuGet packages
+        run: |
+          dotnet list Dsp.sln package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt
+          if grep -q "has the following vulnerable packages" vulnerable.txt; then
+            echo "::error::Vulnerable NuGet packages found. See the log above."
+            exit 1
+          fi
+
+      - name: Check for model changes without a migration
+        run: |
+          dotnet tool install --global dotnet-ef --version "10.*"
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          for svc in Identity EServices Payments Documents Notifications; do
+            proj="src/Services/$svc/Dsp.$svc.Infrastructure"
+            for prov in SqlServer Postgres; do
+              dotnet ef migrations has-pending-model-changes --no-build --configuration Release \
+                --project "$proj" --startup-project "$proj" --context "${svc}${prov}DbContext"
+            done
+          done
+
+  web:
+    name: Portals build, type check and npm audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        run: npm install --no-fund
+
+      - name: Type check
+        run: |
+          npx tsc -p apps/portal --noEmit
+          npx tsc -p apps/backoffice --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: npm audit (high and critical)
+        run: npm audit --audit-level=high
