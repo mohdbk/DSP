@@ -35,7 +35,7 @@ export function LoginPage() {
     <div className="mx-auto max-w-xl">
       <PageHeader title={t('login.title')} intro={t('login.intro')} />
       <Panel>
-        {error && <Notice kind="error">{error}</Notice>}
+        {error && <Notice kind="error">{t(error)}</Notice>}
         {!providers && !error && <Loading />}
         {providers?.length === 0 && <Notice kind="warning">{t('login.none')}</Notice>}
         <div className="flex flex-col items-center gap-3">

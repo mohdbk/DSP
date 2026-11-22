@@ -9,6 +9,9 @@ import { ApplicationDetailPage, ApplicationsPage } from './pages/Applications';
 import { ServicesPage } from './pages/builder/Services';
 import { NewServicePage } from './pages/builder/NewService';
 import { ServiceEditorPage } from './pages/builder/ServiceEditor';
+import { LanguagesPage } from './pages/settings/Languages';
+import { TranslationsPage } from './pages/settings/Translations';
+import { AiSettingsPage } from './pages/settings/AiSettings';
 
 /** The back-office frame: government header and footer, staff navigation and the signed-in officer. */
 function Root() {
@@ -21,6 +24,7 @@ function Root() {
         { href: '/inbox', label: t('nav.inbox'), active: pathname.startsWith('/inbox') || pathname.startsWith('/tasks') },
         { href: '/applications', label: t('nav.allApplications'), active: pathname.startsWith('/applications') },
         { href: '/services', label: t('nav.builder'), active: pathname.startsWith('/services') },
+        { href: '/settings/languages', label: t('nav.settings'), active: pathname.startsWith('/settings') },
       ]} />
   );
 }
@@ -53,9 +57,23 @@ const servicesRoute = createRoute({
 const newServiceRoute = createRoute({ getParentRoute: () => rootRoute, path: '/services/new', beforeLoad: guard, component: NewServicePage });
 const serviceRoute = createRoute({ getParentRoute: () => rootRoute, path: '/services/$code', beforeLoad: guard, component: ServiceEditorPage });
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute, path: '/settings', beforeLoad: () => { throw redirect({ to: '/settings/languages' }); },
+});
+const languagesRoute = createRoute({
+  getParentRoute: () => rootRoute, path: '/settings/languages', beforeLoad: guard, validateSearch: validateListSearch,
+  component: LanguagesPage,
+});
+const translationsRoute = createRoute({
+  getParentRoute: () => rootRoute, path: '/settings/translations', beforeLoad: guard, validateSearch: validateListSearch,
+  component: TranslationsPage,
+});
+const aiSettingsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/settings/ai', beforeLoad: guard, component: AiSettingsPage });
+
 export const router = createRouter({
   routeTree: rootRoute.addChildren([
     indexRoute, loginRoute, inboxRoute, taskRoute, applicationsRoute, applicationRoute, servicesRoute, newServiceRoute, serviceRoute,
+    settingsRoute, languagesRoute, translationsRoute, aiSettingsRoute,
   ]),
 });
 

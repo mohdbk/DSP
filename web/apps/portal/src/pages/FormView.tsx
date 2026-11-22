@@ -60,7 +60,7 @@ export function FormView({ app, service, onChange, resubmit }: {
     }
   }
 
-  const titles = [...steps.map(s => loc(s.title, s.titleAr)), t('form.review')];
+  const titles = [...steps.map(s => loc(s.title)), t('form.review')];
 
   return (
     <Panel>

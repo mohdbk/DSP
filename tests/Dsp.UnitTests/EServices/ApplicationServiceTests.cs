@@ -30,7 +30,7 @@ public class ApplicationServiceTests
         _bus = new RecordingBus(_log);
         _service = new ApplicationService(new EmbeddedServiceCatalog(), _apps,
             [new TradeNameReservationRules(), new CommercialAgencyRules()], _workflow, new StatusNotifier(_bus),
-            new InMemoryAssessments());
+            new InMemoryAssessments(), TestText.Messages());
     }
 
     private static Dictionary<string, string?> ValidTradeName(string name = "Falcon Trading") => new()

@@ -4,19 +4,19 @@ using Dsp.SharedKernel;
 
 namespace Dsp.EServices.Application;
 
-public sealed record ServiceSummaryDto(string Code, string Name, string? NameAr, string Description, string? DescriptionAr,
-    string Category, string? CategoryAr, decimal Fee, string Currency, int StepCount, int Version, int WorkflowVersion)
+/// <summary>A service in the catalogue. Texts come in every language they have; clients pick the reader's.</summary>
+public sealed record ServiceSummaryDto(string Code, LocalizedText Name, LocalizedText Description, LocalizedText Category,
+    decimal Fee, string Currency, int StepCount, int Version, int WorkflowVersion)
 {
     public static ServiceSummaryDto From(ServiceDefinition d) =>
-        new(d.Code, d.Name, d.NameAr, d.Description, d.DescriptionAr, d.Category, d.CategoryAr, d.Fee, d.Currency,
-            d.Steps.Count, d.Version, d.WorkflowVersion);
+        new(d.Code, d.Name, d.Description, d.Category, d.Fee, d.Currency, d.Steps.Count, d.Version, d.WorkflowVersion);
 }
 
 public sealed record ApplicationDto(
     Guid Id,
     string Number,
     string ServiceCode,
-    string ServiceName,
+    LocalizedText ServiceName,
     int ServiceVersion,
     int WorkflowVersion,
     string ApplicantId,
@@ -44,7 +44,7 @@ public sealed record ApplicationDto(
 }
 
 public sealed record ReviewTaskDto(Guid Id, Guid ApplicationId, string ApplicationNumber, string ServiceCode,
-    string ServiceName, string ApplicantName, string? ReferenceValue, string Status, DateTimeOffset CreatedAt,
+    LocalizedText ServiceName, string ApplicantName, string? ReferenceValue, string Status, DateTimeOffset CreatedAt,
     DateTimeOffset DueAt, DateTimeOffset? CompletedAt, string? Outcome, string? AiRecommendation)
 {
     public static ReviewTaskDto From(ReviewTask t) => new(t.Id, t.ApplicationId, t.ApplicationNumber, t.ServiceCode,
@@ -52,11 +52,11 @@ public sealed record ReviewTaskDto(Guid Id, Guid ApplicationId, string Applicati
         t.Outcome, t.AiRecommendation);
 }
 
-public sealed record AiAssessmentDto(Guid Id, int Round, string Recommendation, string Summary,
+public sealed record AiAssessmentDto(Guid Id, int Round, string Recommendation, LocalizedText Summary,
     IReadOnlyList<AiFinding> Findings, IReadOnlyList<LocalizedText> Questions, string Mode, string? Model,
     DateTimeOffset CreatedAt)
 {
-    public static AiAssessmentDto From(AiAssessment a) => new(a.Id, a.Round, a.Recommendation, a.Summary,
+    public static AiAssessmentDto From(AiAssessment a) => new(a.Id, a.Round, a.Recommendation, a.GetSummary(),
         a.GetFindings(), a.GetQuestions(), a.Mode, a.Model, a.CreatedAt);
 }
 
@@ -70,7 +70,7 @@ public sealed record DecisionRequest(bool Approve, string? Comment);
 
 // Service builder
 
-public sealed record BuilderServiceSummaryDto(string Code, string Name, string? NameAr, string Category,
+public sealed record BuilderServiceSummaryDto(string Code, LocalizedText Name, LocalizedText Category,
     int? PublishedVersion, int? DraftVersion, int WorkflowVersion, DateTimeOffset UpdatedAt, string UpdatedBy);
 
 public sealed record ServiceVersionDto(int Version, string Status, DateTimeOffset CreatedAt, string CreatedBy,

@@ -22,8 +22,8 @@ public static class AiRecommendations
     };
 }
 
-/// <summary>One finding of the AI pre-review. Severity is "info", "warning" or "issue".</summary>
-public sealed record AiFinding(string Severity, string? Field, string Message);
+/// <summary>One finding of the AI pre-review, in every enabled language. Severity is "info", "warning" or "issue".</summary>
+public sealed record AiFinding(string Severity, string? Field, LocalizedText Message);
 
 /// <summary>
 /// The result of one AI pre-review round, kept for audit. It is advice: the AI can ask the applicant for
@@ -36,6 +36,7 @@ public sealed class AiAssessment : Entity
     public Guid ApplicationId { get; private set; }
     public int Round { get; private set; }
     public string Recommendation { get; private set; } = AiRecommendations.Unavailable;
+    /// <summary>The summary in every enabled language, stored as a JSON map (older rows hold English text).</summary>
     public string Summary { get; private set; } = "";
     public string FindingsJson { get; private set; } = "[]";
     public string QuestionsJson { get; private set; } = "[]";
@@ -46,16 +47,16 @@ public sealed class AiAssessment : Entity
     public string? Model { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
-    public static AiAssessment Create(Guid applicationId, int round, string recommendation, string summary,
+    public static AiAssessment Create(Guid applicationId, int round, string recommendation, LocalizedText summary,
         IReadOnlyList<AiFinding> findings, IReadOnlyList<LocalizedText> questions, string mode, string? model)
     {
-        if (round < 1) throw new DomainException("Review rounds start at 1.");
+        if (round < 1) throw new DomainException("errors.assessment.round");
         return new AiAssessment
         {
             ApplicationId = applicationId,
             Round = round,
             Recommendation = AiRecommendations.Normalize(recommendation),
-            Summary = Truncate(summary, 2000),
+            Summary = Truncate(summary.ToJson(), 4000),
             FindingsJson = JsonSerializer.Serialize(findings.Take(50).ToList()),
             QuestionsJson = JsonSerializer.Serialize(questions.Take(10).ToList()),
             Mode = mode,
@@ -63,6 +64,8 @@ public sealed class AiAssessment : Entity
             CreatedAt = DateTimeOffset.UtcNow,
         };
     }
+
+    public LocalizedText GetSummary() => LocalizedText.Parse(Summary);
 
     public IReadOnlyList<AiFinding> GetFindings() =>
         JsonSerializer.Deserialize<List<AiFinding>>(FindingsJson) ?? [];

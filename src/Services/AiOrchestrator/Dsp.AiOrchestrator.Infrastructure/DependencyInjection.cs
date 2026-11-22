@@ -13,7 +13,14 @@ public static class DependencyInjection
         var llm = new LlmOptions();
         configuration.GetSection("Llm").Bind(llm);
         services.AddSingleton(llm);
-        services.AddHttpClient<ILlmClient, OpenAiCompatibleLlmClient>(c => c.Timeout = TimeSpan.FromSeconds(90));
+        // Each call is bounded by the timeout in the AI settings; this is only an outer limit.
+        services.AddHttpClient<ILlmClient, OpenAiCompatibleLlmClient>(c => c.Timeout = TimeSpan.FromMinutes(11));
+        services.AddHttpClient<IAiSettingsProvider, PlatformAiSettingsProvider>(c =>
+        {
+            c.BaseAddress = new Uri(configuration["Services:Platform"] ?? "http://platform.railway.internal:8080");
+            c.DefaultRequestHeaders.Add(InternalApi.Header, configuration["Internal:ApiKey"] ?? "");
+            c.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         services.AddTransient<BearerForwardingHandler>();
         services.AddHttpClient<IEServicesApi, EServicesApiClient>(c =>

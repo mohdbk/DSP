@@ -1,2 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../Dsp.SharedKernel/Dsp.SharedKernel.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getLang, t, type Application, type ChatMessage, type ChatResponse } from '@dsp/core';
+import { t, type Application, type ChatMessage, type ChatResponse } from '@dsp/core';
 import { AegovButton, ChatThread, Notice, Panel, TextField } from '@dsp/ui';
 import { api } from '../session';
 
@@ -34,7 +34,7 @@ export function ChatView({ app, onApplication }: {
     setError(undefined);
     try {
       const res = await api.post<ChatResponse>('/api/v1/ai/chat', {
-        applicationId: app.id, messages, pendingField: state.pendingField, language: getLang(),
+        applicationId: app.id, messages, pendingField: state.pendingField,
       });
       setState({ messages: [...messages, { role: 'assistant', content: res.reply }], pendingField: res.pendingField ?? null, mode: res.mode });
       onApplication(res.application);

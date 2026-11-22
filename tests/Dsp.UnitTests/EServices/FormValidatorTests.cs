@@ -1,9 +1,12 @@
 using Dsp.EServices.Domain.Catalog;
+using Dsp.SharedKernel;
 
 namespace Dsp.UnitTests.EServices;
 
 public class FormValidatorTests
 {
+    private static readonly IMessages M = TestText.Messages();
+
     private static ServiceDefinition Service(params FieldDefinition[] fields) => new()
     {
         Code = "TEST",
@@ -20,7 +23,7 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "name", Label = "Name", Required = true });
 
-        var errors = FormValidator.Validate(service, Data());
+        var errors = FormValidator.Validate(service, Data(), M);
 
         var error = Assert.Single(errors);
         Assert.Equal("name", error.Field);
@@ -32,7 +35,7 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "notes", Label = "Notes" });
 
-        Assert.Empty(FormValidator.Validate(service, Data(("notes", ""))));
+        Assert.Empty(FormValidator.Validate(service, Data(("notes", "")), M));
     }
 
     [Theory]
@@ -42,7 +45,7 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "email", Label = "Email", Type = FieldTypes.Email, Required = true });
 
-        Assert.Equal(valid, FormValidator.Validate(service, Data(("email", value))).Count == 0);
+        Assert.Equal(valid, FormValidator.Validate(service, Data(("email", value)), M).Count == 0);
     }
 
     [Theory]
@@ -60,7 +63,7 @@ public class FormValidatorTests
             PatternMessage = "Enter the Emirates ID as 784-YYYY-NNNNNNN-N.",
         });
 
-        var errors = FormValidator.Validate(service, Data(("emiratesId", value)));
+        var errors = FormValidator.Validate(service, Data(("emiratesId", value)), M);
 
         Assert.Equal(valid, errors.Count == 0);
         if (!valid) Assert.Equal("Enter the Emirates ID as 784-YYYY-NNNNNNN-N.", errors[0].Message);
@@ -78,8 +81,8 @@ public class FormValidatorTests
             Options = [new FieldOption { Value = "DXB", Label = "Dubai" }, new FieldOption { Value = "AUH", Label = "Abu Dhabi" }],
         });
 
-        Assert.Empty(FormValidator.Validate(service, Data(("emirate", "DXB"))));
-        Assert.Single(FormValidator.Validate(service, Data(("emirate", "Dubai"))));
+        Assert.Empty(FormValidator.Validate(service, Data(("emirate", "DXB")), M));
+        Assert.Single(FormValidator.Validate(service, Data(("emirate", "Dubai")), M));
     }
 
     [Theory]
@@ -90,7 +93,7 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "start", Label = "Start", Type = FieldTypes.Date, Required = true });
 
-        Assert.Equal(valid, FormValidator.Validate(service, Data(("start", value))).Count == 0);
+        Assert.Equal(valid, FormValidator.Validate(service, Data(("start", value)), M).Count == 0);
     }
 
     [Fact]
@@ -98,10 +101,10 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "count", Label = "Count", Type = FieldTypes.Number, Min = 1, Max = 10 });
 
-        Assert.Empty(FormValidator.Validate(service, Data(("count", "5"))));
-        Assert.Single(FormValidator.Validate(service, Data(("count", "0"))));
-        Assert.Single(FormValidator.Validate(service, Data(("count", "11"))));
-        Assert.Single(FormValidator.Validate(service, Data(("count", "abc"))));
+        Assert.Empty(FormValidator.Validate(service, Data(("count", "5")), M));
+        Assert.Single(FormValidator.Validate(service, Data(("count", "0")), M));
+        Assert.Single(FormValidator.Validate(service, Data(("count", "11")), M));
+        Assert.Single(FormValidator.Validate(service, Data(("count", "abc")), M));
     }
 
     [Fact]
@@ -109,8 +112,8 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "declaration", Label = "I confirm", Type = FieldTypes.Checkbox, Required = true });
 
-        Assert.Single(FormValidator.Validate(service, Data(("declaration", ""))));
-        Assert.Empty(FormValidator.Validate(service, Data(("declaration", "true"))));
+        Assert.Single(FormValidator.Validate(service, Data(("declaration", "")), M));
+        Assert.Empty(FormValidator.Validate(service, Data(("declaration", "true")), M));
     }
 
     [Fact]
@@ -118,8 +121,8 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "file", Label = "Agreement", Type = FieldTypes.File, Required = true });
 
-        Assert.Single(FormValidator.Validate(service, Data(("file", "agreement.pdf"))));
-        Assert.Empty(FormValidator.Validate(service, Data(("file", Guid.NewGuid().ToString()))));
+        Assert.Single(FormValidator.Validate(service, Data(("file", "agreement.pdf")), M));
+        Assert.Empty(FormValidator.Validate(service, Data(("file", Guid.NewGuid().ToString())), M));
     }
 
     [Fact]
@@ -129,7 +132,7 @@ public class FormValidatorTests
             new FieldDefinition { Key = "a", Label = "A", Required = true },
             new FieldDefinition { Key = "b", Label = "B", Required = true });
 
-        var errors = FormValidator.Validate(service, Data(("a", "x"), ("zzz", "y")), ["a", "zzz"]);
+        var errors = FormValidator.Validate(service, Data(("a", "x"), ("zzz", "y")), M, ["a", "zzz"]);
 
         var error = Assert.Single(errors);
         Assert.Equal("zzz", error.Field);
@@ -140,8 +143,8 @@ public class FormValidatorTests
     {
         var service = Service(new FieldDefinition { Key = "name", Label = "Name", MinLength = 3, MaxLength = 5 });
 
-        Assert.Single(FormValidator.Validate(service, Data(("name", "ab"))));
-        Assert.Single(FormValidator.Validate(service, Data(("name", "abcdef"))));
-        Assert.Empty(FormValidator.Validate(service, Data(("name", "abcd"))));
+        Assert.Single(FormValidator.Validate(service, Data(("name", "ab")), M));
+        Assert.Single(FormValidator.Validate(service, Data(("name", "abcdef")), M));
+        Assert.Empty(FormValidator.Validate(service, Data(("name", "abcd")), M));
     }
 }

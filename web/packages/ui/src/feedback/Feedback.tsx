@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { AegovBadge, AegovCallout, AegovProgress } from '@aegov/designsystem-react';
-import { t, type ApplicationStatus, type TKey } from '@dsp/core';
+import { t, type ApplicationStatus } from '@dsp/core';
 
 type CalloutVariant = 'default' | 'error' | 'info' | 'success' | 'warning';
 
@@ -66,7 +66,7 @@ const statusVariants: Record<ApplicationStatus, BadgeVariant> = {
 
 /** An application's status, in words (never colour alone). */
 export function StatusBadge({ status }: { status: ApplicationStatus }) {
-  return <Tag variant={statusVariants[status] ?? 'default'}>{t(`status.${status}` as TKey)}</Tag>;
+  return <Tag variant={statusVariants[status] ?? 'default'}>{t(`status.${status}`)}</Tag>;
 }
 
 /** An amount, kept left-to-right so "AED" stays before the number in Arabic too. */

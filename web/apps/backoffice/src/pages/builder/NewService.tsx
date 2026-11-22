@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { ApiError, t, type BuilderService, type FieldError, type ServiceDefinition } from '@dsp/core';
-import { AegovButton, AegovLink, Notice, PageHeader, Panel, TextField } from '@dsp/ui';
+import { ApiError, getDefaultLang, getLang, t, type BuilderService, type FieldError, type LocalizedText, type ServiceDefinition } from '@dsp/core';
+import { AegovButton, AegovLink, MultilingualField, Notice, PageHeader, Panel, TextField } from '@dsp/ui';
 import { api } from '../../session';
 
+/** A text in the editor's language (staff fill in the other languages in the editor). */
+const textNow = (text: string): LocalizedText => ({ [getLang()]: text });
+
 /** A starting point for a new service: one step, one field, ready to edit. */
-function blankService(code: string, name: string, nameAr: string): ServiceDefinition {
+function blankService(code: string, name: LocalizedText): ServiceDefinition {
   return {
-    code, name, nameAr, description: '', descriptionAr: '', category: 'General', categoryAr: 'عام',
+    code, name, description: {}, category: textNow(t('builder.defaultCategory')),
     fee: 100, currency: 'AED', referenceField: null, workflowVersion: 1, reviewChecklist: [],
     steps: [{
-      id: 'applicant', title: 'Applicant details', titleAr: 'بيانات مقدم الطلب', fields: [
-        { key: 'fullName', label: 'Full name', labelAr: 'الاسم الكامل', type: 'text', required: true, maxLength: 150, prefillFrom: 'name' },
+      id: 'applicant', title: textNow(t('builder.defaultStep')), fields: [
+        { key: 'fullName', label: textNow(t('builder.defaultFullName')), type: 'text', required: true, maxLength: 150, prefillFrom: 'name' },
       ],
     }],
   };
@@ -21,8 +24,7 @@ function blankService(code: string, name: string, nameAr: string): ServiceDefini
 export function NewServicePage() {
   const navigate = useNavigate();
   const [code, setCode] = useState('');
-  const [name, setName] = useState('');
-  const [nameAr, setNameAr] = useState('');
+  const [name, setName] = useState<LocalizedText | null>(null);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<FieldError[]>([]);
   const [error, setError] = useState<string>();
@@ -34,7 +36,7 @@ export function NewServicePage() {
     setError(undefined);
     setErrors([]);
     try {
-      const created = await api.post<BuilderService>('/api/v1/eservices/builder/services', blankService(code.trim(), name.trim(), nameAr.trim()));
+      const created = await api.post<BuilderService>('/api/v1/eservices/builder/services', blankService(code.trim(), name ?? {}));
       navigate({ to: '/services/$code', params: { code: created.code }, replace: true });
     } catch (ex) {
       if (ex instanceof ApiError && ex.errors.length) setErrors(ex.errors);
@@ -52,11 +54,9 @@ export function NewServicePage() {
           {error && <Notice kind="error">{error}</Notice>}
           <TextField id="code" label={t('builder.code')} hint={t('builder.codeHelp')} error={err('code')} dir="ltr" required
             placeholder="BUSINESS_PERMIT" value={code} onChange={v => setCode(v.toUpperCase().replace(/[^A-Z0-9_]/g, '_'))} />
-          <div className="grid gap-x-4 sm:grid-cols-2">
-            <TextField id="name" label={t('builder.nameEn')} dir="ltr" required value={name} onChange={setName} error={err('name')} />
-            <TextField id="nameAr" label={t('builder.nameAr')} dir="rtl" value={nameAr} onChange={setNameAr} error={err('nameAr')} />
-          </div>
-          <AegovButton type="submit" isLoading={busy} isDisabled={!code || !name}>{t('builder.create')}</AegovButton>
+          <MultilingualField id="name" label={t('builder.name')} value={name} onChange={setName}
+            error={c => err(`name.${c}`) ?? err('name')} />
+          <AegovButton type="submit" isLoading={busy} isDisabled={!code || !name?.[getDefaultLang()]}>{t('builder.create')}</AegovButton>
         </form>
       </Panel>
     </div>

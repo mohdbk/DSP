@@ -20,6 +20,7 @@ var services = new Dictionary<string, (string DefaultUrl, TimeSpan Timeout)>
     ["payments"] = ("http://payments.railway.internal:8080", TimeSpan.FromSeconds(30)),
     ["documents"] = ("http://documents.railway.internal:8080", TimeSpan.FromSeconds(60)),
     ["notifications"] = ("http://notifications.railway.internal:8080", TimeSpan.FromSeconds(30)),
+    ["platform"] = ("http://platform.railway.internal:8080", TimeSpan.FromSeconds(30)),
     ["ai"] = ("http://ai-orchestrator.railway.internal:8080", TimeSpan.FromSeconds(150)),
 };
 

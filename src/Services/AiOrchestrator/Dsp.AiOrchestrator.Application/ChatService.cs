@@ -1,24 +1,21 @@
 using System.Text.Json;
 using Dsp.AiOrchestrator.Domain;
+using Dsp.SharedKernel;
 using Microsoft.Extensions.Logging;
 
 namespace Dsp.AiOrchestrator.Application;
 
-/// <param name="Language">"en" or "ar": the language the assistant replies in.</param>
-public sealed record ChatRequest(Guid ApplicationId, IReadOnlyList<ChatMessage> Messages, string? PendingField,
-    string? Language = null)
-{
-    public string Lang => Language is not null && Language.StartsWith("ar", StringComparison.OrdinalIgnoreCase) ? "ar" : "en";
-}
+/// <summary>A chat turn. The reply language is the caller's (Accept-Language, resolved against the enabled languages).</summary>
+public sealed record ChatRequest(Guid ApplicationId, IReadOnlyList<ChatMessage> Messages, string? PendingField);
 
 public sealed record ChatResponse(string Reply, string? PendingField, ApplicationView Application, string Mode);
 
 /// <summary>
-/// The chat view of an e-service. Uses an LLM with tools when configured, otherwise a guided
-/// step-by-step conversation. Both call the same E-Services API as the form view.
+/// The chat view of an e-service. Uses a model with tools when one is configured and chat is switched on in the
+/// AI settings, otherwise a guided step-by-step conversation. Both call the same E-Services API as the form view.
 /// </summary>
-public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedConversation guided,
-    ILogger<ChatService> logger)
+public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, IAiSettingsProvider settingsProvider,
+    GuidedConversation guided, IMessages messages, ILocalization localization, ILogger<ChatService> logger)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
@@ -26,55 +23,53 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
     {
         var application = await eservices.GetApplicationAsync(request.ApplicationId, ct);
         var service = await eservices.GetServiceAsync(application.ServiceCode, ct);
+        var settings = await settingsProvider.GetAsync(ct);
 
         if (application.Status != "Draft")
         {
-            return new ChatResponse(request.Lang == "ar"
-                    ? $"تم تقديم الطلب {application.Number} بالفعل. يمكنك متابعته من صفحة طلباتي."
-                    : $"Application {application.Number} is already {Humanize(application.Status)}. You can follow it from My applications.",
-                null, application, llm.IsConfigured ? "llm" : "guided");
+            return new ChatResponse(messages.Format("chat.alreadySubmitted", ("number", application.Number),
+                    ("status", messages.Format($"status.{application.Status}"))),
+                null, application, settings.ChatActive ? "llm" : "guided");
         }
 
-        return llm.IsConfigured
-            ? await RunAgentAsync(request, service, application, ct)
+        return settings.ChatActive
+            ? await RunAgentAsync(request, service, application, settings, ct)
             : await guided.RespondAsync(request, service, application, ct);
     }
 
     private async Task<ChatResponse> RunAgentAsync(ChatRequest request, ServiceView service,
-        ApplicationView application, CancellationToken ct)
+        ApplicationView application, AiSettings settings, CancellationToken ct)
     {
-        var messages = new List<LlmMessage> { new("system", SystemPrompt(service, application, request.Lang)) };
-        messages.AddRange(request.Messages.TakeLast(AgentPolicy.MaxHistoryMessages)
+        var languageName = (await localization.GetSettingsAsync(ct)).Languages
+            .FirstOrDefault(l => string.Equals(l.Code, messages.Language, StringComparison.OrdinalIgnoreCase))?.Name.Get("en")
+            ?? messages.Language;
+        var history = new List<LlmMessage> { new("system", SystemPrompt(service, application, languageName, settings)) };
+        history.AddRange(request.Messages.TakeLast(settings.MaxHistoryMessages)
             .Where(m => m.Role is ChatRoles.User or ChatRoles.Assistant)
             .Select(m => new LlmMessage(m.Role, m.Content)));
         if (request.Messages.Count == 0)
-            messages.Add(new LlmMessage(ChatRoles.User, request.Lang == "ar"
-                ? "مرحبًا، أريد بدء هذا الطلب."
-                : "Hello, I want to start this application."));
+            history.Add(new LlmMessage(ChatRoles.User, messages.Format("chat.start")));
 
-        for (var i = 0; i < AgentPolicy.MaxToolIterations; i++)
+        for (var i = 0; i < settings.MaxToolIterations; i++)
         {
-            var reply = await llm.CompleteAsync(messages, Tools, ct);
+            var reply = await llm.CompleteAsync(settings, history, Tools, ct);
             if (reply.ToolCalls.Count == 0)
             {
                 application = await eservices.GetApplicationAsync(application.Id, ct);
                 return new ChatResponse(reply.Content ?? "", null, application, "llm");
             }
 
-            messages.Add(new LlmMessage(ChatRoles.Assistant, reply.Content, ToolCalls: reply.ToolCalls));
+            history.Add(new LlmMessage(ChatRoles.Assistant, reply.Content, ToolCalls: reply.ToolCalls));
             foreach (var call in reply.ToolCalls)
             {
                 var result = await ExecuteToolAsync(call, application.Id, ct);
-                messages.Add(new LlmMessage("tool", result, ToolCallId: call.Id));
+                history.Add(new LlmMessage("tool", result, ToolCallId: call.Id));
             }
         }
 
         logger.LogWarning("Agent hit the tool iteration limit for {ApplicationId}", application.Id);
         application = await eservices.GetApplicationAsync(application.Id, ct);
-        return new ChatResponse(request.Lang == "ar"
-                ? "حفظت ما استطعت. يرجى استخدام النموذج لإكمال الحقول المتبقية."
-                : "I saved what I could. Please check the form view to finish the remaining fields.",
-            null, application, "llm");
+        return new ChatResponse(messages.Format("chat.toolLimit"), null, application, "llm");
     }
 
     private async Task<string> ExecuteToolAsync(LlmToolCall call, Guid applicationId, CancellationToken ct)
@@ -118,10 +113,11 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
         }
     }
 
-    private static string SystemPrompt(ServiceView service, ApplicationView application, string lang) => $"""
-        You are the MoET E-Services assistant. You help the user complete the "{service.Name}" application
-        (number {application.Number}) by conversation instead of a form.
-        Reply in {(lang == "ar" ? "Arabic (Modern Standard Arabic, clear and polite). Use the Arabic labels (labelAr) of fields" : "English")}.
+    private string SystemPrompt(ServiceView service, ApplicationView application, string languageName, AiSettings settings) => $"""
+        You are the E-Services assistant of the UAE Ministry of Economy and Tourism. You help the user complete the
+        "{messages.Pick(service.Name)}" application (number {application.Number}) by conversation instead of a form.
+        Reply in {languageName} (language code "{messages.Language}"), clear and polite. Labels, options and help
+        texts below are given per language code: use the ones for "{messages.Language}" (or "{messages.DefaultLanguage}" if missing).
 
         How to work:
         - Ask for one or two missing items at a time, in the order of the steps. Be brief, warm and clear.
@@ -133,6 +129,7 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
         - When every required field is filled, show a short summary, state the fee ({service.Fee} {service.Currency},
           payable after approval) and ask the user to confirm. Call submit_application only after they explicitly confirm.
         - Only discuss this application. You cannot pay, approve or change anything else.
+        {(string.IsNullOrWhiteSpace(settings.ChatInstructions) ? "" : "\nAdditional instructions:\n" + settings.ChatInstructions)}
 
         Service definition (steps and fields):
         {JsonSerializer.Serialize(service.Steps, Json)}
@@ -150,11 +147,4 @@ public sealed class ChatService(IEServicesApi eservices, ILlmClient llm, GuidedC
         new("get_application", "Read the current application data and status.",
             """{"type":"object","properties":{}}"""),
     ];
-
-    internal static string Humanize(string status) => status switch
-    {
-        "UnderReview" => "under review",
-        "AwaitingPayment" => "awaiting payment",
-        _ => status.ToLowerInvariant(),
-    };
 }

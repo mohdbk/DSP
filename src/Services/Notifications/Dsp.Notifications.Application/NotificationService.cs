@@ -13,26 +13,26 @@ public interface INotificationRepository
     Task SaveChangesAsync(CancellationToken ct);
 }
 
-public sealed record NotificationDto(Guid Id, string Title, string Body, string? TitleAr, string? BodyAr, string? Link,
-    DateTimeOffset CreatedAt, bool IsRead)
+/// <summary>A notification in the reader's language.</summary>
+public sealed record NotificationDto(Guid Id, string Title, string Body, string? Link, DateTimeOffset CreatedAt, bool IsRead)
 {
-    public static NotificationDto From(Notification n) =>
-        new(n.Id, n.Title, n.Body, n.TitleAr, n.BodyAr, n.Link, n.CreatedAt, n.ReadAt.HasValue);
+    public static NotificationDto From(Notification n, IMessages messages) =>
+        new(n.Id, n.RenderTitle(messages), n.RenderBody(messages), n.Link, n.CreatedAt, n.ReadAt.HasValue);
 }
 
-public sealed class NotificationService(INotificationRepository notifications)
+public sealed class NotificationService(INotificationRepository notifications, IMessages messages)
 {
     public async Task<IReadOnlyList<NotificationDto>> ListAsync(string userId, bool isStaff, CancellationToken ct)
     {
         string[] recipients = isStaff ? [userId, Notification.StaffAudience] : [userId];
-        return (await notifications.ListAsync(recipients, 50, ct)).Select(NotificationDto.From).ToList();
+        return (await notifications.ListAsync(recipients, 50, ct)).Select(n => NotificationDto.From(n, messages)).ToList();
     }
 
     public async Task MarkReadAsync(string userId, bool isStaff, Guid id, CancellationToken ct)
     {
-        var notification = await notifications.GetAsync(id, ct) ?? throw new NotFoundException("Notification not found.");
+        var notification = await notifications.GetAsync(id, ct) ?? throw new NotFoundException("errors.notification.notFound");
         var mine = notification.Recipient == userId || (isStaff && notification.Recipient == Notification.StaffAudience);
-        if (!mine) throw new NotFoundException("Notification not found.");
+        if (!mine) throw new NotFoundException("errors.notification.notFound");
         notification.MarkRead();
         await notifications.SaveChangesAsync(ct);
     }
@@ -44,14 +44,15 @@ public sealed class ApplicationStatusChangedHandler(INotificationRepository noti
 {
     public async Task HandleAsync(ApplicationStatusChanged e, CancellationToken ct)
     {
-        await notifications.AddAsync(Notification.Create(e.ApplicantId, $"{e.ServiceName} · {e.ApplicationNumber}",
-            e.Message, $"/applications/{e.ApplicationId}", $"{e.ServiceName} · {e.ApplicationNumber}", e.MessageAr), ct);
+        var title = MessageRef.Of("notifications.applicationTitle", ("service", e.ServiceName), ("number", e.ApplicationNumber));
+        await notifications.AddAsync(Notification.Create(e.ApplicantId, title, e.Message, $"/applications/{e.ApplicationId}"), ct);
 
         if (e.Status == "UnderReview")
         {
             await notifications.AddAsync(Notification.Create(Notification.StaffAudience,
-                $"New application to review · {e.ApplicationNumber}", $"{e.ServiceName} is waiting for a decision.",
-                "/inbox", $"طلب جديد للمراجعة · {e.ApplicationNumber}", $"{e.ServiceName} بانتظار القرار."), ct);
+                MessageRef.Of("notifications.staffNewTitle", ("number", e.ApplicationNumber)),
+                MessageRef.Of("notifications.staffNewBody", ("service", e.ServiceName)),
+                "/inbox"), ct);
         }
 
         await notifications.SaveChangesAsync(ct);

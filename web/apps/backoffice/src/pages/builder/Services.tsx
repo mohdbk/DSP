@@ -19,7 +19,7 @@ export function ServicesPage() {
 
   const columns = useMemo<ColumnDef<BuilderServiceSummary, string>[]>(() => [
     {
-      id: 'name', header: t('service'), accessorFn: s => loc(s.name, s.nameAr),
+      id: 'name', header: t('service'), accessorFn: s => loc(s.name),
       cell: c => (
         <span>
           <strong>{c.getValue()}</strong>
@@ -27,7 +27,7 @@ export function ServicesPage() {
         </span>
       ),
     },
-    { id: 'category', header: t('builder.category'), accessorFn: s => s.category, meta: { filter: true } },
+    { id: 'category', header: t('builder.category'), accessorFn: s => loc(s.category), meta: { filter: true } },
     {
       id: 'status', header: t('status'),
       accessorFn: s => (s.publishedVersion ? (s.draftVersion ? 'live-draft' : 'live') : 'draft'),

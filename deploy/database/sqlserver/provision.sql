@@ -18,7 +18,8 @@ INSERT INTO @services VALUES
   (N'eservices',     N'DspWorkflows',     N'$(EServicesPwd)',     N'$(EServicesMigratorPwd)'),
   (N'payments',      N'DspPayments',      N'$(PaymentsPwd)',      N'$(PaymentsMigratorPwd)'),
   (N'documents',     N'DspDocuments',     N'$(DocumentsPwd)',     N'$(DocumentsMigratorPwd)'),
-  (N'notifications', N'DspNotifications', N'$(NotificationsPwd)', N'$(NotificationsMigratorPwd)');
+  (N'notifications', N'DspNotifications', N'$(NotificationsPwd)', N'$(NotificationsMigratorPwd)'),
+  (N'platform',      N'DspPlatform',      N'$(PlatformPwd)',      N'$(PlatformMigratorPwd)');
 
 DECLARE @svc sysname, @db sysname, @pwd nvarchar(256), @mpwd nvarchar(256), @sql nvarchar(max),
         @login sysname, @migrator sysname;

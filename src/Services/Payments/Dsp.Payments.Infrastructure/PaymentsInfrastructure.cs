@@ -24,7 +24,7 @@ public abstract class PaymentsDbContext(DbContextOptions options) : DbContext(op
             e.HasIndex(x => x.ReferenceId);
             e.HasIndex(x => x.PayerId);
             e.Property(x => x.PayerId).HasMaxLength(200);
-            e.Property(x => x.Description).HasMaxLength(300);
+            e.Property(x => x.Description).IsLocalizedText().HasMaxLength(2000);
             e.Property(x => x.Amount).HasPrecision(18, 2);
             e.Property(x => x.Currency).HasMaxLength(3);
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);

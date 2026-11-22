@@ -1,37 +1,61 @@
+using System.Text.Json;
 using Dsp.SharedKernel;
 
 namespace Dsp.Notifications.Domain;
 
-/// <summary>An in-app notification. Email, SMS and push channels attach here later.</summary>
+/// <summary>
+/// An in-app notification. Title and body are message references (a key plus arguments), rendered in each reader's
+/// language when read, so they follow language changes and languages added later. Email, SMS and push attach here.
+/// </summary>
 public sealed class Notification : Entity
 {
     /// <summary>Recipient used for messages meant for every back-office user.</summary>
     public const string StaffAudience = "role:staff";
 
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
     private Notification() { }
 
     public string Recipient { get; private set; } = "";
+
+    /// <summary>The title as a message reference (JSON).</summary>
+    public string? TitleMessage { get; private set; }
+
+    /// <summary>The body as a message reference (JSON).</summary>
+    public string? BodyMessage { get; private set; }
+
+    /// <summary>Notifications written before messages were references keep their English and Arabic texts here.</summary>
     public string Title { get; private set; } = "";
     public string Body { get; private set; } = "";
     public string? TitleAr { get; private set; }
     public string? BodyAr { get; private set; }
+
     public string? Link { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset? ReadAt { get; private set; }
 
-    public static Notification Create(string recipient, string title, string body, string? link,
-        string? titleAr = null, string? bodyAr = null) => new()
+    public static Notification Create(string recipient, MessageRef title, MessageRef body, string? link) => new()
     {
         Recipient = recipient,
-        Title = Cut(title, 300),
-        Body = Cut(body, 2000),
-        TitleAr = titleAr is null ? null : Cut(titleAr, 300),
-        BodyAr = bodyAr is null ? null : Cut(bodyAr, 2000),
+        TitleMessage = JsonSerializer.Serialize(title, Json),
+        BodyMessage = JsonSerializer.Serialize(body, Json),
         Link = link,
         CreatedAt = DateTimeOffset.UtcNow,
     };
 
-    private static string Cut(string value, int max) => value.Length <= max ? value : value[..(max - 1)] + "…";
+    /// <summary>The title in the reader's language.</summary>
+    public string RenderTitle(IMessages messages) =>
+        Render(TitleMessage, messages) ?? Legacy(Title, TitleAr, messages);
+
+    /// <summary>The body in the reader's language.</summary>
+    public string RenderBody(IMessages messages) =>
+        Render(BodyMessage, messages) ?? Legacy(Body, BodyAr, messages);
 
     public void MarkRead() => ReadAt ??= DateTimeOffset.UtcNow;
+
+    private static string? Render(string? json, IMessages messages) =>
+        json is null ? null : JsonSerializer.Deserialize<MessageRef>(json, Json)?.Render(messages);
+
+    private static string Legacy(string english, string? arabic, IMessages messages) =>
+        messages.Pick(new LocalizedText([new("en", english), new("ar", arabic ?? "")]));
 }

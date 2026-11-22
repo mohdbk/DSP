@@ -1,3 +1,4 @@
+using Dsp.SharedKernel;
 using Dsp.Contracts;
 using Dsp.EServices.Application;
 using Dsp.EServices.Domain.Applications;
@@ -16,7 +17,7 @@ public class PaymentCompletedHandlerTests
     {
         var steps = new ProcessSteps(_store, new NoTasks(), new NoPayments(), new NoCertificates(), _bus,
             new StatusNotifier(_bus), NullLogger<ProcessSteps>.Instance, new Dsp.EServices.Infrastructure.Catalog.EmbeddedServiceCatalog(),
-            new InMemoryAssessments(), new StubReviewer());
+            new InMemoryAssessments(), new StubReviewer(), TestText.Localization);
         _handler = new PaymentCompletedHandler(_store, steps, _workflow, NullLogger<PaymentCompletedHandler>.Instance);
     }
 
@@ -105,7 +106,7 @@ public class PaymentCompletedHandlerTests
 
     internal sealed class NoPayments : IPaymentsGateway
     {
-        public Task<Guid> CreatePaymentAsync(Guid a, string p, decimal amount, string c, string d, CancellationToken ct) =>
+        public Task<Guid> CreatePaymentAsync(Guid a, string p, decimal amount, string c, LocalizedText d, CancellationToken ct) =>
             Task.FromResult(Guid.NewGuid());
     }
 

@@ -78,11 +78,11 @@ api.MapGet("/citizen/{provider}/callback", async (string provider, HttpContext c
     }
     catch (Exception)
     {
-        return Results.Redirect($"{baseUrl}/login?error={Uri.EscapeDataString("Your sign-in session expired. Please try again.")}");
+        return Results.Redirect($"{baseUrl}/login?error={Uri.EscapeDataString("errors.signIn.expired")}");
     }
 
     if (!query.TryGetValue("state", out var state) || state != expectedState)
-        return Results.Redirect($"{baseUrl}/login?error={Uri.EscapeDataString("Sign-in could not be verified. Please try again.")}");
+        return Results.Redirect($"{baseUrl}/login?error={Uri.EscapeDataString("errors.signIn.unverified")}");
 
     try
     {
@@ -94,6 +94,7 @@ api.MapGet("/citizen/{provider}/callback", async (string provider, HttpContext c
     catch (Exception ex) when (ex is Dsp.SharedKernel.DomainException or Dsp.SharedKernel.NotFoundException)
     {
         logger.LogInformation("Citizen sign-in failed: {Message}", ex.Message);
+        // The portal shows the message key in the reader's language.
         return Results.Redirect($"{baseUrl}/login?error={Uri.EscapeDataString(ex.Message)}");
     }
 }).AllowAnonymous();

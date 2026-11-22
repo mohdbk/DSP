@@ -21,9 +21,9 @@ public interface IPaymentProcessor
 }
 
 public sealed record CreatePaymentRequest(Guid ReferenceId, string PayerId, decimal Amount, string Currency,
-    string Description);
+    LocalizedText Description);
 
-public sealed record PaymentDto(Guid Id, Guid ReferenceId, string Description, decimal Amount, string Currency,
+public sealed record PaymentDto(Guid Id, Guid ReferenceId, LocalizedText Description, decimal Amount, string Currency,
     string Status, DateTimeOffset CreatedAt, DateTimeOffset? PaidAt, string? Method, string? TransactionReference)
 {
     public static PaymentDto From(Payment p) => new(p.Id, p.ReferenceId, p.Description, p.Amount, p.Currency,
@@ -61,8 +61,8 @@ public sealed class PaymentService(IPaymentRepository payments, IPaymentProcesso
 
     private async Task<Payment> LoadVisibleAsync(string payerId, bool isStaff, Guid id, CancellationToken ct)
     {
-        var payment = await payments.GetAsync(id, ct) ?? throw new NotFoundException("Payment not found.");
-        if (!isStaff && payment.PayerId != payerId) throw new NotFoundException("Payment not found.");
+        var payment = await payments.GetAsync(id, ct) ?? throw new NotFoundException("errors.payment.notFound");
+        if (!isStaff && payment.PayerId != payerId) throw new NotFoundException("errors.payment.notFound");
         return payment;
     }
 }

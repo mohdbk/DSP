@@ -1,3 +1,4 @@
+using Dsp.SharedKernel;
 using System.Net.Http.Json;
 using Dsp.EServices.Application;
 
@@ -7,7 +8,7 @@ namespace Dsp.EServices.Infrastructure.Clients;
 public sealed class PaymentsGateway(HttpClient http) : IPaymentsGateway
 {
     public async Task<Guid> CreatePaymentAsync(Guid applicationId, string payerId, decimal amount, string currency,
-        string description, CancellationToken ct)
+        LocalizedText description, CancellationToken ct)
     {
         var response = await http.PostAsJsonAsync("/internal/payments", new
         {

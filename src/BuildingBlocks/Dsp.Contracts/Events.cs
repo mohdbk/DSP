@@ -1,15 +1,19 @@
+using Dsp.SharedKernel;
+
 namespace Dsp.Contracts;
 
-/// <summary>An application moved to a new status. Consumed by Notifications and Reporting.</summary>
+/// <summary>
+/// An application moved to a new status. Consumed by Notifications and Reporting. The service name comes in every
+/// language it has, and the message is a key plus arguments, so each reader sees it in their own language.
+/// </summary>
 public sealed record ApplicationStatusChanged(
     Guid ApplicationId,
     string ApplicationNumber,
     string ServiceCode,
-    string ServiceName,
+    LocalizedText ServiceName,
     string ApplicantId,
     string Status,
-    string Message,
-    string? MessageAr = null) : IntegrationEvent;
+    MessageRef Message) : IntegrationEvent;
 
 /// <summary>A payment was completed by the payer. Consumed by E-Services to resume the workflow.</summary>
 public sealed record PaymentCompleted(

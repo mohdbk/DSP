@@ -1,0 +1,2274 @@
+{
+ "languages": [
+  {
+   "code": "en",
+   "name": {
+    "en": "English",
+    "ar": "الإنجليزية"
+   },
+   "direction": "ltr",
+   "isDefault": true,
+   "sortOrder": 0
+  },
+  {
+   "code": "ar",
+   "name": {
+    "en": "Arabic",
+    "ar": "العربية"
+   },
+   "direction": "rtl",
+   "isDefault": false,
+   "sortOrder": 1
+  }
+ ],
+ "strings": {
+  "ai.advice": {
+   "en": "The AI prepares the case. You make the decision.",
+   "ar": "يُعدّ الذكاء الاصطناعي الملف، والقرار لك."
+  },
+  "ai.mode.llm": {
+   "en": "AI model · {model}",
+   "ar": "نموذج ذكاء اصطناعي · {model}"
+  },
+  "ai.mode.rules": {
+   "en": "Built-in checks (no AI model configured)",
+   "ar": "فحوصات مدمجة (لم يُعدّ نموذج ذكاء اصطناعي)"
+  },
+  "ai.mode.unavailable": {
+   "en": "Not available",
+   "ar": "غير متاح"
+  },
+  "ai.none": {
+   "en": "This application used the standard process, without an AI pre-review.",
+   "ar": "اتبع هذا الطلب الإجراء الاعتيادي دون تدقيق آلي."
+  },
+  "ai.questions": {
+   "en": "Asked the applicant",
+   "ar": "ما طُلب من مقدم الطلب"
+  },
+  "ai.rec.approve": {
+   "en": "Recommends approval",
+   "ar": "يوصي بالموافقة"
+  },
+  "ai.rec.reject": {
+   "en": "Recommends rejection",
+   "ar": "يوصي بالرفض"
+  },
+  "ai.rec.request_information": {
+   "en": "Asked the applicant for information",
+   "ar": "طلب معلومات من مقدم الطلب"
+  },
+  "ai.rec.unavailable": {
+   "en": "No recommendation",
+   "ar": "لا توجد توصية"
+  },
+  "ai.recShort.approve": {
+   "en": "Approve",
+   "ar": "موافقة"
+  },
+  "ai.recShort.reject": {
+   "en": "Reject",
+   "ar": "رفض"
+  },
+  "ai.recShort.request_information": {
+   "en": "Info requested",
+   "ar": "طُلبت معلومات"
+  },
+  "ai.recShort.unavailable": {
+   "en": "—",
+   "ar": "غير متاحة"
+  },
+  "ai.review.checkAgain": {
+   "en": "Please check your application and send it again.",
+   "ar": "يرجى مراجعة طلبك وإرساله مرة أخرى."
+  },
+  "ai.review.unavailable": {
+   "en": "The AI pre-review was unavailable. Review this application manually.",
+   "ar": "لم تكن المراجعة المسبقة متاحة. راجع هذا الطلب يدويًا."
+  },
+  "ai.round": {
+   "en": "Round {n}",
+   "ar": "الجولة {n}"
+  },
+  "ai.rules.ask.missing": {
+   "en": "Please provide {label}.",
+   "ar": "يرجى تقديم {label}."
+  },
+  "ai.rules.ask.notArabic": {
+   "en": "{label} must be written in Arabic letters. Please correct it.",
+   "ar": "يجب كتابة {label} بالحروف العربية. يرجى تصحيحه."
+  },
+  "ai.rules.ask.notLatin": {
+   "en": "{label} must be written in English (Latin) letters. Please correct it.",
+   "ar": "يجب كتابة {label} بالحروف الإنجليزية. يرجى تصحيحه."
+  },
+  "ai.rules.confirmItem": {
+   "en": "Officer to confirm: {item}",
+   "ar": "يتحقق الموظف من: {item}"
+  },
+  "ai.rules.datePast": {
+   "en": "{label} ({value}) is more than 30 days in the past.",
+   "ar": "{label} ({value}) مضى عليه أكثر من 30 يومًا."
+  },
+  "ai.rules.fileAttached": {
+   "en": "{label} is attached. Open it to check it matches the application.",
+   "ar": "{label} مرفق. افتحه للتأكد من مطابقته للطلب."
+  },
+  "ai.rules.hasArabic": {
+   "en": "{label} contains Arabic letters (\"{value}\").",
+   "ar": "{label} يحتوي على حروف عربية (\"{value}\")."
+  },
+  "ai.rules.missing": {
+   "en": "{label} is missing.",
+   "ar": "{label} غير موجود."
+  },
+  "ai.rules.mixed": {
+   "en": "{label} mixes Arabic and Latin letters (\"{value}\").",
+   "ar": "{label} يخلط بين الحروف العربية واللاتينية (\"{value}\")."
+  },
+  "ai.rules.notArabic": {
+   "en": "{label} is not written in Arabic letters (\"{value}\").",
+   "ar": "{label} غير مكتوب بالحروف العربية (\"{value}\")."
+  },
+  "ai.rules.placeholder": {
+   "en": "{label} looks like a placeholder or test value (\"{value}\").",
+   "ar": "{label} يبدو قيمة تجريبية (\"{value}\")."
+  },
+  "ai.rules.similar": {
+   "en": "Similar to existing applications: {names}. Check they can't be confused.",
+   "ar": "مشابه لطلبات قائمة: {names}. تأكد من عدم حدوث لبس."
+  },
+  "ai.rules.summary.ask": {
+   "en": "The built-in checks found {issues} issue(s) the applicant can fix; the applicant is asked to correct them before staff review.",
+   "ar": "وجدت الفحوص المدمجة {issues} ملاحظة يمكن لمقدم الطلب تصحيحها، وطُلب منه تصحيحها قبل مراجعة الموظف."
+  },
+  "ai.rules.summary.clean": {
+   "en": "No issues found by the built-in checks. Confirm the checklist items before deciding.",
+   "ar": "لم تجد الفحوص المدمجة أي ملاحظات. تحقق من بنود القائمة قبل اتخاذ القرار."
+  },
+  "ai.rules.summary.warnings": {
+   "en": "No blocking issues. {warnings} point(s) for the officer to look at.",
+   "ar": "لا توجد ملاحظات مانعة. توجد {warnings} نقطة ليراجعها الموظف."
+  },
+  "ai.settings.apiKey": {
+   "en": "API key",
+   "ar": "مفتاح الواجهة البرمجية"
+  },
+  "ai.settings.apiKeyNone": {
+   "en": "No key saved. Stored encrypted and never shown again.",
+   "ar": "لا يوجد مفتاح محفوظ. يُخزَّن مشفرًا ولا يُعرض مرة أخرى."
+  },
+  "ai.settings.apiKeySaved": {
+   "en": "A key is saved. Enter a new one to replace it.",
+   "ar": "يوجد مفتاح محفوظ. أدخل مفتاحًا جديدًا لاستبداله."
+  },
+  "ai.settings.baseUrl": {
+   "en": "Service address",
+   "ar": "عنوان الخدمة"
+  },
+  "ai.settings.baseUrlHint": {
+   "en": "The OpenAI-compatible base address, e.g. https://llm.example.gov.ae/v1",
+   "ar": "العنوان الأساسي المتوافق مع OpenAI، مثل https://llm.example.gov.ae/v1"
+  },
+  "ai.settings.behaviour": {
+   "en": "Behaviour",
+   "ar": "السلوك"
+  },
+  "ai.settings.chatEnabled": {
+   "en": "Use the model for the chat assistant",
+   "ar": "استخدام النموذج في المساعد"
+  },
+  "ai.settings.chatEnabledHint": {
+   "en": "When off, the chat uses the guided conversation.",
+   "ar": "عند الإيقاف تُستخدم المحادثة الموجهة."
+  },
+  "ai.settings.chatInstructions": {
+   "en": "For the chat assistant",
+   "ar": "للمساعد"
+  },
+  "ai.settings.configured": {
+   "en": "Connected: {model}",
+   "ar": "متصل: {model}"
+  },
+  "ai.settings.connection": {
+   "en": "Connection",
+   "ar": "الاتصال"
+  },
+  "ai.settings.history": {
+   "en": "Messages remembered",
+   "ar": "الرسائل المحفوظة"
+  },
+  "ai.settings.historyHint": {
+   "en": "2 to 200.",
+   "ar": "من 2 إلى 200."
+  },
+  "ai.settings.instructions": {
+   "en": "Extra instructions",
+   "ar": "تعليمات إضافية"
+  },
+  "ai.settings.instructionsHint": {
+   "en": "Added to the built-in instructions. The built-in guardrails always apply.",
+   "ar": "تُضاف إلى التعليمات المدمجة، وتبقى الضوابط المدمجة سارية دائمًا."
+  },
+  "ai.settings.intro": {
+   "en": "The model behind the chat assistant and the AI pre-review. Any OpenAI-compatible service works. Without a model, the guided chat and the built-in checks are used.",
+   "ar": "النموذج الذي يعمل خلف المساعد والمراجعة المسبقة. تعمل أي خدمة متوافقة مع OpenAI. وبدون نموذج تُستخدم المحادثة الموجهة والفحوص المدمجة."
+  },
+  "ai.settings.iterations": {
+   "en": "Tool steps per message",
+   "ar": "خطوات الأدوات لكل رسالة"
+  },
+  "ai.settings.iterationsHint": {
+   "en": "1 to 20.",
+   "ar": "من 1 إلى 20."
+  },
+  "ai.settings.lastChange": {
+   "en": "Last changed {when} by {who}",
+   "ar": "آخر تعديل {when} بواسطة {who}"
+  },
+  "ai.settings.model": {
+   "en": "Model",
+   "ar": "النموذج"
+  },
+  "ai.settings.modelHint": {
+   "en": "The model name the service expects.",
+   "ar": "اسم النموذج كما تتوقعه الخدمة."
+  },
+  "ai.settings.notConfigured": {
+   "en": "No model",
+   "ar": "لا يوجد نموذج"
+  },
+  "ai.settings.provider": {
+   "en": "Provider name",
+   "ar": "اسم المزوّد"
+  },
+  "ai.settings.providerHint": {
+   "en": "For your reference, e.g. Net0.",
+   "ar": "للرجوع إليه، مثل Net0."
+  },
+  "ai.settings.removeKey": {
+   "en": "Remove the saved key",
+   "ar": "إزالة المفتاح المحفوظ"
+  },
+  "ai.settings.reviewEnabled": {
+   "en": "Use the model for the AI pre-review",
+   "ar": "استخدام النموذج في المراجعة المسبقة"
+  },
+  "ai.settings.reviewEnabledHint": {
+   "en": "When off, only the built-in checks run.",
+   "ar": "عند الإيقاف تعمل الفحوص المدمجة فقط."
+  },
+  "ai.settings.reviewInstructions": {
+   "en": "For the AI pre-review",
+   "ar": "للمراجعة المسبقة"
+  },
+  "ai.settings.saved": {
+   "en": "AI settings saved. They apply within 30 seconds.",
+   "ar": "تم حفظ إعدادات الذكاء الاصطناعي، وتسري خلال 30 ثانية."
+  },
+  "ai.settings.temperature": {
+   "en": "Temperature",
+   "ar": "درجة العشوائية"
+  },
+  "ai.settings.temperatureHint": {
+   "en": "0 to 2. Lower is more consistent.",
+   "ar": "من 0 إلى 2. القيمة الأقل أكثر ثباتًا."
+  },
+  "ai.settings.test": {
+   "en": "Test connection",
+   "ar": "اختبار الاتصال"
+  },
+  "ai.settings.timeout": {
+   "en": "Timeout (seconds)",
+   "ar": "مهلة الانتظار (ثوانٍ)"
+  },
+  "ai.settings.timeoutHint": {
+   "en": "5 to 600.",
+   "ar": "من 5 إلى 600."
+  },
+  "ai.sev.info": {
+   "en": "Info",
+   "ar": "معلومة"
+  },
+  "ai.sev.issue": {
+   "en": "Issue",
+   "ar": "مشكلة"
+  },
+  "ai.sev.warning": {
+   "en": "Check",
+   "ar": "للتحقق"
+  },
+  "ai.test.latency": {
+   "en": "{ms} ms",
+   "ar": "{ms} ملي ثانية"
+  },
+  "ai.test.notConfigured": {
+   "en": "Enter the model address and model name first.",
+   "ar": "أدخل عنوان النموذج واسمه أولًا."
+  },
+  "ai.test.ok": {
+   "en": "The model answered.",
+   "ar": "استجاب النموذج."
+  },
+  "ai.test.rejected": {
+   "en": "The model service refused the request.",
+   "ar": "رفضت خدمة النموذج الطلب."
+  },
+  "ai.test.unreachable": {
+   "en": "The model service couldn't be reached.",
+   "ar": "تعذر الوصول إلى خدمة النموذج."
+  },
+  "ai.title": {
+   "en": "AI pre-review",
+   "ar": "التدقيق الآلي"
+  },
+  "app.backoffice": {
+   "en": "Back Office",
+   "ar": "المكتب الخلفي"
+  },
+  "app.backofficeHome": {
+   "en": "Back office home",
+   "ar": "الصفحة الرئيسية للمكتب الخلفي"
+  },
+  "app.chat": {
+   "en": "💬 Chat",
+   "ar": "💬 المحادثة"
+  },
+  "app.form": {
+   "en": "📝 Form",
+   "ar": "📝 النموذج"
+  },
+  "app.howToApply": {
+   "en": "How do you want to apply?",
+   "ar": "كيف تريد تقديم الطلب؟"
+  },
+  "app.infoNeeded": {
+   "en": "We need a little more information",
+   "ar": "نحتاج إلى بعض المعلومات الإضافية"
+  },
+  "app.infoNeededHow": {
+   "en": "Update your application below, then send it again.",
+   "ar": "حدّث طلبك أدناه ثم أرسله مرة أخرى."
+  },
+  "app.infoNeededIntro": {
+   "en": "Our digital assistant checked your application before sending it to a ministry officer and found something to complete or correct:",
+   "ar": "تحقق المساعد الرقمي من طلبك قبل إحالته إلى موظف الوزارة ووجد ما يلزم إكماله أو تصحيحه:"
+  },
+  "app.notFound": {
+   "en": "Application not found.",
+   "ar": "الطلب غير موجود."
+  },
+  "app.portal": {
+   "en": "E-Services",
+   "ar": "الخدمات الإلكترونية"
+  },
+  "app.portalHome": {
+   "en": "E-Services home",
+   "ar": "الصفحة الرئيسية للخدمات الإلكترونية"
+  },
+  "app.progress": {
+   "en": "Progress",
+   "ar": "التقدم"
+  },
+  "app.progressValue": {
+   "en": "{filled} of {total} required details",
+   "ar": "{filled} من {total} من البيانات المطلوبة"
+  },
+  "app.sideNote": {
+   "en": "The form and the chat save to the same application. Start in one and finish in the other. The fee is payable only after the ministry approves your application.",
+   "ar": "يحفظ النموذج والمحادثة في الطلب نفسه. ابدأ بأحدهما وأكمل بالآخر. تُدفع الرسوم فقط بعد موافقة الوزارة على طلبك."
+  },
+  "app.yours": {
+   "en": "Your application",
+   "ar": "طلبك"
+  },
+  "applicant": {
+   "en": "Applicant",
+   "ar": "مقدم الطلب"
+  },
+  "approved": {
+   "en": "Approved",
+   "ar": "موافق عليه"
+  },
+  "apps.back": {
+   "en": "← All applications",
+   "ar": "→ جميع الطلبات"
+  },
+  "apps.empty": {
+   "en": "No submitted applications yet",
+   "ar": "لا توجد طلبات مقدمة بعد"
+  },
+  "apps.title": {
+   "en": "All applications",
+   "ar": "جميع الطلبات"
+  },
+  "apps.viewCertificate": {
+   "en": "View certificate",
+   "ar": "عرض الشهادة"
+  },
+  "back": {
+   "en": "Back",
+   "ar": "رجوع"
+  },
+  "builder.addField": {
+   "en": "Add field",
+   "ar": "إضافة حقل"
+  },
+  "builder.addOption": {
+   "en": "Add option",
+   "ar": "إضافة خيار"
+  },
+  "builder.addStep": {
+   "en": "Add step",
+   "ar": "إضافة خطوة"
+  },
+  "builder.backToList": {
+   "en": "← All services",
+   "ar": "→ جميع الخدمات"
+  },
+  "builder.by": {
+   "en": "by {name}",
+   "ar": "بواسطة {name}"
+  },
+  "builder.category": {
+   "en": "Category",
+   "ar": "الفئة"
+  },
+  "builder.checklist": {
+   "en": "Review checklist",
+   "ar": "قائمة التدقيق"
+  },
+  "builder.checklistErrors": {
+   "en": "Some checklist items need attention.",
+   "ar": "بعض بنود قائمة التحقق تحتاج إلى مراجعة."
+  },
+  "builder.checklistHelp": {
+   "en": "What the AI pre-review checks, one item per line. The officer sees the findings next to each application.",
+   "ar": "ما يتحقق منه التدقيق الآلي، بندًا في كل سطر. يرى الموظف النتائج بجانب كل طلب."
+  },
+  "builder.checklistV1": {
+   "en": "The checklist is used by the AI-assisted process. Switch the process on the Details tab to use it.",
+   "ar": "تُستخدم قائمة التدقيق في الإجراء المدعوم بالذكاء الاصطناعي. غيّر الإجراء من تبويب التفاصيل لاستخدامها."
+  },
+  "builder.code": {
+   "en": "Service code",
+   "ar": "رمز الخدمة"
+  },
+  "builder.codeHelp": {
+   "en": "Capital letters, digits and underscores. Can’t be changed later.",
+   "ar": "أحرف إنجليزية كبيرة وأرقام وشرطة سفلية. لا يمكن تغييره لاحقًا."
+  },
+  "builder.create": {
+   "en": "Create draft",
+   "ar": "إنشاء مسودة"
+  },
+  "builder.createTitle": {
+   "en": "New service",
+   "ar": "خدمة جديدة"
+  },
+  "builder.created": {
+   "en": "Created",
+   "ar": "الإنشاء"
+  },
+  "builder.creating": {
+   "en": "Creating…",
+   "ar": "جارٍ الإنشاء…"
+  },
+  "builder.currency": {
+   "en": "Currency",
+   "ar": "العملة"
+  },
+  "builder.defaultCategory": {
+   "en": "General",
+   "ar": "عام"
+  },
+  "builder.defaultFullName": {
+   "en": "Full name",
+   "ar": "الاسم الكامل"
+  },
+  "builder.defaultStep": {
+   "en": "Applicant details",
+   "ar": "بيانات مقدم الطلب"
+  },
+  "builder.description": {
+   "en": "Short description",
+   "ar": "وصف مختصر"
+  },
+  "builder.discard": {
+   "en": "Discard draft",
+   "ar": "تجاهل المسودة"
+  },
+  "builder.discardConfirm": {
+   "en": "Click again to discard",
+   "ar": "انقر مرة أخرى للتجاهل"
+  },
+  "builder.discarded": {
+   "en": "Draft discarded.",
+   "ar": "تم تجاهل المسودة."
+  },
+  "builder.draft": {
+   "en": "Draft v{n}",
+   "ar": "مسودة · الإصدار {n}"
+  },
+  "builder.drag": {
+   "en": "Drag to reorder",
+   "ar": "اسحب لإعادة الترتيب"
+  },
+  "builder.editingDraft": {
+   "en": "Draft v{n}. Citizens see {live} until you publish.",
+   "ar": "المسودة {n}. يرى المتعاملون {live} حتى النشر."
+  },
+  "builder.editingLive": {
+   "en": "You are viewing the live version. Saving creates draft v{n}; citizens keep seeing v{live} until you publish.",
+   "ar": "تعرض الإصدار المنشور. يؤدي الحفظ إلى إنشاء المسودة {n}، ويستمر المتعاملون في رؤية الإصدار {live} حتى النشر."
+  },
+  "builder.empty": {
+   "en": "No services yet",
+   "ar": "لا توجد خدمات بعد"
+  },
+  "builder.errors": {
+   "en": "{n} thing(s) to fix before publishing",
+   "ar": "{n} ملاحظة يجب إصلاحها قبل النشر"
+  },
+  "builder.fee": {
+   "en": "Fee",
+   "ar": "الرسوم"
+  },
+  "builder.fieldKey": {
+   "en": "Key",
+   "ar": "المفتاح"
+  },
+  "builder.fieldSettings": {
+   "en": "Field settings",
+   "ar": "إعدادات الحقل"
+  },
+  "builder.fields": {
+   "en": "Fields in this step",
+   "ar": "حقول هذه الخطوة"
+  },
+  "builder.help": {
+   "en": "Help text",
+   "ar": "نص المساعدة"
+  },
+  "builder.inLanguage": {
+   "en": "{label} ({language})",
+   "ar": "{label} ({language})"
+  },
+  "builder.intro": {
+   "en": "Create and change e-services without code. Changes are drafts until you publish them; applications already started keep the version they began on.",
+   "ar": "أنشئ الخدمات الإلكترونية وعدّلها دون برمجة. تبقى التغييرات مسودة حتى تنشرها، وتحتفظ الطلبات القائمة بالإصدار الذي بدأت عليه."
+  },
+  "builder.label": {
+   "en": "Label",
+   "ar": "التسمية"
+  },
+  "builder.lastChange": {
+   "en": "Last change",
+   "ar": "آخر تعديل"
+  },
+  "builder.less": {
+   "en": "Fewer settings",
+   "ar": "إعدادات أقل"
+  },
+  "builder.live": {
+   "en": "Live v{n}",
+   "ar": "منشور · الإصدار {n}"
+  },
+  "builder.liveNone": {
+   "en": "nothing",
+   "ar": "لا شيء"
+  },
+  "builder.max": {
+   "en": "Maximum",
+   "ar": "الحد الأقصى"
+  },
+  "builder.maxLength": {
+   "en": "Max length",
+   "ar": "أقصى طول"
+  },
+  "builder.min": {
+   "en": "Minimum",
+   "ar": "الحد الأدنى"
+  },
+  "builder.minLength": {
+   "en": "Min length",
+   "ar": "أقل طول"
+  },
+  "builder.more": {
+   "en": "More settings",
+   "ar": "إعدادات إضافية"
+  },
+  "builder.moveDown": {
+   "en": "Move down",
+   "ar": "نقل لأسفل"
+  },
+  "builder.moveUp": {
+   "en": "Move up",
+   "ar": "نقل لأعلى"
+  },
+  "builder.name": {
+   "en": "Service name",
+   "ar": "اسم الخدمة"
+  },
+  "builder.new": {
+   "en": "New service",
+   "ar": "خدمة جديدة"
+  },
+  "builder.newField": {
+   "en": "New field",
+   "ar": "حقل جديد"
+  },
+  "builder.none": {
+   "en": "None",
+   "ar": "لا يوجد"
+  },
+  "builder.notLive": {
+   "en": "Not published",
+   "ar": "غير منشور"
+  },
+  "builder.optionN": {
+   "en": "Option {n}",
+   "ar": "الخيار {n}"
+  },
+  "builder.optionValue": {
+   "en": "Value",
+   "ar": "القيمة"
+  },
+  "builder.options": {
+   "en": "Options",
+   "ar": "الخيارات"
+  },
+  "builder.pattern": {
+   "en": "Pattern (regular expression)",
+   "ar": "النمط (تعبير نمطي)"
+  },
+  "builder.patternMsg": {
+   "en": "Pattern message",
+   "ar": "رسالة النمط"
+  },
+  "builder.placeholder": {
+   "en": "Placeholder",
+   "ar": "نص توضيحي"
+  },
+  "builder.prefill": {
+   "en": "Pre-fill from UAE PASS",
+   "ar": "تعبئة مسبقة من الهوية الرقمية"
+  },
+  "builder.prefill.email": {
+   "en": "Email",
+   "ar": "البريد الإلكتروني"
+  },
+  "builder.prefill.emirates_id": {
+   "en": "Emirates ID",
+   "ar": "رقم الهوية"
+  },
+  "builder.prefill.mobile": {
+   "en": "Mobile",
+   "ar": "الهاتف المتحرك"
+  },
+  "builder.prefill.name": {
+   "en": "Name",
+   "ar": "الاسم"
+  },
+  "builder.previewIntro": {
+   "en": "This is how citizens will see the form. Switch the language at the top to check the Arabic.",
+   "ar": "هكذا سيرى المتعاملون النموذج. بدّل اللغة من الأعلى لمراجعة النسخة العربية."
+  },
+  "builder.process": {
+   "en": "Process",
+   "ar": "الإجراء"
+  },
+  "builder.processV1": {
+   "en": "Standard: staff review, payment, certificate",
+   "ar": "اعتيادي: مراجعة الموظف ثم الدفع ثم الشهادة"
+  },
+  "builder.processV2": {
+   "en": "AI-assisted: AI pre-review first (it can ask the applicant to fix things), then staff review",
+   "ar": "بمساعدة الذكاء الاصطناعي: تدقيق آلي أولًا (قد يطلب من مقدم الطلب التصحيح) ثم مراجعة الموظف"
+  },
+  "builder.publish": {
+   "en": "Publish v{n}",
+   "ar": "نشر الإصدار {n}"
+  },
+  "builder.published": {
+   "en": "Published. New applications use v{n}.",
+   "ar": "تم النشر. تستخدم الطلبات الجديدة الإصدار {n}."
+  },
+  "builder.publishedAt": {
+   "en": "Published",
+   "ar": "النشر"
+  },
+  "builder.publishing": {
+   "en": "Publishing…",
+   "ar": "جارٍ النشر…"
+  },
+  "builder.ready": {
+   "en": "Ready to publish",
+   "ar": "جاهز للنشر"
+  },
+  "builder.referenceField": {
+   "en": "Reference field",
+   "ar": "حقل المرجع"
+  },
+  "builder.referenceHelp": {
+   "en": "Identifies the application in lists, and must be unique among active applications (e.g. the trade name).",
+   "ar": "يميّز الطلب في القوائم ويجب أن يكون فريدًا بين الطلبات النشطة (مثل الاسم التجاري)."
+  },
+  "builder.remove": {
+   "en": "Remove",
+   "ar": "حذف"
+  },
+  "builder.required": {
+   "en": "Required",
+   "ar": "إلزامي"
+  },
+  "builder.rule.category": {
+   "en": "Enter the category in the default language ({language}).",
+   "ar": "أدخل الفئة باللغة الافتراضية ({language})."
+  },
+  "builder.rule.checklistItem": {
+   "en": "Each checklist item needs 1–300 characters, in the default language ({language}) at least.",
+   "ar": "يحتاج كل بند إلى 1–300 حرف، باللغة الافتراضية ({language}) على الأقل."
+  },
+  "builder.rule.checklistMax": {
+   "en": "Use at most {max} checklist items.",
+   "ar": "استخدم {max} بندًا كحد أقصى في قائمة التحقق."
+  },
+  "builder.rule.code": {
+   "en": "Use 3–64 capital letters, digits or underscores, starting with a letter (e.g. TRADE_NAME_RESERVATION).",
+   "ar": "استخدم من 3 إلى 64 حرفًا إنجليزيًا كبيرًا أو أرقامًا أو شرطات سفلية، تبدأ بحرف (مثل TRADE_NAME_RESERVATION)."
+  },
+  "builder.rule.codeExists": {
+   "en": "A service with this code already exists.",
+   "ar": "توجد خدمة بهذا الرمز بالفعل."
+  },
+  "builder.rule.currency": {
+   "en": "Use a 3-letter currency code, e.g. AED.",
+   "ar": "استخدم رمز عملة من 3 أحرف، مثل AED."
+  },
+  "builder.rule.description": {
+   "en": "Enter a short description in the default language ({language}).",
+   "ar": "أدخل وصفًا مختصرًا باللغة الافتراضية ({language})."
+  },
+  "builder.rule.fee": {
+   "en": "The fee must be more than zero.",
+   "ar": "يجب أن تكون الرسوم أكبر من صفر."
+  },
+  "builder.rule.fieldKey": {
+   "en": "Start with a letter and use letters and digits only (e.g. tradeNameEn).",
+   "ar": "ابدأ بحرف واستخدم الأحرف والأرقام فقط (مثل tradeNameEn)."
+  },
+  "builder.rule.fieldKeyUnique": {
+   "en": "Field keys must be unique across the whole service.",
+   "ar": "يجب أن تكون مفاتيح الحقول فريدة في الخدمة كلها."
+  },
+  "builder.rule.fieldType": {
+   "en": "Choose a field type.",
+   "ar": "اختر نوع الحقل."
+  },
+  "builder.rule.fieldsMax": {
+   "en": "Use at most {max} fields per step.",
+   "ar": "استخدم {max} حقلًا كحد أقصى في كل خطوة."
+  },
+  "builder.rule.fieldsNone": {
+   "en": "Add at least one field to this step.",
+   "ar": "أضف حقلًا واحدًا على الأقل لهذه الخطوة."
+  },
+  "builder.rule.label": {
+   "en": "Enter the label in the default language ({language}).",
+   "ar": "أدخل التسمية باللغة الافتراضية ({language})."
+  },
+  "builder.rule.max": {
+   "en": "Maximum must be at least the minimum.",
+   "ar": "يجب ألا يقل الحد الأقصى عن الحد الأدنى."
+  },
+  "builder.rule.maxLength": {
+   "en": "Maximum length must be at least the minimum length.",
+   "ar": "يجب ألا يقل أقصى طول عن أقل طول."
+  },
+  "builder.rule.minLength": {
+   "en": "Minimum length can't be negative.",
+   "ar": "لا يمكن أن يكون أقل طول سالبًا."
+  },
+  "builder.rule.name": {
+   "en": "Enter the service name in the default language ({language}).",
+   "ar": "أدخل اسم الخدمة باللغة الافتراضية ({language})."
+  },
+  "builder.rule.optionLabel": {
+   "en": "Each option needs a label in the default language ({language}).",
+   "ar": "يحتاج كل خيار إلى تسمية باللغة الافتراضية ({language})."
+  },
+  "builder.rule.optionValue": {
+   "en": "Each option needs a value.",
+   "ar": "يحتاج كل خيار إلى قيمة."
+  },
+  "builder.rule.optionValueUnique": {
+   "en": "Option values must be unique.",
+   "ar": "يجب أن تكون قيم الخيارات فريدة."
+  },
+  "builder.rule.optionsNone": {
+   "en": "Add at least one option.",
+   "ar": "أضف خيارًا واحدًا على الأقل."
+  },
+  "builder.rule.pattern": {
+   "en": "This is not a valid pattern (regular expression).",
+   "ar": "هذا ليس نمطًا صحيحًا (تعبيرًا نمطيًا)."
+  },
+  "builder.rule.prefill": {
+   "en": "Pre-fill only from name, Emirates ID, email or mobile.",
+   "ar": "التعبئة المسبقة فقط من الاسم أو رقم الهوية أو البريد الإلكتروني أو الهاتف المتحرك."
+  },
+  "builder.rule.referenceMissing": {
+   "en": "The reference field must be one of the service's fields.",
+   "ar": "يجب أن يكون الحقل المرجعي أحد حقول الخدمة."
+  },
+  "builder.rule.referenceType": {
+   "en": "The reference field must be a text field.",
+   "ar": "يجب أن يكون الحقل المرجعي حقلًا نصيًا."
+  },
+  "builder.rule.stepId": {
+   "en": "Use lowercase letters, digits and dashes for the step ID.",
+   "ar": "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطات لمعرّف الخطوة."
+  },
+  "builder.rule.stepIdUnique": {
+   "en": "Step IDs must be unique.",
+   "ar": "يجب أن تكون معرّفات الخطوات فريدة."
+  },
+  "builder.rule.stepTitle": {
+   "en": "Enter the step title in the default language ({language}).",
+   "ar": "أدخل عنوان الخطوة باللغة الافتراضية ({language})."
+  },
+  "builder.rule.stepsMax": {
+   "en": "Use at most {max} steps.",
+   "ar": "استخدم {max} خطوة كحد أقصى."
+  },
+  "builder.rule.stepsNone": {
+   "en": "Add at least one step.",
+   "ar": "أضف خطوة واحدة على الأقل."
+  },
+  "builder.rule.workflow": {
+   "en": "Choose the standard or the AI-assisted process.",
+   "ar": "اختر الإجراء القياسي أو الإجراء بمساعدة الذكاء الاصطناعي."
+  },
+  "builder.save": {
+   "en": "Save draft",
+   "ar": "حفظ المسودة"
+  },
+  "builder.saved": {
+   "en": "Draft saved.",
+   "ar": "تم حفظ المسودة."
+  },
+  "builder.saving": {
+   "en": "Saving…",
+   "ar": "جارٍ الحفظ…"
+  },
+  "builder.step": {
+   "en": "Step {n}",
+   "ar": "الخطوة {n}"
+  },
+  "builder.stepDesc": {
+   "en": "Introduction",
+   "ar": "مقدمة"
+  },
+  "builder.stepId": {
+   "en": "Step ID",
+   "ar": "معرّف الخطوة"
+  },
+  "builder.stepN": {
+   "en": "Step {n}",
+   "ar": "الخطوة {n}"
+  },
+  "builder.stepSettings": {
+   "en": "Step settings",
+   "ar": "إعدادات الخطوة"
+  },
+  "builder.steps": {
+   "en": "Steps",
+   "ar": "الخطوات"
+  },
+  "builder.tab.details": {
+   "en": "Details",
+   "ar": "التفاصيل"
+  },
+  "builder.tab.form": {
+   "en": "Steps and fields",
+   "ar": "الخطوات والحقول"
+  },
+  "builder.tab.preview": {
+   "en": "Preview",
+   "ar": "المعاينة"
+  },
+  "builder.tab.review": {
+   "en": "AI review",
+   "ar": "التدقيق الآلي"
+  },
+  "builder.tab.versions": {
+   "en": "Versions",
+   "ar": "الإصدارات"
+  },
+  "builder.title": {
+   "en": "Title",
+   "ar": "العنوان"
+  },
+  "builder.type": {
+   "en": "Type",
+   "ar": "النوع"
+  },
+  "builder.type.checkbox": {
+   "en": "Confirmation box",
+   "ar": "مربع تأكيد"
+  },
+  "builder.type.date": {
+   "en": "Date",
+   "ar": "تاريخ"
+  },
+  "builder.type.email": {
+   "en": "Email",
+   "ar": "بريد إلكتروني"
+  },
+  "builder.type.file": {
+   "en": "File upload",
+   "ar": "رفع ملف"
+  },
+  "builder.type.number": {
+   "en": "Number",
+   "ar": "رقم"
+  },
+  "builder.type.phone": {
+   "en": "Phone",
+   "ar": "هاتف"
+  },
+  "builder.type.select": {
+   "en": "Choice list",
+   "ar": "قائمة خيارات"
+  },
+  "builder.type.text": {
+   "en": "Text",
+   "ar": "نص"
+  },
+  "builder.type.textarea": {
+   "en": "Long text",
+   "ar": "نص طويل"
+  },
+  "builder.unsaved": {
+   "en": "Unsaved changes",
+   "ar": "تغييرات غير محفوظة"
+  },
+  "builder.version": {
+   "en": "Version",
+   "ar": "الإصدار"
+  },
+  "builder.vstatus.Draft": {
+   "en": "Draft",
+   "ar": "مسودة"
+  },
+  "builder.vstatus.Published": {
+   "en": "Live",
+   "ar": "منشور"
+  },
+  "builder.vstatus.Retired": {
+   "en": "Retired",
+   "ar": "مؤرشف"
+  },
+  "cancel": {
+   "en": "Cancel",
+   "ar": "إلغاء"
+  },
+  "catalog.aiAssisted": {
+   "en": "Checked by AI before review",
+   "ar": "يُدقق آليًا قبل المراجعة"
+  },
+  "catalog.apply": {
+   "en": "Apply",
+   "ar": "تقديم طلب"
+  },
+  "catalog.intro": {
+   "en": "Choose a service to start. You can fill in a form or chat with the assistant — switch any time.",
+   "ar": "اختر خدمة للبدء. يمكنك تعبئة النموذج أو المحادثة مع المساعد، والتبديل بينهما في أي وقت."
+  },
+  "catalog.starting": {
+   "en": "Starting…",
+   "ar": "جارٍ البدء…"
+  },
+  "catalog.welcome": {
+   "en": "Welcome, {name}",
+   "ar": "مرحبًا، {name}"
+  },
+  "certificate.disclaimer": {
+   "en": "Proof-of-concept certificate generated by the Digital Services Platform. Not a legal document.",
+   "ar": "شهادة تجريبية صادرة عن منصة الخدمات الرقمية. ليست وثيقة رسمية."
+  },
+  "certificate.holder": {
+   "en": "Holder",
+   "ar": "صاحب الشهادة"
+  },
+  "certificate.issued": {
+   "en": "Issued",
+   "ar": "تاريخ الإصدار"
+  },
+  "certificate.number": {
+   "en": "Certificate number",
+   "ar": "رقم الشهادة"
+  },
+  "certificate.statement": {
+   "en": "This certifies that the application below was approved.",
+   "ar": "نشهد بأنه تمت الموافقة على الطلب الموضح أدناه."
+  },
+  "chat.ai": {
+   "en": "AI assistant",
+   "ar": "المساعد الذكي"
+  },
+  "chat.alreadySubmitted": {
+   "en": "Application {number} is already {status}. You can follow it from My applications.",
+   "ar": "الطلب {number} في حالة: {status}. يمكنك متابعته من صفحة طلباتي."
+  },
+  "chat.ask.checkbox": {
+   "en": "Please confirm: {label}. Type \"{word}\" to confirm.",
+   "ar": "يرجى التأكيد: {label}. اكتب \"{word}\" للتأكيد."
+  },
+  "chat.ask.date": {
+   "en": "What is the {label}? (for example 2027-01-31)",
+   "ar": "ما هو {label}؟ (مثلًا 2027-01-31)"
+  },
+  "chat.ask.file": {
+   "en": "Please upload the {label} in the form view.",
+   "ar": "يرجى رفع {label} في النموذج."
+  },
+  "chat.ask.select": {
+   "en": "What is the {label}? Options: {options}.",
+   "ar": "ما هو {label}؟ الخيارات: {options}."
+  },
+  "chat.ask.text": {
+   "en": "What is the {label}?{help}",
+   "ar": "ما هو {label}؟{help}"
+  },
+  "chat.guided": {
+   "en": "Guided assistant",
+   "ar": "المساعد الموجّه"
+  },
+  "chat.guided.allFilled": {
+   "en": "Everything is filled in:\n{summary}\n\nThe fee is {currency} {fee}, payable after approval. Type \"{word}\" to send your application.",
+   "ar": "اكتملت جميع البيانات:\n{summary}\n\nالرسوم {fee} {currency}، تُدفع بعد الموافقة. اكتب \"{word}\" لتقديم طلبك."
+  },
+  "chat.guided.cannotSubmit": {
+   "en": "I couldn't submit yet: {message}",
+   "ar": "لم أتمكن من التقديم بعد: {message}"
+  },
+  "chat.guided.filesNotInChat": {
+   "en": "Files can't be sent through chat.",
+   "ar": "لا يمكن إرسال الملفات عبر المحادثة."
+  },
+  "chat.guided.gotIt": {
+   "en": "Got it.",
+   "ar": "تم."
+  },
+  "chat.guided.greeting": {
+   "en": "Hello! I'll help you apply for {service}.",
+   "ar": "مرحبًا! سأساعدك في تقديم طلب {service}."
+  },
+  "chat.guided.notUnderstood": {
+   "en": "Sorry, I didn't catch that.",
+   "ar": "عذرًا، لم أفهم ذلك."
+  },
+  "chat.guided.prefilled": {
+   "en": "I've already filled in from your UAE PASS profile: {fields}. You can change any of these in the form view.",
+   "ar": "عبأت مسبقًا من ملفك في الهوية الرقمية: {fields}. يمكنك تعديل أي منها في النموذج."
+  },
+  "chat.guided.submitted": {
+   "en": "Done! Your application {number} was submitted. A ministry officer will review it and you'll get a notification with the next step.",
+   "ar": "تم! قُدّم طلبك رقم {number}. سيراجعه موظف الوزارة وستصلك إشعارات بالخطوة التالية."
+  },
+  "chat.guided.uploadNext": {
+   "en": "Next I need the {label}. Please switch to the form view to upload it, then come back here if you like.",
+   "ar": "أحتاج الآن إلى {label}. يرجى الانتقال إلى النموذج لرفعه، ثم العودة إلى هنا إن شئت."
+  },
+  "chat.listSeparator": {
+   "en": ", ",
+   "ar": "، "
+  },
+  "chat.message": {
+   "en": "Your message",
+   "ar": "رسالتك"
+  },
+  "chat.placeholder": {
+   "en": "Type your answer…",
+   "ar": "اكتب إجابتك…"
+  },
+  "chat.saved": {
+   "en": "answers are saved to your application as you go",
+   "ar": "تُحفظ الإجابات في طلبك أولًا بأول"
+  },
+  "chat.send": {
+   "en": "Send",
+   "ar": "إرسال"
+  },
+  "chat.start": {
+   "en": "Hello, I want to start this application.",
+   "ar": "مرحبًا، أريد بدء هذا الطلب."
+  },
+  "chat.toolLimit": {
+   "en": "I saved what I could. Please check the form view to finish the remaining fields.",
+   "ar": "حفظت ما استطعت. يرجى استخدام النموذج لإكمال الحقول المتبقية."
+  },
+  "chat.typing": {
+   "en": "Typing…",
+   "ar": "يكتب…"
+  },
+  "chat.words.confirm": {
+   "en": "submit|confirm|yes submit|send it|go ahead",
+   "ar": "إرسال|ارسال|أرسل|ارسل|تأكيد|قدّم|قدم"
+  },
+  "chat.words.yes": {
+   "en": "yes|y|yeah|yep|ok|okay|agree|i agree|i confirm|confirm|confirmed|true",
+   "ar": "نعم|موافق|أوافق|اوافق|أؤكد|اؤكد"
+  },
+  "comment": {
+   "en": "Comment",
+   "ar": "الملاحظة"
+  },
+  "completed": {
+   "en": "Completed",
+   "ar": "تاريخ الإكمال"
+  },
+  "currency.AED": {
+   "en": "AED",
+   "ar": "درهم"
+  },
+  "decision": {
+   "en": "Decision",
+   "ar": "القرار"
+  },
+  "due": {
+   "en": "Due {date}",
+   "ar": "الموعد {date}"
+  },
+  "entity.home": {
+   "en": "Ministry of Economy & Tourism home",
+   "ar": "الصفحة الرئيسية لوزارة الاقتصاد والسياحة"
+  },
+  "entity.name": {
+   "en": "Ministry of Economy & Tourism",
+   "ar": "وزارة الاقتصاد والسياحة"
+  },
+  "errors.ai.baseUrl": {
+   "en": "Enter a full address starting with https:// or http://.",
+   "ar": "أدخل عنوانًا كاملًا يبدأ بـ https:// أو http://."
+  },
+  "errors.ai.history": {
+   "en": "History must be between 2 and 200 messages.",
+   "ar": "يجب أن يكون السجل بين 2 و200 رسالة."
+  },
+  "errors.ai.iterations": {
+   "en": "Tool steps must be between 1 and 20.",
+   "ar": "يجب أن يكون عدد خطوات الأدوات بين 1 و20."
+  },
+  "errors.ai.temperature": {
+   "en": "Temperature must be between 0 and 2.",
+   "ar": "يجب أن تكون درجة الحرارة بين 0 و2."
+  },
+  "errors.ai.timeout": {
+   "en": "Timeout must be between 5 and 600 seconds.",
+   "ar": "يجب أن تكون مهلة الانتظار بين 5 و600 ثانية."
+  },
+  "errors.application.maxInformationRequests": {
+   "en": "The applicant was already asked the maximum number of times.",
+   "ar": "طُلب من مقدم الطلب الحد الأقصى من المرات بالفعل."
+  },
+  "errors.application.notEditable": {
+   "en": "Only draft applications can be edited.",
+   "ar": "يمكن تعديل الطلبات في حالة المسودة فقط."
+  },
+  "errors.application.notFound": {
+   "en": "Application not found.",
+   "ar": "الطلب غير موجود."
+  },
+  "errors.application.paymentBeforeApproval": {
+   "en": "Payment can only be requested after approval.",
+   "ar": "لا يمكن طلب الدفع إلا بعد الموافقة."
+  },
+  "errors.application.paymentMismatch": {
+   "en": "Payment does not match this application.",
+   "ar": "الدفعة لا تطابق هذا الطلب."
+  },
+  "errors.application.questionsRequired": {
+   "en": "Say what information is needed.",
+   "ar": "حدد المعلومات المطلوبة."
+  },
+  "errors.application.rejectReason": {
+   "en": "A reason is required when rejecting an application.",
+   "ar": "يلزم ذكر السبب عند رفض الطلب."
+  },
+  "errors.application.rejectWithoutDecision": {
+   "en": "Only a rejection decision can reject the application.",
+   "ar": "لا يُرفض الطلب إلا بقرار رفض."
+  },
+  "errors.application.reviewSubmittedOnly": {
+   "en": "Only submitted applications can go to review.",
+   "ar": "تُحال الطلبات المقدمة فقط إلى المراجعة."
+  },
+  "errors.assessment.round": {
+   "en": "Review rounds start at 1.",
+   "ar": "تبدأ جولات المراجعة من 1."
+  },
+  "errors.conflict": {
+   "en": "This can't be done right now",
+   "ar": "لا يمكن تنفيذ ذلك الآن"
+  },
+  "errors.document.empty": {
+   "en": "The file is empty.",
+   "ar": "الملف فارغ."
+  },
+  "errors.document.notFound": {
+   "en": "Document not found.",
+   "ar": "المستند غير موجود."
+  },
+  "errors.document.tooLarge": {
+   "en": "Files must be 10 MB or smaller.",
+   "ar": "يجب ألا يزيد حجم الملف عن 10 ميغابايت."
+  },
+  "errors.document.type": {
+   "en": "Upload a PDF, PNG or JPEG file.",
+   "ar": "ارفع ملف PDF أو PNG أو JPEG."
+  },
+  "errors.forbidden": {
+   "en": "You don't have access to this",
+   "ar": "ليست لديك صلاحية الوصول إلى هذا"
+  },
+  "errors.language.code": {
+   "en": "Enter a language code such as en, ar or zh-Hans.",
+   "ar": "أدخل رمز لغة مثل en أو ar أو zh-Hans."
+  },
+  "errors.language.deleteDefault": {
+   "en": "The default language can't be deleted. Make another language the default first.",
+   "ar": "لا يمكن حذف اللغة الافتراضية. اجعل لغة أخرى افتراضية أولًا."
+  },
+  "errors.language.direction": {
+   "en": "Choose left to right or right to left.",
+   "ar": "اختر من اليسار إلى اليمين أو من اليمين إلى اليسار."
+  },
+  "errors.language.disableDefault": {
+   "en": "The default language can't be turned off. Make another language the default first.",
+   "ar": "لا يمكن إيقاف اللغة الافتراضية. اجعل لغة أخرى افتراضية أولًا."
+  },
+  "errors.language.exists": {
+   "en": "This language already exists.",
+   "ar": "هذه اللغة موجودة بالفعل."
+  },
+  "errors.language.name": {
+   "en": "Enter the language's name in at least one language.",
+   "ar": "أدخل اسم اللغة بلغة واحدة على الأقل."
+  },
+  "errors.language.notFound": {
+   "en": "Language not found.",
+   "ar": "اللغة غير موجودة."
+  },
+  "errors.notFound": {
+   "en": "Not found",
+   "ar": "غير موجود"
+  },
+  "errors.notification.notFound": {
+   "en": "Notification not found.",
+   "ar": "الإشعار غير موجود."
+  },
+  "errors.payment.alreadyPaid": {
+   "en": "This payment has already been made.",
+   "ar": "تم سداد هذه الدفعة بالفعل."
+  },
+  "errors.payment.amount": {
+   "en": "Amount must be greater than zero.",
+   "ar": "يجب أن يكون المبلغ أكبر من صفر."
+  },
+  "errors.payment.notFound": {
+   "en": "Payment not found.",
+   "ar": "الدفعة غير موجودة."
+  },
+  "errors.payment.payer": {
+   "en": "Payer is required.",
+   "ar": "الدافع مطلوب."
+  },
+  "errors.requestFailed": {
+   "en": "The request failed ({status}). Please try again.",
+   "ar": "تعذر تنفيذ الطلب ({status}). يرجى المحاولة مرة أخرى."
+  },
+  "errors.service.codeChange": {
+   "en": "The service code can't be changed. Create a new service instead.",
+   "ar": "لا يمكن تغيير رمز الخدمة. أنشئ خدمة جديدة بدلًا من ذلك."
+  },
+  "errors.service.editDraftOnly": {
+   "en": "Only a draft can be edited.",
+   "ar": "يمكن تعديل المسودة فقط."
+  },
+  "errors.service.noDraftToDiscard": {
+   "en": "There is no draft to discard.",
+   "ar": "لا توجد مسودة لتجاهلها."
+  },
+  "errors.service.noDraftToPublish": {
+   "en": "There is no draft to publish. Make a change first.",
+   "ar": "لا توجد مسودة للنشر. أجرِ تعديلًا أولًا."
+  },
+  "errors.service.notFound": {
+   "en": "Service not found.",
+   "ar": "الخدمة غير موجودة."
+  },
+  "errors.service.publishDraftOnly": {
+   "en": "Only a draft can be published.",
+   "ar": "يمكن نشر المسودة فقط."
+  },
+  "errors.service.retirePublishedOnly": {
+   "en": "Only the published version can be retired.",
+   "ar": "يمكن أرشفة الإصدار المنشور فقط."
+  },
+  "errors.service.unreadable": {
+   "en": "This service version can't be read.",
+   "ar": "تعذرت قراءة إصدار الخدمة هذا."
+  },
+  "errors.service.version": {
+   "en": "Version numbers start at 1.",
+   "ar": "تبدأ أرقام الإصدارات من 1."
+  },
+  "errors.sessionEnded": {
+   "en": "Your session has ended. Please sign in again.",
+   "ar": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى."
+  },
+  "errors.signIn.credentials": {
+   "en": "Incorrect username or password.",
+   "ar": "اسم المستخدم أو كلمة المرور غير صحيحة."
+  },
+  "errors.signIn.expired": {
+   "en": "Your sign-in session expired. Please try again.",
+   "ar": "انتهت جلسة تسجيل الدخول. يرجى المحاولة مرة أخرى."
+  },
+  "errors.signIn.provider": {
+   "en": "This sign-in method is not available.",
+   "ar": "طريقة تسجيل الدخول هذه غير متاحة."
+  },
+  "errors.signIn.unverified": {
+   "en": "Sign-in could not be verified. Please try again.",
+   "ar": "تعذر التحقق من تسجيل الدخول. يرجى المحاولة مرة أخرى."
+  },
+  "errors.signIn.username": {
+   "en": "Username is required.",
+   "ar": "اسم المستخدم مطلوب."
+  },
+  "errors.staffOnly": {
+   "en": "Back-office access only.",
+   "ar": "للموظفين فقط."
+  },
+  "errors.task.completed": {
+   "en": "This task is already completed.",
+   "ar": "اكتملت هذه المهمة بالفعل."
+  },
+  "errors.task.notFound": {
+   "en": "Task not found.",
+   "ar": "المهمة غير موجودة."
+  },
+  "errors.translation.defaultRequired": {
+   "en": "Every text needs a version in the default language.",
+   "ar": "يحتاج كل نص إلى صيغة باللغة الافتراضية."
+  },
+  "errors.translation.empty": {
+   "en": "Enter the text.",
+   "ar": "أدخل النص."
+  },
+  "errors.translation.key": {
+   "en": "Keys use letters, digits, dots, dashes and underscores (up to 200).",
+   "ar": "تتكون المفاتيح من أحرف وأرقام ونقاط وشرطات (حتى 200 حرف)."
+  },
+  "errors.translation.tooLong": {
+   "en": "The text can be up to 4,000 characters.",
+   "ar": "يمكن أن يصل النص إلى 4000 حرف."
+  },
+  "errors.translation.unknownKey": {
+   "en": "This key doesn't exist. Add it in the default language first.",
+   "ar": "هذا المفتاح غير موجود. أضفه باللغة الافتراضية أولًا."
+  },
+  "errors.uaePass.cancelled": {
+   "en": "You cancelled the UAE PASS sign-in.",
+   "ar": "ألغيت تسجيل الدخول بالهوية الرقمية."
+  },
+  "errors.uaePass.failed": {
+   "en": "UAE PASS sign-in could not be completed. Please try again.",
+   "ar": "تعذر إكمال تسجيل الدخول بالهوية الرقمية. يرجى المحاولة مرة أخرى."
+  },
+  "errors.unexpected": {
+   "en": "Something went wrong",
+   "ar": "حدث خطأ ما"
+  },
+  "errors.unexpectedDetail": {
+   "en": "Something went wrong. Quote the correlation ID when reporting.",
+   "ar": "حدث خطأ ما. اذكر رقم التتبع عند الإبلاغ."
+  },
+  "errors.validation": {
+   "en": "Some details need your attention",
+   "ar": "بعض البيانات تحتاج إلى مراجعتك"
+  },
+  "fee": {
+   "en": "Fee",
+   "ar": "الرسوم"
+  },
+  "footer.about": {
+   "en": "Government services for businesses, investors and visitors, online.",
+   "ar": "الخدمات الحكومية للشركات والمستثمرين والزوار، إلكترونيًا."
+  },
+  "footer.rights": {
+   "en": "All rights reserved.",
+   "ar": "جميع الحقوق محفوظة."
+  },
+  "form.afterSubmit": {
+   "en": "After you submit, a ministry officer reviews your application. If approved, you pay the fee and receive your certificate.",
+   "ar": "بعد التقديم، يراجع موظف الوزارة طلبك. عند الموافقة تدفع الرسوم وتستلم شهادتك."
+  },
+  "form.afterSubmitAi": {
+   "en": "After you submit, our digital assistant checks your application first and may ask you to correct something. Then a ministry officer reviews it. If approved, you pay the fee and receive your certificate.",
+   "ar": "بعد التقديم، يتحقق المساعد الرقمي من طلبك أولًا وقد يطلب منك تصحيح شيء ما، ثم يراجعه موظف الوزارة. عند الموافقة تدفع الرسوم وتستلم شهادتك."
+  },
+  "form.allRequired": {
+   "en": "All fields are required unless marked as optional.",
+   "ar": "جميع الحقول مطلوبة ما لم يُذكر أنها اختيارية."
+  },
+  "form.attached": {
+   "en": "File attached",
+   "ar": "ملف مرفق"
+  },
+  "form.attention": {
+   "en": "Some details need your attention.",
+   "ar": "بعض البيانات تحتاج إلى انتباهك."
+  },
+  "form.change": {
+   "en": "Change",
+   "ar": "تعديل"
+  },
+  "form.confirmed": {
+   "en": "Confirmed",
+   "ar": "مؤكد"
+  },
+  "form.fileHint": {
+   "en": "PDF, JPG or PNG, up to 10 MB",
+   "ar": "PDF أو JPG أو PNG، حتى 10 ميجابايت"
+  },
+  "form.notConfirmed": {
+   "en": "Not confirmed",
+   "ar": "غير مؤكد"
+  },
+  "form.notProvided": {
+   "en": "Not provided",
+   "ar": "غير مُدخل"
+  },
+  "form.openFile": {
+   "en": "Open file",
+   "ar": "فتح الملف"
+  },
+  "form.optional": {
+   "en": "(optional)",
+   "ar": "(اختياري)"
+  },
+  "form.resubmit": {
+   "en": "Send updated application",
+   "ar": "إرسال الطلب المحدّث"
+  },
+  "form.review": {
+   "en": "Review",
+   "ar": "المراجعة"
+  },
+  "form.reviewTitle": {
+   "en": "Review your application",
+   "ar": "راجع طلبك"
+  },
+  "form.saveContinue": {
+   "en": "Save and continue",
+   "ar": "حفظ ومتابعة"
+  },
+  "form.saveReview": {
+   "en": "Save and review",
+   "ar": "حفظ ومراجعة"
+  },
+  "form.saving": {
+   "en": "Saving…",
+   "ar": "جارٍ الحفظ…"
+  },
+  "form.select": {
+   "en": "Select…",
+   "ar": "اختر…"
+  },
+  "form.submit": {
+   "en": "Submit application",
+   "ar": "تقديم الطلب"
+  },
+  "form.submitting": {
+   "en": "Submitting…",
+   "ar": "جارٍ التقديم…"
+  },
+  "form.uploadFailed": {
+   "en": "Upload failed",
+   "ar": "تعذر الرفع"
+  },
+  "form.uploaded": {
+   "en": "File uploaded",
+   "ar": "تم رفع الملف"
+  },
+  "form.uploadedName": {
+   "en": "Uploaded: {name}",
+   "ar": "تم الرفع: {name}"
+  },
+  "form.uploading": {
+   "en": "Uploading…",
+   "ar": "جارٍ الرفع…"
+  },
+  "inbox.ai": {
+   "en": "AI pre-review",
+   "ar": "التدقيق الآلي"
+  },
+  "inbox.application": {
+   "en": "Application",
+   "ar": "الطلب"
+  },
+  "inbox.empty": {
+   "en": "Inbox is clear",
+   "ar": "لا توجد طلبات للمراجعة"
+  },
+  "inbox.emptyHint": {
+   "en": "New applications appear here as citizens submit them.",
+   "ar": "تظهر الطلبات الجديدة هنا عند تقديمها."
+  },
+  "inbox.intro": {
+   "en": "Applications waiting for a decision, oldest first.",
+   "ar": "الطلبات بانتظار القرار، الأقدم أولًا."
+  },
+  "inbox.open": {
+   "en": "{n} open",
+   "ar": "{n} مفتوحة"
+  },
+  "inbox.title": {
+   "en": "Review inbox",
+   "ar": "صندوق المراجعة"
+  },
+  "journey.aiReview": {
+   "en": "Digital assistant check",
+   "ar": "تدقيق المساعد الرقمي"
+  },
+  "journey.certificate": {
+   "en": "Certificate issued",
+   "ar": "إصدار الشهادة"
+  },
+  "journey.payment": {
+   "en": "Payment",
+   "ar": "الدفع"
+  },
+  "journey.review": {
+   "en": "Ministry review",
+   "ar": "مراجعة الوزارة"
+  },
+  "journey.submitted": {
+   "en": "Submitted",
+   "ar": "تم التقديم"
+  },
+  "lang.choose": {
+   "en": "Language",
+   "ar": "اللغة"
+  },
+  "lang.switchTo": {
+   "en": "Switch to {language}",
+   "ar": "التبديل إلى {language}"
+  },
+  "lastUpdate": {
+   "en": "Last update",
+   "ar": "آخر تحديث"
+  },
+  "loading": {
+   "en": "Loading…",
+   "ar": "جارٍ التحميل…"
+  },
+  "login.failed": {
+   "en": "Sign-in failed",
+   "ar": "تعذر تسجيل الدخول"
+  },
+  "login.intro": {
+   "en": "Sign in to apply for ministry services, track your applications and download certificates.",
+   "ar": "سجّل الدخول للتقدم بطلبات خدمات الوزارة ومتابعة طلباتك وتنزيل الشهادات."
+  },
+  "login.none": {
+   "en": "No sign-in method is configured.",
+   "ar": "لم يتم إعداد أي طريقة لتسجيل الدخول."
+  },
+  "login.signingIn": {
+   "en": "Signing you in…",
+   "ar": "جارٍ تسجيل دخولك…"
+  },
+  "login.staging": {
+   "en": "This environment uses the UAE PASS staging service. Use a UAE PASS staging account to sign in.",
+   "ar": "تستخدم هذه البيئة خدمة الهوية الرقمية التجريبية. استخدم حسابًا تجريبيًا لتسجيل الدخول."
+  },
+  "login.title": {
+   "en": "Sign in",
+   "ar": "تسجيل الدخول"
+  },
+  "login.unavailable": {
+   "en": "Sign-in is unavailable right now. Please try again shortly.",
+   "ar": "تسجيل الدخول غير متاح حاليًا. يرجى المحاولة بعد قليل."
+  },
+  "login.with": {
+   "en": "Sign in with {name}",
+   "ar": "تسجيل الدخول عبر {name}"
+  },
+  "my.browse": {
+   "en": "Browse services",
+   "ar": "تصفح الخدمات"
+  },
+  "my.empty": {
+   "en": "No applications yet",
+   "ar": "لا توجد طلبات بعد"
+  },
+  "my.title": {
+   "en": "My applications",
+   "ar": "طلباتي"
+  },
+  "my.toStart": {
+   "en": "to start one.",
+   "ar": "لبدء طلب."
+  },
+  "nav.allApplications": {
+   "en": "All applications",
+   "ar": "جميع الطلبات"
+  },
+  "nav.builder": {
+   "en": "Service builder",
+   "ar": "منشئ الخدمات"
+  },
+  "nav.inbox": {
+   "en": "Review inbox",
+   "ar": "صندوق المراجعة"
+  },
+  "nav.main": {
+   "en": "Main navigation",
+   "ar": "التنقل الرئيسي"
+  },
+  "nav.menu": {
+   "en": "Menu",
+   "ar": "القائمة"
+  },
+  "nav.myApplications": {
+   "en": "My applications",
+   "ar": "طلباتي"
+  },
+  "nav.services": {
+   "en": "Services",
+   "ar": "الخدمات"
+  },
+  "nav.settings": {
+   "en": "Settings",
+   "ar": "الإعدادات"
+  },
+  "notifications": {
+   "en": "Notifications",
+   "ar": "الإشعارات"
+  },
+  "notifications.applicationTitle": {
+   "en": "{service} · {number}",
+   "ar": "{service} · {number}"
+  },
+  "notifications.empty": {
+   "en": "You're all caught up",
+   "ar": "لا توجد إشعارات جديدة"
+  },
+  "notifications.markRead": {
+   "en": "Mark as read",
+   "ar": "تحديد كمقروء"
+  },
+  "notifications.open": {
+   "en": "View details",
+   "ar": "عرض التفاصيل"
+  },
+  "notifications.staffNewBody": {
+   "en": "{service} is waiting for a decision.",
+   "ar": "{service} بانتظار القرار."
+  },
+  "notifications.staffNewTitle": {
+   "en": "New application to review · {number}",
+   "ar": "طلب جديد للمراجعة · {number}"
+  },
+  "notifications.title": {
+   "en": "Notifications",
+   "ar": "الإشعارات"
+  },
+  "notifications.unread": {
+   "en": "Notifications, {n} unread",
+   "ar": "الإشعارات، {n} غير مقروءة"
+  },
+  "number": {
+   "en": "Number",
+   "ar": "الرقم"
+  },
+  "overdue": {
+   "en": "Overdue",
+   "ar": "متأخر"
+  },
+  "process.v1": {
+   "en": "Standard review",
+   "ar": "مراجعة اعتيادية"
+  },
+  "process.v2": {
+   "en": "AI-assisted review",
+   "ar": "مراجعة بمساعدة الذكاء الاصطناعي"
+  },
+  "received": {
+   "en": "Received",
+   "ar": "تاريخ الاستلام"
+  },
+  "reference": {
+   "en": "Reference",
+   "ar": "المرجع"
+  },
+  "rejected": {
+   "en": "Rejected",
+   "ar": "مرفوض"
+  },
+  "rules.agency.endBeforeStart": {
+   "en": "The agreement must end after it starts.",
+   "ar": "يجب أن ينتهي الاتفاق بعد تاريخ بدايته."
+  },
+  "rules.agency.minimumTerm": {
+   "en": "Commercial agency agreements must run for at least one year.",
+   "ar": "يجب ألا تقل مدة اتفاقية الوكالة التجارية عن سنة واحدة."
+  },
+  "rules.tradeName.reservedWord": {
+   "en": "Trade names cannot include the reserved word \"{word}\".",
+   "ar": "لا يمكن أن يتضمن الاسم التجاري الكلمة المحجوزة \"{word}\"."
+  },
+  "save": {
+   "en": "Save",
+   "ar": "حفظ"
+  },
+  "service": {
+   "en": "Service",
+   "ar": "الخدمة"
+  },
+  "settings.addKey": {
+   "en": "Add text",
+   "ar": "إضافة نص"
+  },
+  "settings.addLanguage": {
+   "en": "Add language",
+   "ar": "إضافة لغة"
+  },
+  "settings.ai": {
+   "en": "AI settings",
+   "ar": "إعدادات الذكاء الاصطناعي"
+  },
+  "settings.code": {
+   "en": "Language code",
+   "ar": "رمز اللغة"
+  },
+  "settings.codeHint": {
+   "en": "BCP 47 code, e.g. fr, ur or zh-Hans. It can't be changed later.",
+   "ar": "رمز BCP 47، مثل fr أو ur أو zh-Hans. لا يمكن تغييره لاحقًا."
+  },
+  "settings.completion": {
+   "en": "Translated",
+   "ar": "المترجم"
+  },
+  "settings.defaultSet": {
+   "en": "This is now the default language.",
+   "ar": "أصبحت هذه اللغة الافتراضية."
+  },
+  "settings.defaultText": {
+   "en": "Default text",
+   "ar": "النص الافتراضي"
+  },
+  "settings.delete": {
+   "en": "Delete language",
+   "ar": "حذف اللغة"
+  },
+  "settings.deleteConfirm": {
+   "en": "Delete it and its texts",
+   "ar": "احذفها مع نصوصها"
+  },
+  "settings.deleteKey": {
+   "en": "Delete text in all languages",
+   "ar": "حذف النص من جميع اللغات"
+  },
+  "settings.deleted": {
+   "en": "The language and its texts were deleted.",
+   "ar": "تم حذف اللغة ونصوصها."
+  },
+  "settings.dir.ltr": {
+   "en": "Left to right",
+   "ar": "من اليسار إلى اليمين"
+  },
+  "settings.dir.rtl": {
+   "en": "Right to left",
+   "ar": "من اليمين إلى اليسار"
+  },
+  "settings.direction": {
+   "en": "Text direction",
+   "ar": "اتجاه النص"
+  },
+  "settings.disable": {
+   "en": "Turn off",
+   "ar": "إيقاف"
+  },
+  "settings.disabled": {
+   "en": "The language is off.",
+   "ar": "تم إيقاف اللغة."
+  },
+  "settings.editLanguage": {
+   "en": "Edit {language}",
+   "ar": "تعديل {language}"
+  },
+  "settings.editText": {
+   "en": "Edit text",
+   "ar": "تعديل النص"
+  },
+  "settings.enable": {
+   "en": "Turn on",
+   "ar": "تفعيل"
+  },
+  "settings.enabled": {
+   "en": "The language is on.",
+   "ar": "تم تفعيل اللغة."
+  },
+  "settings.export": {
+   "en": "Export JSON",
+   "ar": "تصدير JSON"
+  },
+  "settings.import": {
+   "en": "Import translations",
+   "ar": "استيراد الترجمات"
+  },
+  "settings.importHint": {
+   "en": "A JSON file of key and text pairs, e.g. one exported here and translated.",
+   "ar": "ملف JSON يحتوي على أزواج المفتاح والنص، مثل ملف مُصدَّر من هنا ثم مترجم."
+  },
+  "settings.imported": {
+   "en": "Imported: {added} added, {updated} updated, {skipped} skipped.",
+   "ar": "تم الاستيراد: أضيف {added}، وحُدّث {updated}، وتُخطي {skipped}."
+  },
+  "settings.key": {
+   "en": "Key",
+   "ar": "المفتاح"
+  },
+  "settings.keyHint": {
+   "en": "Letters, digits, dots, dashes and underscores, e.g. catalog.newBanner.",
+   "ar": "أحرف وأرقام ونقاط وشرطات، مثل catalog.newBanner."
+  },
+  "settings.lang.default": {
+   "en": "Default",
+   "ar": "افتراضية"
+  },
+  "settings.lang.disabled": {
+   "en": "Off",
+   "ar": "متوقفة"
+  },
+  "settings.lang.enabled": {
+   "en": "On",
+   "ar": "مفعلة"
+  },
+  "settings.language": {
+   "en": "Language",
+   "ar": "اللغة"
+  },
+  "settings.languageName": {
+   "en": "Name",
+   "ar": "الاسم"
+  },
+  "settings.languageNameHint": {
+   "en": "How this language is called in each language.",
+   "ar": "اسم هذه اللغة في كل لغة."
+  },
+  "settings.languages": {
+   "en": "Languages",
+   "ar": "اللغات"
+  },
+  "settings.languagesIntro": {
+   "en": "Languages people can use the portals in. The default language is always on and every text needs it; other languages can be added, turned on or off and deleted at any time.",
+   "ar": "اللغات التي يمكن استخدام البوابتين بها. اللغة الافتراضية مفعلة دائمًا ويحتاجها كل نص، ويمكن إضافة اللغات الأخرى وتفعيلها وإيقافها وحذفها في أي وقت."
+  },
+  "settings.makeDefault": {
+   "en": "Make default",
+   "ar": "جعلها افتراضية"
+  },
+  "settings.missingCount": {
+   "en": "{n} missing",
+   "ar": "{n} غير مترجم"
+  },
+  "settings.newDisabledNote": {
+   "en": "New languages start turned off. Translate the texts, then turn the language on.",
+   "ar": "تبدأ اللغات الجديدة متوقفة. ترجم النصوص ثم فعّل اللغة."
+  },
+  "settings.noLanguages": {
+   "en": "No languages",
+   "ar": "لا توجد لغات"
+  },
+  "settings.noTexts": {
+   "en": "No texts",
+   "ar": "لا توجد نصوص"
+  },
+  "settings.order": {
+   "en": "Order",
+   "ar": "الترتيب"
+  },
+  "settings.ownName": {
+   "en": "Name in the language itself",
+   "ar": "الاسم باللغة نفسها"
+  },
+  "settings.ownNameHint": {
+   "en": "Shown in the language switch, e.g. Français, اردو.",
+   "ar": "يظهر في مبدّل اللغة، مثل Français أو اردو."
+  },
+  "settings.placeholdersHint": {
+   "en": "Keep words in braces, such as {label} or {n}, exactly as they are.",
+   "ar": "احتفظ بالكلمات بين الأقواس مثل {label} أو {n} كما هي تمامًا."
+  },
+  "settings.removeText": {
+   "en": "Remove translation",
+   "ar": "إزالة الترجمة"
+  },
+  "settings.removed": {
+   "en": "Removed.",
+   "ar": "تمت الإزالة."
+  },
+  "settings.saved": {
+   "en": "Saved.",
+   "ar": "تم الحفظ."
+  },
+  "settings.title": {
+   "en": "Settings",
+   "ar": "الإعدادات"
+  },
+  "settings.tr.missing": {
+   "en": "Missing",
+   "ar": "غير مترجم"
+  },
+  "settings.tr.translated": {
+   "en": "Translated",
+   "ar": "مترجم"
+  },
+  "settings.translations": {
+   "en": "Texts and translations",
+   "ar": "النصوص والترجمات"
+  },
+  "settings.translationsIntro": {
+   "en": "Every text of both portals, the e-services' messages, notifications and the assistant, in each language. Texts with {placeholders} keep them as they are.",
+   "ar": "جميع نصوص البوابتين ورسائل الخدمات والإشعارات والمساعد بكل لغة. احتفظ بالعناصر بين القوسين مثل {placeholders} كما هي."
+  },
+  "signOut": {
+   "en": "Sign out",
+   "ar": "تسجيل الخروج"
+  },
+  "site.name": {
+   "en": "{service} | {ministry}",
+   "ar": "{service} | {ministry}"
+  },
+  "sla": {
+   "en": "SLA",
+   "ar": "مدة الإنجاز"
+  },
+  "slaDue": {
+   "en": "SLA due",
+   "ar": "موعد الإنجاز"
+  },
+  "staff": {
+   "en": "Staff",
+   "ar": "موظف"
+  },
+  "staffLogin.intro": {
+   "en": "Use your ministry account.",
+   "ar": "استخدم حسابك في الوزارة."
+  },
+  "staffLogin.password": {
+   "en": "Password",
+   "ar": "كلمة المرور"
+  },
+  "staffLogin.signIn": {
+   "en": "Sign in",
+   "ar": "تسجيل الدخول"
+  },
+  "staffLogin.signingIn": {
+   "en": "Signing in…",
+   "ar": "جارٍ تسجيل الدخول…"
+  },
+  "staffLogin.title": {
+   "en": "Staff sign in",
+   "ar": "دخول الموظفين"
+  },
+  "staffLogin.username": {
+   "en": "Username",
+   "ar": "اسم المستخدم"
+  },
+  "status": {
+   "en": "Status",
+   "ar": "الحالة"
+  },
+  "status.AiReview": {
+   "en": "AI pre-review",
+   "ar": "تدقيق آلي"
+  },
+  "status.Approved": {
+   "en": "Completed",
+   "ar": "مكتمل"
+  },
+  "status.AwaitingPayment": {
+   "en": "Awaiting payment",
+   "ar": "بانتظار الدفع"
+  },
+  "status.Draft": {
+   "en": "Draft",
+   "ar": "مسودة"
+  },
+  "status.InformationRequested": {
+   "en": "Information needed",
+   "ar": "مطلوب معلومات"
+  },
+  "status.Paid": {
+   "en": "Paid",
+   "ar": "مدفوع"
+  },
+  "status.Rejected": {
+   "en": "Rejected",
+   "ar": "مرفوض"
+  },
+  "status.Submitted": {
+   "en": "Submitted",
+   "ar": "مقدّم"
+  },
+  "status.UnderReview": {
+   "en": "Under review",
+   "ar": "قيد المراجعة"
+  },
+  "status.aiChecking": {
+   "en": "Our digital assistant is checking your application. This usually takes less than a minute.",
+   "ar": "يتحقق المساعد الرقمي من طلبك. يستغرق ذلك عادة أقل من دقيقة."
+  },
+  "status.amount": {
+   "en": "Amount",
+   "ar": "المبلغ"
+  },
+  "status.approvedTitle": {
+   "en": "Your application was approved",
+   "ar": "تمت الموافقة على طلبك"
+  },
+  "status.certificateReady": {
+   "en": "Your certificate is ready",
+   "ar": "شهادتك جاهزة"
+  },
+  "status.details": {
+   "en": "Application details",
+   "ar": "تفاصيل الطلب"
+  },
+  "status.download": {
+   "en": "Download certificate",
+   "ar": "تنزيل الشهادة"
+  },
+  "status.for": {
+   "en": "For",
+   "ar": "مقابل"
+  },
+  "status.issued": {
+   "en": "Issued {date}.",
+   "ar": "صدرت في {date}."
+  },
+  "status.notApproved": {
+   "en": "Not approved.",
+   "ar": "لم تتم الموافقة."
+  },
+  "status.notify.aiReview": {
+   "en": "Our digital assistant is checking your application before it goes to a ministry officer.",
+   "ar": "يقوم المساعد الرقمي بالتحقق من طلبك قبل إحالته إلى موظف الوزارة."
+  },
+  "status.notify.approvedPay": {
+   "en": "Your application was approved. Please pay {currency} {amount} to receive your certificate.",
+   "ar": "تمت الموافقة على طلبك. يرجى دفع {amount} {currency} لاستلام شهادتك."
+  },
+  "status.notify.certificateReady": {
+   "en": "Your certificate is ready to download.",
+   "ar": "شهادتك جاهزة للتنزيل."
+  },
+  "status.notify.informationReceived": {
+   "en": "Thank you. We received the information and are checking your application again.",
+   "ar": "شكرًا لك. استلمنا المعلومات ونعيد التحقق من طلبك."
+  },
+  "status.notify.informationRequested": {
+   "en": "We need a little more information before a ministry officer can review your application: {questions}",
+   "ar": "نحتاج إلى بعض المعلومات الإضافية قبل أن يراجع موظف الوزارة طلبك: {questions}"
+  },
+  "status.notify.paid": {
+   "en": "We received your payment.",
+   "ar": "استلمنا دفعتك."
+  },
+  "status.notify.rejected": {
+   "en": "Your application was not approved. Reason: {reason}",
+   "ar": "لم تتم الموافقة على طلبك. السبب: {reason}"
+  },
+  "status.notify.submitted": {
+   "en": "Your application was submitted.",
+   "ar": "تم تقديم طلبك."
+  },
+  "status.notify.underReview": {
+   "en": "Your application is being reviewed by the ministry.",
+   "ar": "طلبك قيد المراجعة لدى الوزارة."
+  },
+  "status.pay": {
+   "en": "Pay {amount}",
+   "ar": "ادفع {amount}"
+  },
+  "status.payToReceive": {
+   "en": "Pay the fee to receive your certificate.",
+   "ar": "ادفع الرسوم لاستلام شهادتك."
+  },
+  "status.paymentReceived": {
+   "en": "Payment received ({ref}). Issuing your certificate…",
+   "ar": "تم استلام الدفعة ({ref}). جارٍ إصدار شهادتك…"
+  },
+  "status.processing": {
+   "en": "Processing…",
+   "ar": "جارٍ المعالجة…"
+  },
+  "status.simulated": {
+   "en": "Test environment: payment is simulated, no card is charged.",
+   "ar": "بيئة تجريبية: الدفع محاكاة ولا تُخصم أي مبالغ."
+  },
+  "steps": {
+   "en": "{n} steps",
+   "ar": "{n} خطوات"
+  },
+  "submitted": {
+   "en": "Submitted",
+   "ar": "تاريخ التقديم"
+  },
+  "table.all": {
+   "en": "All",
+   "ar": "الكل"
+  },
+  "table.results": {
+   "en": "{n} result(s)",
+   "ar": "{n} نتيجة"
+  },
+  "table.search": {
+   "en": "Search",
+   "ar": "بحث"
+  },
+  "table.searchHint": {
+   "en": "Search any column",
+   "ar": "ابحث في أي عمود"
+  },
+  "table.sortAscending": {
+   "en": "sorted ascending",
+   "ar": "مرتب تصاعديًا"
+  },
+  "table.sortDescending": {
+   "en": "sorted descending",
+   "ar": "مرتب تنازليًا"
+  },
+  "task.alreadyDone": {
+   "en": "This task was completed ({outcome}).",
+   "ar": "اكتملت هذه المهمة ({outcome})."
+  },
+  "task.application": {
+   "en": "Application",
+   "ar": "الطلب"
+  },
+  "task.approve": {
+   "en": "Approve",
+   "ar": "موافقة"
+  },
+  "task.backToInbox": {
+   "en": "← Back to inbox",
+   "ar": "→ العودة إلى الصندوق"
+  },
+  "task.commentHint": {
+   "en": "(required to reject)",
+   "ar": "(مطلوبة عند الرفض)"
+  },
+  "task.commentLabel": {
+   "en": "Comment",
+   "ar": "ملاحظة"
+  },
+  "task.commentPlaceholder": {
+   "en": "Visible to the applicant",
+   "ar": "تظهر لمقدم الطلب"
+  },
+  "task.reasonRequired": {
+   "en": "Add a reason before rejecting. The applicant will see it.",
+   "ar": "أضف سبب الرفض. سيظهر لمقدم الطلب."
+  },
+  "task.recorded": {
+   "en": "Decision recorded. The applicant has been notified.",
+   "ar": "تم تسجيل القرار وإشعار مقدم الطلب."
+  },
+  "task.reject": {
+   "en": "Reject",
+   "ar": "رفض"
+  },
+  "uaePass": {
+   "en": "UAE PASS",
+   "ar": "الهوية الرقمية"
+  },
+  "uaePass.signIn": {
+   "en": "Sign in with UAE PASS",
+   "ar": "تسجيل الدخول بالهوية الرقمية"
+  },
+  "updated": {
+   "en": "Updated",
+   "ar": "التحديث"
+  },
+  "validation.confirm": {
+   "en": "Please confirm: {label}.",
+   "ar": "يرجى التأكيد: {label}."
+  },
+  "validation.date": {
+   "en": "{label} must be a date (YYYY-MM-DD).",
+   "ar": "يجب أن يكون {label} تاريخًا (YYYY-MM-DD)."
+  },
+  "validation.email": {
+   "en": "Enter a valid email address.",
+   "ar": "أدخل بريدًا إلكترونيًا صحيحًا."
+  },
+  "validation.file": {
+   "en": "Upload a file for {label}.",
+   "ar": "ارفع ملفًا لـ {label}."
+  },
+  "validation.max": {
+   "en": "{label} must be at most {max}.",
+   "ar": "يجب ألا يزيد {label} عن {max}."
+  },
+  "validation.maxLength": {
+   "en": "{label} must be at most {max} characters.",
+   "ar": "يجب ألا يزيد {label} عن {max} حرفًا."
+  },
+  "validation.min": {
+   "en": "{label} must be at least {min}.",
+   "ar": "يجب ألا يقل {label} عن {min}."
+  },
+  "validation.minLength": {
+   "en": "{label} must be at least {min} characters.",
+   "ar": "يجب ألا يقل {label} عن {min} أحرف."
+  },
+  "validation.number": {
+   "en": "{label} must be a number.",
+   "ar": "يجب أن يكون {label} رقمًا."
+  },
+  "validation.option": {
+   "en": "Choose a valid option for {label}.",
+   "ar": "اختر خيارًا صحيحًا لـ {label}."
+  },
+  "validation.pattern": {
+   "en": "{label} is not in the right format.",
+   "ar": "صيغة {label} غير صحيحة."
+  },
+  "validation.referenceInUse": {
+   "en": "This name is already reserved or under review.",
+   "ar": "هذا الاسم محجوز أو قيد المراجعة."
+  },
+  "validation.required": {
+   "en": "{label} is required.",
+   "ar": "{label} مطلوب."
+  },
+  "validation.unknownField": {
+   "en": "This field is not part of the service.",
+   "ar": "هذا الحقل ليس جزءًا من الخدمة."
+  },
+  "workflow": {
+   "en": "Process",
+   "ar": "الإجراء"
+  }
+ }
+}

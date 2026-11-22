@@ -1,4 +1,7 @@
-// Shapes returned by the DSP APIs (v1). One definition drives forms in both portals.
+// Shapes returned by the DSP APIs (v1). One definition drives forms in both portals. Human-facing texts of
+// services are LocalizedText maps (any number of languages); show them with loc().
+
+import type { LocalizedText } from './i18n';
 
 /** Every list endpoint returns one page in this shape. */
 export interface PagedList<T> { items: T[]; page: number; pageSize: number; total: number }
@@ -10,63 +13,51 @@ export const FIELD_TYPES: FieldType[] = ['text', 'textarea', 'email', 'phone', '
 
 export const PROFILE_CLAIMS = ['name', 'emirates_id', 'email', 'mobile'] as const;
 
-export interface FieldOption { value: string; label: string; labelAr?: string | null }
+export interface FieldOption { value: string; label: LocalizedText }
 
 export interface FieldDefinition {
   key: string;
-  label: string;
-  labelAr?: string | null;
+  label: LocalizedText;
   type: FieldType;
   required: boolean;
-  help?: string | null;
-  helpAr?: string | null;
-  placeholder?: string | null;
-  placeholderAr?: string | null;
+  help?: LocalizedText | null;
+  placeholder?: LocalizedText | null;
   options?: FieldOption[] | null;
   minLength?: number | null;
   maxLength?: number | null;
   min?: number | null;
   max?: number | null;
   pattern?: string | null;
-  patternMessage?: string | null;
-  patternMessageAr?: string | null;
+  patternMessage?: LocalizedText | null;
   prefillFrom?: string | null;
 }
 
 export interface FormStep {
   id: string;
-  title: string;
-  titleAr?: string | null;
-  description?: string | null;
-  descriptionAr?: string | null;
+  title: LocalizedText;
+  description?: LocalizedText | null;
   fields: FieldDefinition[];
 }
 
 export interface ServiceDefinition {
   code: string;
-  name: string;
-  nameAr?: string | null;
-  description: string;
-  descriptionAr?: string | null;
-  category: string;
-  categoryAr?: string | null;
+  name: LocalizedText;
+  description: LocalizedText;
+  category: LocalizedText;
   fee: number;
   currency: string;
   referenceField?: string | null;
   version?: number;
   workflowVersion: number;
-  reviewChecklist?: string[] | null;
+  reviewChecklist?: LocalizedText[] | null;
   steps: FormStep[];
 }
 
 export interface ServiceSummary {
   code: string;
-  name: string;
-  nameAr?: string | null;
-  description: string;
-  descriptionAr?: string | null;
-  category: string;
-  categoryAr?: string | null;
+  name: LocalizedText;
+  description: LocalizedText;
+  category: LocalizedText;
   fee: number;
   currency: string;
   stepCount: number;
@@ -78,15 +69,13 @@ export type ApplicationStatus =
   | 'Draft' | 'Submitted' | 'AiReview' | 'InformationRequested' | 'UnderReview' | 'AwaitingPayment' | 'Paid'
   | 'Approved' | 'Rejected';
 
-export interface LocalizedText { en: string; ar: string }
-
 export type FormData = Record<string, string | null | undefined>;
 
 export interface Application {
   id: string;
   number: string;
   serviceCode: string;
-  serviceName: string;
+  serviceName: LocalizedText;
   serviceVersion: number;
   workflowVersion: number;
   applicantId: string;
@@ -117,7 +106,7 @@ export interface ReviewTask {
   applicationId: string;
   applicationNumber: string;
   serviceCode: string;
-  serviceName: string;
+  serviceName: LocalizedText;
   applicantName: string;
   referenceValue?: string | null;
   status: 'Open' | 'Completed';
@@ -130,13 +119,13 @@ export interface ReviewTask {
 
 export type AiRecommendation = 'approve' | 'request_information' | 'reject' | 'unavailable';
 
-export interface AiFinding { severity: 'issue' | 'warning' | 'info'; field?: string | null; message: string }
+export interface AiFinding { severity: 'issue' | 'warning' | 'info'; field?: string | null; message: LocalizedText }
 
 export interface AiAssessment {
   id: string;
   round: number;
   recommendation: AiRecommendation;
-  summary: string;
+  summary: LocalizedText;
   findings: AiFinding[];
   questions: LocalizedText[];
   mode: 'llm' | 'rules' | 'unavailable';
@@ -148,9 +137,8 @@ export interface AiAssessment {
 
 export interface BuilderServiceSummary {
   code: string;
-  name: string;
-  nameAr?: string | null;
-  category: string;
+  name: LocalizedText;
+  category: LocalizedText;
   publishedVersion?: number | null;
   draftVersion?: number | null;
   workflowVersion: number;
@@ -180,7 +168,7 @@ export interface BuilderService {
 export interface Payment {
   id: string;
   referenceId: string;
-  description: string;
+  description: LocalizedText;
   amount: number;
   currency: string;
   status: 'Pending' | 'Paid';
@@ -202,10 +190,9 @@ export interface DocumentInfo {
 
 export interface Notification {
   id: string;
+  /** In the reader's language (rendered by the server from Accept-Language). */
   title: string;
   body: string;
-  titleAr?: string | null;
-  bodyAr?: string | null;
   link?: string | null;
   createdAt: string;
   isRead: boolean;
@@ -219,3 +206,46 @@ export interface ChatResponse {
   application: Pick<Application, 'id' | 'number' | 'serviceCode' | 'serviceName' | 'status' | 'data'>;
   mode: 'llm' | 'guided';
 }
+
+// Platform: languages, texts and AI settings (back office)
+
+export interface LanguageAdmin {
+  code: string;
+  name: LocalizedText;
+  direction: 'ltr' | 'rtl';
+  isEnabled: boolean;
+  isDefault: boolean;
+  sortOrder: number;
+  translated: number;
+  total: number;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface TranslationRow {
+  key: string;
+  defaultText: string;
+  text?: string | null;
+  updatedAt?: string | null;
+  updatedBy?: string | null;
+}
+
+export interface AiSettingsView {
+  providerName: string;
+  baseUrl: string;
+  model: string;
+  hasApiKey: boolean;
+  temperature: number;
+  timeoutSeconds: number;
+  chatEnabled: boolean;
+  reviewEnabled: boolean;
+  maxToolIterations: number;
+  maxHistoryMessages: number;
+  chatInstructions?: string | null;
+  reviewInstructions?: string | null;
+  isConfigured: boolean;
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface AiTestResult { ok: boolean; messageKey: string; detail?: string | null; latencyMs?: number | null }

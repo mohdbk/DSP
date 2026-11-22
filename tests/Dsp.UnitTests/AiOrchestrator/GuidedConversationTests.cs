@@ -8,7 +8,7 @@ public class GuidedConversationTests
     private readonly FakeEServices _api = new();
     private readonly GuidedConversation _chat;
 
-    public GuidedConversationTests() => _chat = new GuidedConversation(_api);
+    public GuidedConversationTests() => _chat = new GuidedConversation(_api, TestText.Messages());
 
     private Task<ChatResponse> Say(string? text, string? pending, params ChatMessage[] history)
     {

@@ -1,3 +1,4 @@
+using Dsp.SharedKernel;
 using System.Text.Json;
 using Dsp.BuildingBlocks.Messaging;
 using Dsp.Contracts;
@@ -26,7 +27,7 @@ public class OutboxTests
     }
 
     private static ApplicationStatusChanged SampleEvent() =>
-        new(Guid.NewGuid(), "DSP-2026-000001", "SVC", "Service", "uaepass:a", "Submitted", "Submitted");
+        new(Guid.NewGuid(), "DSP-2026-000001", "SVC", "Service", "uaepass:a", "Submitted", MessageRef.Of("status.notify.submitted"));
 
     [Fact]
     public async Task Event_is_staged_with_the_unit_of_work_and_not_before_commit()

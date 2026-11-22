@@ -16,7 +16,7 @@ public sealed class ReviewTask : Entity
     public Guid ApplicationId { get; private set; }
     public string ApplicationNumber { get; private set; } = "";
     public string ServiceCode { get; private set; } = "";
-    public string ServiceName { get; private set; } = "";
+    public LocalizedText ServiceName { get; private set; } = new();
     public string ApplicantName { get; private set; } = "";
     public string? ReferenceValue { get; private set; }
     public ReviewTaskStatus Status { get; private set; }
@@ -37,7 +37,7 @@ public sealed class ReviewTask : Entity
             ApplicationId = application.Id,
             ApplicationNumber = application.Number,
             ServiceCode = application.ServiceCode,
-            ServiceName = application.ServiceName,
+            ServiceName = new LocalizedText(application.ServiceName),
             ApplicantName = application.ApplicantName,
             ReferenceValue = application.ReferenceValue,
             Status = ReviewTaskStatus.Open,
@@ -49,7 +49,7 @@ public sealed class ReviewTask : Entity
 
     public void Complete(string staffId, bool approved)
     {
-        if (Status != ReviewTaskStatus.Open) throw new DomainException("This task is already completed.");
+        if (Status != ReviewTaskStatus.Open) throw new DomainException("errors.task.completed");
         Status = ReviewTaskStatus.Completed;
         CompletedBy = staffId;
         CompletedAt = DateTimeOffset.UtcNow;

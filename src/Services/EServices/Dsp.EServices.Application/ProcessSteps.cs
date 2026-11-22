@@ -21,7 +21,8 @@ public sealed class ProcessSteps(
     ILogger<ProcessSteps> logger,
     IServiceCatalog catalog,
     IAiAssessmentRepository assessments,
-    IAiReviewer reviewer)
+    IAiReviewer reviewer,
+    ILocalization localization)
 {
     public static readonly TimeSpan ReviewSla = TimeSpan.FromDays(2);
 
@@ -36,9 +37,7 @@ public sealed class ProcessSteps(
         if (app.Status == ApplicationStatus.Submitted)
         {
             app.StartAiReview();
-            await notifier.NotifyAsync(app, new LocalizedText(
-                "Our digital assistant is checking your application before it goes to a ministry officer.",
-                "يقوم المساعد الرقمي بالتحقق من طلبك قبل إحالته إلى موظف الوزارة."), ct);
+            await notifier.NotifyAsync(app, MessageRef.Of("status.notify.aiReview"), ct);
         }
 
         var round = app.InformationRequestCount + 1;
@@ -53,7 +52,7 @@ public sealed class ProcessSteps(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogWarning(ex, "AI pre-review failed for {Number}; sending to staff review", app.Number);
-            result = Unavailable("The AI pre-review was unavailable. Review this application manually.");
+            result = Unavailable(await localization.RenderAllAsync(MessageRef.Of("ai.review.unavailable"), ct));
         }
 
         var assessment = AiAssessment.Create(app.Id, round, result.Recommendation, result.Summary, result.Findings,
@@ -75,14 +74,12 @@ public sealed class ProcessSteps(
         var latest = (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault();
         var questions = latest?.GetQuestions() ?? [];
         if (questions.Count == 0)
-            questions = [new LocalizedText("Please check your application and send it again.", "يرجى مراجعة طلبك وإرساله مرة أخرى.")];
+            questions = [await localization.RenderAllAsync(MessageRef.Of("ai.review.checkAgain"), ct)];
 
         app.RequestInformation(questions);
-        await notifier.NotifyAsync(app, new LocalizedText(
-            "We need a little more information before a ministry officer can review your application: " +
-            string.Join(" ", questions.Select(q => q.En)),
-            "نحتاج إلى بعض المعلومات الإضافية قبل أن يراجع موظف الوزارة طلبك: " +
-            string.Join(" ", questions.Select(q => q.Ar))), ct);
+        var defaultLanguage = (await localization.GetSettingsAsync(ct)).DefaultLanguage;
+        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.informationRequested",
+            ("questions", LocalizedText.Join(questions, " ", defaultLanguage))), ct);
         await applications.SaveChangesAsync(ct);
     }
 
@@ -95,8 +92,7 @@ public sealed class ProcessSteps(
 
         app.StartReview();
         await tasks.AddAsync(ReviewTask.For(app, ReviewSla, recommendation), ct);
-        await notifier.NotifyAsync(app, new LocalizedText(
-            "Your application is being reviewed by the ministry.", "طلبك قيد المراجعة لدى الوزارة."), ct);
+        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.underReview"), ct);
         await applications.SaveChangesAsync(ct);
     }
 
@@ -106,12 +102,12 @@ public sealed class ProcessSteps(
     public async Task RequestPaymentAsync(Guid applicationId, CancellationToken ct)
     {
         var app = await LoadAsync(applicationId, ct);
-        var paymentId = await payments.CreatePaymentAsync(app.Id, app.ApplicantId, app.Fee, app.Currency,
-            $"{app.ServiceName} – {app.Number}", ct);
+        var description = new LocalizedText(app.ServiceName.Select(n => KeyValuePair.Create(n.Key, $"{n.Value} – {app.Number}")));
+        var paymentId = await payments.CreatePaymentAsync(app.Id, app.ApplicantId, app.Fee, app.Currency, description, ct);
         app.RequestPayment(paymentId);
-        await notifier.NotifyAsync(app, new LocalizedText(
-            $"Your application was approved. Please pay {app.Fee:0.00} {app.Currency} to receive your certificate.",
-            $"تمت الموافقة على طلبك. يرجى دفع {app.Fee:0.00} {CurrencyAr(app.Currency)} لاستلام شهادتك."), ct);
+        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.approvedPay",
+            ("amount", app.Fee.ToString("#,0.##", System.Globalization.CultureInfo.InvariantCulture)),
+            ("currency", await localization.RenderAllAsync(MessageRef.Of($"currency.{app.Currency}"), ct))), ct);
         await applications.SaveChangesAsync(ct);
     }
 
@@ -119,7 +115,7 @@ public sealed class ProcessSteps(
     {
         var app = await LoadAsync(applicationId, ct);
         app.MarkPaid(paymentId);
-        await notifier.NotifyAsync(app, new LocalizedText("We received your payment.", "استلمنا دفعتك."), ct);
+        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.paid"), ct);
         await applications.SaveChangesAsync(ct);
     }
 
@@ -129,8 +125,7 @@ public sealed class ProcessSteps(
         var documentId = await certificates.IssueAsync(app, ct);
         app.Complete(documentId);
         await bus.PublishAsync(new CertificateIssued(app.Id, app.Number, app.ApplicantId, documentId), ct);
-        await notifier.NotifyAsync(app, new LocalizedText(
-            "Your certificate is ready to download.", "شهادتك جاهزة للتنزيل."), ct);
+        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.certificateReady"), ct);
         await applications.SaveChangesAsync(ct);
         logger.LogInformation("Issued certificate {DocumentId} for {Number}", documentId, app.Number);
     }
@@ -139,35 +134,31 @@ public sealed class ProcessSteps(
     {
         var app = await LoadAsync(applicationId, ct);
         app.Reject();
-        await notifier.NotifyAsync(app, new LocalizedText(
-            $"Your application was not approved. Reason: {app.DecisionComment}",
-            $"لم تتم الموافقة على طلبك. السبب: {app.DecisionComment}"), ct);
+        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.rejected", ("reason", app.DecisionComment)), ct);
         await applications.SaveChangesAsync(ct);
     }
 
     private async Task<ServiceDefinition> DefinitionAsync(ServiceApplication app, CancellationToken ct) =>
         await catalog.FindVersionAsync(app.ServiceCode, app.ServiceVersion, ct)
                ?? await catalog.FindPublishedAsync(app.ServiceCode, ct)
-               ?? throw new NotFoundException($"Service '{app.ServiceCode}' was not found.");
+               ?? throw new NotFoundException("errors.service.notFound");
 
-    private static AiReviewResult Unavailable(string summary) =>
+    private static AiReviewResult Unavailable(LocalizedText summary) =>
         new(AiRecommendations.Unavailable, summary, [], [], "unavailable", null);
 
-    private static string CurrencyAr(string currency) => currency == "AED" ? "درهم" : currency;
-
     private async Task<ServiceApplication> LoadAsync(Guid id, CancellationToken ct) =>
-        await applications.GetAsync(id, ct) ?? throw new NotFoundException($"Application {id} not found.");
+        await applications.GetAsync(id, ct) ?? throw new NotFoundException("errors.application.notFound");
 }
 
-/// <summary>Stages status changes for the Notifications service (sent after the caller's SaveChanges).</summary>
+/// <summary>
+/// Stages status changes for the Notifications service (sent after the caller's SaveChanges). The message is a key
+/// with arguments, so every reader sees it in their own language, including languages added later.
+/// </summary>
 public sealed class StatusNotifier(IEventBus bus)
 {
-    public Task NotifyAsync(ServiceApplication app, LocalizedText message, CancellationToken ct) =>
+    public Task NotifyAsync(ServiceApplication app, MessageRef message, CancellationToken ct) =>
         bus.PublishAsync(new ApplicationStatusChanged(app.Id, app.Number, app.ServiceCode, app.ServiceName,
-            app.ApplicantId, app.Status.ToString(), message.En, message.Ar), ct);
-
-    public Task NotifyAsync(ServiceApplication app, string message, CancellationToken ct) =>
-        NotifyAsync(app, new LocalizedText(message, message), ct);
+            app.ApplicantId, app.Status.ToString(), message), ct);
 }
 
 /// <summary>

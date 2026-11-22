@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
-import { formatDate, t, type ReviewTask, type TKey } from '@dsp/core';
+import { formatDate, loc, t, type ReviewTask } from '@dsp/core';
 import { DataTable, listStateProps, Loading, Notice, PageHeader, RecommendationTag, Tag, type ColumnDef } from '@dsp/ui';
 import { api } from '../session';
 
@@ -21,13 +21,13 @@ export function InboxPage() {
 
   const columns = useMemo<ColumnDef<ReviewTask, string>[]>(() => [
     { id: 'number', header: t('inbox.application'), accessorFn: x => x.applicationNumber, cell: c => <strong><bdi>{c.getValue()}</bdi></strong> },
-    { id: 'service', header: t('service'), accessorFn: x => x.serviceName, meta: { filter: true } },
+    { id: 'service', header: t('service'), accessorFn: x => loc(x.serviceName), meta: { filter: true } },
     { id: 'applicant', header: t('applicant'), accessorFn: x => x.applicantName },
     { id: 'reference', header: t('reference'), accessorFn: x => x.referenceValue ?? '', cell: c => c.getValue() ? <bdi>{c.getValue()}</bdi> : '—' },
     {
       id: 'ai', header: t('inbox.ai'), accessorFn: x => x.aiRecommendation ?? '',
       cell: c => <RecommendationTag value={c.getValue() || null} short />,
-      meta: { filter: true, filterLabel: v => t(`ai.recShort.${v}` as TKey) },
+      meta: { filter: true, filterLabel: v => t(`ai.recShort.${v}`) },
     },
     { id: 'received', header: t('received'), accessorFn: x => x.createdAt, cell: c => formatDate(c.getValue(), true) },
     {

@@ -13,7 +13,7 @@ public sealed class EServicesApiClient(HttpClient http) : IEServicesApi
 
     public async Task<ApplicationView> GetApplicationAsync(Guid id, CancellationToken ct) =>
         await http.GetFromJsonAsync<ApplicationView>($"/api/v1/eservices/applications/{id}", Json, ct)
-        ?? throw new InvalidOperationException("Application not found.");
+        ?? throw new InvalidOperationException("errors.application.notFound");
 
     public async Task<ServiceView> GetServiceAsync(string code, CancellationToken ct) =>
         await http.GetFromJsonAsync<ServiceView>($"/api/v1/eservices/services/{code}", Json, ct)

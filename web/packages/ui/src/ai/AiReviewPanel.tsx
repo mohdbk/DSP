@@ -1,4 +1,4 @@
-import { formatDate, getLang, t, type AiAssessment, type TKey } from '@dsp/core';
+import { formatDate, loc, t, type AiAssessment } from '@dsp/core';
 import { Panel } from '../layout/Page';
 import { Tag } from '../feedback/Feedback';
 
@@ -15,7 +15,7 @@ const severityVariant = { issue: 'aered', warning: 'camel', info: 'slate' } as c
 export function RecommendationTag({ value, short }: { value?: string | null; short?: boolean }) {
   if (!value) return <span className="text-aeblack-400">—</span>;
   const variant = recommendationVariant[value as keyof typeof recommendationVariant] ?? 'slate';
-  return <Tag variant={variant}>{t((short ? `ai.recShort.${value}` : `ai.rec.${value}`) as TKey)}</Tag>;
+  return <Tag variant={variant}>{t((short ? `ai.recShort.${value}` : `ai.rec.${value}`))}</Tag>;
 }
 
 /** What the AI pre-review found, for the officer. The AI advises; staff decide. */
@@ -42,19 +42,19 @@ export function AiReviewPanel({ assessments, workflowVersion }: { assessments?: 
 }
 
 function AssessmentRound({ a }: { a: AiAssessment }) {
-  const mode = a.mode === 'llm' ? t('ai.mode.llm', { model: a.model ?? '' }) : t(`ai.mode.${a.mode}` as TKey);
+  const mode = a.mode === 'llm' ? t('ai.mode.llm', { model: a.model ?? '' }) : t(`ai.mode.${a.mode}`);
   const order = { issue: 0, warning: 1, info: 2 } as const;
   const findings = [...a.findings].sort((x, y) => order[x.severity] - order[y.severity]);
   return (
     <div>
       <p className="text-xs text-aeblack-500">{t('ai.round', { n: a.round })} · {mode} · {formatDate(a.createdAt, true)}</p>
-      {a.summary && <p className="mt-2 text-aeblack-800" dir="auto">{a.summary}</p>}
+      {loc(a.summary) && <p className="mt-2 text-aeblack-800" dir="auto">{loc(a.summary)}</p>}
       {findings.length > 0 && (
         <ul className="m-0 mt-3 flex list-none flex-col gap-2 p-0 text-sm">
           {findings.map((f, i) => (
             <li key={i} className="flex items-baseline gap-2">
-              <Tag variant={severityVariant[f.severity]}>{t(`ai.sev.${f.severity}` as TKey)}</Tag>
-              <span dir="auto" className="text-aeblack-800">{f.message}</span>
+              <Tag variant={severityVariant[f.severity]}>{t(`ai.sev.${f.severity}`)}</Tag>
+              <span dir="auto" className="text-aeblack-800">{loc(f.message)}</span>
             </li>
           ))}
         </ul>
@@ -63,7 +63,7 @@ function AssessmentRound({ a }: { a: AiAssessment }) {
         <>
           <p className="mt-3 text-sm font-semibold text-aeblack-800">{t('ai.questions')}</p>
           <ul className="mt-1 ps-5 text-sm text-aeblack-800">
-            {a.questions.map((q, i) => <li key={i}>{getLang() === 'ar' ? q.ar : q.en}</li>)}
+            {a.questions.map((q, i) => <li key={i}>{loc(q)}</li>)}
           </ul>
         </>
       )}

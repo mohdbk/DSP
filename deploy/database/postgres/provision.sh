@@ -3,7 +3,8 @@
 # and re-running rotates each role's password to the value in the environment.
 #
 # Each role owns only its databases; PUBLIC can't connect to them, so a service can't read another's data.
-# Required env: PGHOST PGPORT ADMIN_USER ADMIN_PASSWORD and <SERVICE>_DB_PASSWORD for each service.
+# Required env: PGHOST PGPORT ADMIN_USER ADMIN_PASSWORD. Each service is provisioned when its
+# <SERVICE>_DB_PASSWORD is set and skipped otherwise, so one new service can be added without the others' passwords.
 set -eu
 
 export PGPASSWORD="$ADMIN_PASSWORD"
@@ -13,6 +14,7 @@ until admin -c 'select 1' >/dev/null 2>&1; do echo "waiting for postgres..."; sl
 
 provision() {
   role="$1"; password="$2"; shift 2
+  if [ -z "$password" ]; then echo "skipping $role (no password given)"; return 0; fi
   admin <<SQL
 DO \$\$
 BEGIN
@@ -35,10 +37,11 @@ SQL
   done
 }
 
-provision dsp_identity      "$IDENTITY_DB_PASSWORD"      identity
-provision dsp_eservices     "$ESERVICES_DB_PASSWORD"     eservices workflows
-provision dsp_payments      "$PAYMENTS_DB_PASSWORD"      payments
-provision dsp_documents     "$DOCUMENTS_DB_PASSWORD"     documents
-provision dsp_notifications "$NOTIFICATIONS_DB_PASSWORD" notifications
+provision dsp_identity      "${IDENTITY_DB_PASSWORD:-}"      identity
+provision dsp_eservices     "${ESERVICES_DB_PASSWORD:-}"     eservices workflows
+provision dsp_payments      "${PAYMENTS_DB_PASSWORD:-}"      payments
+provision dsp_documents     "${DOCUMENTS_DB_PASSWORD:-}"     documents
+provision dsp_notifications "${NOTIFICATIONS_DB_PASSWORD:-}" notifications
+provision dsp_platform      "${PLATFORM_DB_PASSWORD:-}"      platform
 
 echo "PROVISIONING COMPLETE"

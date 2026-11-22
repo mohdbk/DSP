@@ -18,6 +18,7 @@ export * from './feedback/Feedback';
 
 // Forms
 export * from './forms/fields';
+export * from './forms/MultilingualField';
 export * from './forms/ServiceForm';
 
 // Data

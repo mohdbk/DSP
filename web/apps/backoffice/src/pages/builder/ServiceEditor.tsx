@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ApiError, loc, t, type BuilderService, type FieldError, type ServiceDefinition, type TKey } from '@dsp/core';
+import { ApiError, loc, t, type BuilderService, type FieldError, type ServiceDefinition } from '@dsp/core';
 import {
   AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, Loading, Notice, PageHeader, Panel, Tag,
 } from '@dsp/ui';
@@ -54,6 +54,8 @@ export function ServiceEditorPage() {
     const map = new Map(errors.map(e => [e.field, e.message]));
     return (path: string) => map.get(path);
   }, [errors]);
+  const hasErr = useMemo(() => (path: string) =>
+    errors.some(e => e.field === path || e.field.startsWith(`${path}.`) || e.field.startsWith(`${path}[`)), [errors]);
 
   async function run(kind: 'save' | 'publish' | 'discard', action: () => Promise<void>) {
     setBusy(kind);
@@ -91,18 +93,18 @@ export function ServiceEditorPage() {
   const draftVersion = server.draft?.version ?? Math.max(0, ...server.versions.map(v => v.version)) + 1;
   const hasDraft = !!server.draft;
   const count = (test: (field: string) => boolean) => errors.filter(e => test(e.field)).length;
-  const tabs: [string, TKey, number][] = [
+  const tabs: [string, string, number][] = [
     ['details', 'builder.tab.details', count(f => !f.startsWith('steps') && !f.startsWith('reviewChecklist'))],
     ['form', 'builder.tab.form', count(f => f.startsWith('steps'))],
     ['review', 'builder.tab.review', count(f => f.startsWith('reviewChecklist'))],
     ['preview', 'builder.tab.preview', 0],
     ['versions', 'builder.tab.versions', 0],
   ];
-  const props: EditorProps = { def, change, err };
+  const props: EditorProps = { def, change, err, hasErr };
 
   return (
     <>
-      <PageHeader overline={<bdi>{def.code}</bdi>} title={loc(def.name, def.nameAr) || def.code}
+      <PageHeader overline={<bdi>{def.code}</bdi>} title={loc(def.name, def.code)}
         actions={<AegovLink href="/services">{t('builder.backToList')}</AegovLink>}
         badges={(
           <>

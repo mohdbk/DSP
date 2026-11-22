@@ -26,7 +26,7 @@ public sealed class StaffAccount : Entity
 
     public static StaffAccount Create(string username, string fullName, string title, string email, string passwordHash)
     {
-        if (string.IsNullOrWhiteSpace(username)) throw new DomainException("Username is required.");
+        if (string.IsNullOrWhiteSpace(username)) throw new DomainException("errors.signIn.username");
         return new StaffAccount
         {
             Username = username.Trim().ToLowerInvariant(),

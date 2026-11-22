@@ -9,7 +9,7 @@ Publicly the platform is **MoET E-Services**; DSP is the internal name.
   and built without code in the back-office **service builder**, published as numbered versions.
 - Two **process versions** side by side (Elsa): v1 standard (submit → staff review → payment → certificate) and
   v2 **agentic** (an AI pre-review first, which can ask the applicant to fix things, then staff review with the AI's findings).
-- **English and Arabic** everywhere: right-to-left layout, bilingual service definitions, validation messages, chat and notifications.
+- **Multilingual** everywhere, managed at run time: add, enable, disable or delete languages and edit every text (including the ministry and product names) in the Back Office. English and Arabic ship; only one language is required.
 - Two **portals**: the citizen E-Service Portal and the staff Back Office, built from one component library
   (`@dsp/ui`) on the UAE Design System (AEGOV), with React Aria and TanStack Table where AEGOV has no component.
 - **Versioned APIs** (`/api/v1/...`) with OpenAPI contracts, RFC 9457 errors and paged lists.
@@ -24,7 +24,7 @@ web/apps/portal (citizens)      web/apps/backoffice (staff)
           └──────────────┬────────────────┘
                    src/Gateway (YARP)
    ┌──────────┬─────────┼──────────┬───────────┬──────────────┐
-Identity  E-Services  Payments  Documents  Notifications  AI Orchestrator
+Identity  E-Services  Payments  Documents  Notifications  AI Orchestrator  Platform
  (UAE PASS, (Elsa       │          │            │          (chat view; calls
   staff)    workflow)   │          │            │           E-Services API)
    │          │         │          │            │
@@ -52,12 +52,13 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | Documents | Uploads and generated certificates in SeaweedFS, SHA-256, owner-scoped access | `DspDocuments` |
 | Notifications | In-app notifications from `ApplicationStatusChanged` events | `DspNotifications` |
 | AI Orchestrator | Chat view (an LLM with tools over the E-Services API using the user's own token, or a guided mode) and the AI pre-review for the agentic process (model review when configured, built-in checks always) | — |
+| Platform | Languages, every text of the portals and services (with import and export), AI model settings | `DspPlatform` |
 | Gateway | YARP routing (`/api/v1/{service}/**`, deprecated unversioned aliases) and rate limiting; `/internal/**` is never exposed | — |
 
 ## Adding an e-service
 
 **Without code (service builder).** Back Office → Service builder → New service. Define steps, fields, options and
-validation in English and Arabic, choose the process (standard or AI-assisted) and the AI review checklist, preview the
+validation in every enabled language, choose the process (standard or AI-assisted) and the AI review checklist, preview the
 form in both languages, and publish. Every save is a draft; publishing makes it the next version. Applications keep the
 version they started on, so changing a live service never affects applications in flight.
 
@@ -76,25 +77,33 @@ submit → AI pre-review ─┬─ fixable problem → ask the applicant (at mos
 ```
 
 - The AI **never approves or rejects**. It prepares the case: a recommendation, findings for the officer and, when the
-  applicant can fix something, short questions in English and Arabic.
-- With a model configured (`Llm__BaseUrl`, `Llm__Model`, Net0 in production) the model reviews against the service's
+  applicant can fix something, short questions in every enabled language.
+- With a model configured (Back Office → Settings → AI, Net0 in production) the model reviews against the service's
   checklist; the built-in checks (missing fields, Arabic fields not in Arabic, English fields in Arabic, placeholder
   values, similar existing names, old start dates) always run as guardrails. Without a model, the built-in checks alone run.
 - If the AI service is unavailable, the application goes to staff as usual. Every round is stored (`AiAssessments`).
 - v1 and v2 run side by side: a service moves to v2 by publishing a new version with the AI-assisted process.
 
-## Arabic
+## Languages
 
-The language switch in both portals flips the layout to right-to-left and sends `Accept-Language` with every call, so
-validation messages, the guided chat and the LLM chat answer in Arabic. Service definitions carry Arabic for every label,
-help text, option and pattern message; the builder won't publish a service without them. Notifications store both languages.
+Back Office → Settings has three pages:
+
+- **Languages**: add a language (code, direction, its name in every language), enable, disable, reorder, make
+  default or delete it. One language is the default; it can't be disabled or deleted.
+- **Translations**: every key with the default text and the chosen language's text; search, filter missing, edit,
+  add keys, import and export JSON. Changes reach both portals and every service within 30 seconds.
+- **AI**: provider, address, model, key (write-only, encrypted), temperature, timeout, limits, chat and review
+  switches, extra instructions, and a connection test.
+
+The portals send `Accept-Language` with every call, so validation messages, chat, notifications and certificates
+come back in the reader's language. Service definitions hold a text per language; only the default is required.
 
 ## Configuration
 
 | Variable | Used by | Notes |
 |---|---|---|
 | `Jwt__Key` | all APIs | Shared signing key for platform tokens (≥ 32 bytes) |
-| `Internal__ApiKey` | E-Services, Payments, Documents, AI Orchestrator | Service-to-service calls under `/internal` |
+| `Internal__ApiKey` | E-Services, Payments, Documents, Notifications, AI Orchestrator, Platform | Service-to-service calls under `/internal` |
 | `Services__AiOrchestrator` | E-Services | AI pre-review endpoint (private network) |
 | `RabbitMq__Url` | E-Services, Payments, Notifications | `amqp://user:pass@host:5672` |
 | `Database__Provider` | services with a database | `SqlServer` (default, FedNet) or `Postgres` (Railway POC) |
@@ -105,7 +114,9 @@ help text, option and pattern message; the builder won't publish a service witho
 | `Identity__PublicBaseUrl` | Identity | Citizen portal URL (UAE PASS redirect) |
 | `Staff__InitialPassword` | Identity | Seeds the first staff accounts on an empty database |
 | `Storage__ServiceUrl` | Documents | SeaweedFS S3 endpoint |
-| `Llm__BaseUrl`, `Llm__ApiKey`, `Llm__Model` | AI Orchestrator | Any OpenAI-compatible endpoint (Net0 in FedNet). Empty = guided chat and built-in review checks |
+| `Llm__BaseUrl`, `Llm__ApiKey`, `Llm__Model` | AI Orchestrator | Fallback only, until AI settings are saved in the Back Office. Empty = guided chat and built-in review checks |
+| `Platform__SecretKey` | Platform | Encrypts the stored AI key (falls back to `Jwt__Key`) |
+| `Services__Platform` | services that render texts | Platform's private address (default `http://platform.railway.internal:8080`) |
 
 ## Running locally
 
@@ -134,14 +145,14 @@ CI fails if a model changes without a migration.
 
 ## Working on the code
 
-Read [AGENTS.md](AGENTS.md) first: architecture rules, API conventions, the component library, AEGOV, Arabic,
+Read [AGENTS.md](AGENTS.md) first: architecture rules, API conventions, the component library, AEGOV, languages,
 testing and delivery.
 
 ## Frontend
 
 | Package | Contains |
 |---|---|
-| `web/packages/core` (`@dsp/core`) | API client, session, types, English/Arabic strings, formatting |
+| `web/packages/core` (`@dsp/core`) | API client, session, types, languages and texts loaded from Platform, formatting |
 | `web/packages/ui` (`@dsp/ui`) | Every visual component: AEGOV-based shell, fields, dynamic service form, data table, reorderable list, application and AI views |
 | `web/apps/portal`, `web/apps/backoffice` | Pages and TanStack Router routes only |
 

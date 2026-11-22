@@ -1,10 +1,11 @@
 import { getLang } from './i18n';
 
 // UAE Design System content rules: dates as "11 November 2026", amounts as "AED 1,500".
-// Arabic keeps Latin digits, as UAE government services do.
+// Every language keeps Latin digits, as UAE government services do.
 
 function locale() {
-  return getLang() === 'ar' ? 'ar-AE-u-nu-latn' : 'en-GB';
+  const lang = getLang();
+  return lang === 'en' ? 'en-GB' : `${lang === 'ar' ? 'ar-AE' : lang}-u-nu-latn`;
 }
 
 export function formatDate(value?: string | null, withTime = false): string {

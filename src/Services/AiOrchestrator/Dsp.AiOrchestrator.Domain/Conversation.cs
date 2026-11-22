@@ -9,26 +9,22 @@ public static class ChatRoles
 /// <summary>One message in a service conversation. The client holds the history; the server is stateless.</summary>
 public sealed record ChatMessage(string Role, string Content);
 
-/// <summary>Guardrails for the agent, kept in one place so they can be reviewed.</summary>
+/// <summary>
+/// Guardrails for the agent, kept in one place so they can be reviewed. Limits come from the AI settings; the words
+/// that confirm a submission come from the message catalogue, so they exist in every language.
+/// </summary>
 public static class AgentPolicy
 {
-    /// <summary>Most tool round-trips per user message, to bound cost and loops.</summary>
-    public const int MaxToolIterations = 6;
-
-    /// <summary>Most history messages sent to the model.</summary>
-    public const int MaxHistoryMessages = 30;
-
     /// <summary>The agent submits only after the user explicitly confirms; it never pays or uploads on their behalf.</summary>
-    public static readonly string[] ConfirmationWords =
-        ["submit", "confirm", "yes submit", "send it", "go ahead", "إرسال", "ارسال", "أرسل", "ارسل", "تأكيد", "قدّم", "قدم"];
-
-    public static bool IsConfirmation(string text) =>
-        ConfirmationWords.Contains(text.Trim().ToLowerInvariant().TrimEnd('.', '!'));
-
-    public static bool IsAffirmative(string text)
+    public static bool Matches(string text, IEnumerable<string> words)
     {
-        var t = text.Trim().ToLowerInvariant().TrimEnd('.', '!');
-        return t is "yes" or "y" or "yeah" or "yep" or "ok" or "okay" or "agree" or "i agree" or "i confirm"
-            or "confirm" or "confirmed" or "true" or "نعم" or "موافق" or "أوافق" or "اوافق" or "أؤكد" or "اؤكد";
+        var t = Normalize(text);
+        return words.Select(Normalize).Any(w => w.Length > 0 && w == t);
     }
+
+    /// <summary>Splits a catalogue entry like "submit|confirm|send it" into words.</summary>
+    public static IReadOnlyList<string> Words(string entry) =>
+        entry.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    private static string Normalize(string text) => text.Trim().TrimEnd('.', '!', '؟', '?').ToLowerInvariant();
 }

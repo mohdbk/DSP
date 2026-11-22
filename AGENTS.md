@@ -15,7 +15,7 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
 | `src/BuildingBlocks/Dsp.BuildingBlocks` | Hosting defaults, auth, API conventions, persistence, messaging (outbox/inbox) |
 | `src/Services/<Service>/Dsp.<Service>.{Domain,Application,Infrastructure,Api}` | One microservice, clean architecture |
 | `src/Gateway/Dsp.Gateway` | YARP gateway: the only public entry to the APIs |
-| `web/packages/core` | `@dsp/core`: API client, session, types, language (English/Arabic), formatting — no UI |
+| `web/packages/core` | `@dsp/core`: API client, session, types, languages and texts (loaded from Platform), formatting — no UI |
 | `web/packages/ui` | `@dsp/ui`: the component library used by both portals |
 | `web/apps/portal`, `web/apps/backoffice` | The citizen portal and the staff back office: pages only |
 | `tests/` | Unit tests and architecture tests |
@@ -68,14 +68,17 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
   fix something (at most twice). If the AI is unavailable, the application goes to staff as usual.
 - The AI Orchestrator acts with the user's own token over the public API (chat) or through `/internal/ai/review`
   (pre-review). Built-in checks always run as guardrails next to any model. Models are reached through an
-  OpenAI-compatible endpoint (Net0 in production) — never hard-code a vendor.
+  OpenAI-compatible endpoint (Net0 in production) — never hard-code a vendor. Provider, address, model, key,
+  temperature, timeout, limits, toggles and extra instructions are set in Back Office → Settings → AI (stored in
+  Platform, key encrypted); `Llm__*` variables are only the fallback.
 
 ### Service definitions
 
 - E-services are data (`ServiceDefinition`), edited in the back-office service builder and published as numbered
   versions (draft → published → retired). Never edit a published version.
-- Every label, help text, option and pattern message has English **and** Arabic; the builder refuses to publish
-  without them (`ServiceDefinitionRules`).
+- Every text in a definition (name, labels, help, options, pattern messages, checklist) is a `LocalizedText` map
+  (`{ "en": "…", "ar": "…" }`). Only the default language is required; the builder refuses to publish without it
+  (`ServiceDefinitionRules`) and the portals fall back to it for any missing language.
 
 ## API conventions
 
@@ -95,7 +98,10 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
 - **Lists.** Every list endpoint returns `{ items, page, pageSize, total }` (`PagedList`), 1-based `page`,
   `pageSize` up to 500. Search, sort and filter parameters, when added, are named `q`, `sort` (`field` or `-field`)
   and the field name.
-- **Language.** Read `Accept-Language` (`en` or `ar`); messages for people come back in that language.
+- **Language.** `UseDspLocalization` resolves `Accept-Language` against the enabled languages (falling back to the
+  default) and sets `Content-Language`. Never return English sentences: throw or return message **keys**
+  (`errors.application.notFound`) and render them with `IMessages`; store notifications as `MessageRef` (key and
+  arguments) so they render in the reader's language later. Data texts are `LocalizedText`.
 - **Idempotency.** Commands are guarded by state (submitting or paying twice is refused with 409), and event
   handlers are idempotent. Add `Idempotency-Key` support before exposing commands to partner systems.
 - **Security.** Every public endpoint requires a token unless it is explicitly anonymous (catalog, sign-in, OpenAPI).
@@ -148,14 +154,22 @@ TanStack Router, code-based, in each app's `router.tsx`. Protected routes use `r
 search, filters, sort and page in validated search params. AEGOV anchors are handled by `useInternalLinks`
 (inside `PortalFrame`), so in-app links don't reload the page.
 
-### Language, Arabic and right-to-left
+### Languages, texts and right-to-left
 
-- Every visible string goes through `t('key')` with English and Arabic in `@dsp/core/i18n.ts`; data with both
-  languages uses `loc(en, ar)`. No hard-coded user-facing text in components or pages.
-- The language switch sets `lang` and `dir` on `<html>`; AEGOV components follow. Use logical utilities only
-  (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`, `text-start`/`text-end`), never left/right.
+- **Nothing is hard-coded to English or Arabic.** Languages (code, name in every language, direction, order, enabled,
+  default) and every text live in the Platform service and are managed in Back Office → Settings. Exactly one
+  language is the default and can't be disabled or deleted; any other can be added, enabled, disabled or deleted.
+- Every visible string goes through `t('key', vars)`; data texts (`LocalizedText` maps) through `loc(map)`. That
+  includes the ministry name (`entity.name`), the product name (`app.portal`) and `site.name`. No hard-coded
+  user-facing text in components, pages or services.
+- New keys go in `src/Services/Platform/Dsp.Platform.Infrastructure/Seed/translations.json` with every shipped
+  language. The seeder adds missing keys at start-up and never overwrites a text staff edited.
+- Forms that edit data texts use `MultilingualField` (one input per enabled language, default first and required).
+- The language switch names each language in its own name, and sets `lang` and `dir` on `<html>`; AEGOV
+  components follow. Use logical utilities only (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`,
+  `text-start`/`text-end`), never left/right.
 - Wrap values that may be the other direction in `<bdi>` (numbers, references, names). Amounts read `AED 1,500`
-  in a left-to-right span (`Money`). Dates read `11 November 2026`; Arabic keeps Latin digits.
+  in a left-to-right span (`Money`). Dates read `11 November 2026`; keep Latin digits.
 
 ### Accessibility
 

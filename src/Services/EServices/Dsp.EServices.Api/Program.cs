@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Dsp.BuildingBlocks.Localization;
 using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Web;
 using Dsp.EServices.Application;
@@ -12,11 +13,13 @@ builder.AddDspDefaults("dsp-eservices");
 builder.Services.AddDspAuthentication(builder.Configuration);
 builder.Services.AddEServicesApplication();
 builder.Services.AddEServicesInfrastructure(builder.Configuration);
+builder.Services.AddDspLocalization(builder.Configuration);
 
 var app = builder.Build();
 app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseDspLocalization();
 
 await app.MigrateDatabaseAsync<EServicesDbContext>();
 await app.Services.SeedServiceCatalogAsync();
@@ -31,8 +34,7 @@ static Caller ToCaller(ClaimsPrincipal user, HttpContext http) => new(
         ["emirates_id"] = user.FindFirstValue(DspClaims.EmiratesId),
         ["email"] = user.FindFirstValue(DspClaims.Email),
         ["mobile"] = user.FindFirstValue(DspClaims.Mobile),
-    }.Where(p => !string.IsNullOrWhiteSpace(p.Value)).ToDictionary(p => p.Key, p => p.Value),
-    Localized.Normalize(http.Request.Headers.AcceptLanguage.ToString()));
+    }.Where(p => !string.IsNullOrWhiteSpace(p.Value)).ToDictionary(p => p.Key, p => p.Value));
 
 app.MapApiDocuments("eservices");
 

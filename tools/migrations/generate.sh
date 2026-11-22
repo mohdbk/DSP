@@ -7,7 +7,7 @@
 set -euo pipefail
 
 NAME="${MIGRATION_NAME:-InitialCreate}"
-SERVICES=(Identity EServices Payments Documents Notifications)
+SERVICES=(Identity EServices Payments Documents Notifications Platform)
 PROVIDERS=(SqlServer Postgres)
 export PATH="$PATH:$HOME/.dotnet/tools"
 

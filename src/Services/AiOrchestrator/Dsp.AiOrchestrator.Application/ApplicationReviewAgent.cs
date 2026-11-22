@@ -2,31 +2,31 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Dsp.SharedKernel;
 using Microsoft.Extensions.Logging;
 
 namespace Dsp.AiOrchestrator.Application;
 
 // The AI pre-review of a submitted application (agentic process, workflow v2).
 // E-Services calls it service-to-service; it never changes anything itself. It returns advice:
-// a recommendation, findings for the officer and, if needed, questions for the applicant.
+// a recommendation, findings for the officer and, if needed, questions for the applicant, in every enabled language.
 
-public sealed record ReviewField(string Key, string Label, string? LabelAr, string Type, bool Required, string? Help,
+public sealed record ReviewField(string Key, LocalizedText Label, string Type, bool Required, LocalizedText? Help,
     IReadOnlyList<ReviewOption>? Options);
 
-public sealed record ReviewOption(string Value, string Label);
+public sealed record ReviewOption(string Value, LocalizedText Label);
 
-public sealed record ReviewServiceInfo(string Code, string Name, string? NameAr, string Description,
-    IReadOnlyList<string>? Checklist, IReadOnlyList<ReviewField> Fields);
+public sealed record ReviewServiceInfo(string Code, LocalizedText Name, LocalizedText Description,
+    IReadOnlyList<LocalizedText>? Checklist, IReadOnlyList<ReviewField> Fields);
 
+/// <param name="Languages">Languages to write the review in (default first); all enabled languages when empty.</param>
 public sealed record ApplicationReviewRequest(ReviewServiceInfo Service, Dictionary<string, string?> Data,
-    IReadOnlyList<string>? SimilarReferences, int Round);
+    IReadOnlyList<string>? SimilarReferences, int Round, IReadOnlyList<string>? Languages = null);
 
-public sealed record ReviewFinding(string Severity, string? Field, string Message);
+public sealed record ReviewFinding(string Severity, string? Field, LocalizedText Message);
 
-public sealed record ReviewQuestion(string En, string Ar);
-
-public sealed record ApplicationReviewResult(string Recommendation, string Summary, IReadOnlyList<ReviewFinding> Findings,
-    IReadOnlyList<ReviewQuestion> Questions, string Mode, string? Model);
+public sealed record ApplicationReviewResult(string Recommendation, LocalizedText Summary, IReadOnlyList<ReviewFinding> Findings,
+    IReadOnlyList<LocalizedText> Questions, string Mode, string? Model);
 
 public static class ReviewRecommendations
 {
@@ -37,9 +37,11 @@ public static class ReviewRecommendations
 
 /// <summary>
 /// Reviews an application with the configured model, and always runs the built-in checks as guardrails.
-/// Without a model it uses the built-in checks alone, so the agentic process works in every environment.
+/// Without a model (or with the review switched off in AI settings) it uses the built-in checks alone, so the
+/// agentic process works in every environment.
 /// </summary>
-public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationReviewAgent> logger)
+public sealed class ApplicationReviewAgent(ILlmClient llm, IAiSettingsProvider settingsProvider, ILocalization localization,
+    ILogger<ApplicationReviewAgent> logger)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
@@ -48,20 +50,24 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationRe
 
     public async Task<ApplicationReviewResult> ReviewAsync(ApplicationReviewRequest request, CancellationToken ct)
     {
-        var rules = RuleBasedReview.Review(request);
-        if (!llm.IsConfigured) return rules;
+        var renderer = await MultilingualRenderer.CreateAsync(localization, request.Languages, ct);
+        var rules = RuleBasedReview.Review(request, renderer);
+        var settings = await settingsProvider.GetAsync(ct);
+        if (!settings.ReviewActive) return rules;
 
         try
         {
-            var reply = await llm.CompleteAsync(
-                [new LlmMessage("system", SystemPrompt), new LlmMessage("user", UserPrompt(request))], [], ct);
-            var parsed = Parse(reply.Content);
+            var system = SystemPrompt(renderer.Languages) +
+                         (string.IsNullOrWhiteSpace(settings.ReviewInstructions) ? "" : "\n\nAdditional instructions:\n" + settings.ReviewInstructions);
+            var reply = await llm.CompleteAsync(settings,
+                [new LlmMessage("system", system), new LlmMessage("user", UserPrompt(request))], [], ct);
+            var parsed = Parse(reply.Content, renderer.Languages[0]);
             if (parsed is null)
             {
                 logger.LogWarning("The model's review could not be read; using the built-in checks");
                 return rules;
             }
-            return Merge(parsed, rules, llm.Model);
+            return Merge(parsed, rules, settings.Model, renderer.Languages[0]);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -71,7 +77,8 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationRe
     }
 
     /// <summary>The model's view, plus any applicant questions or issues the built-in checks raised that it missed.</summary>
-    private static ApplicationReviewResult Merge(ApplicationReviewResult model, ApplicationReviewResult rules, string? modelName)
+    private static ApplicationReviewResult Merge(ApplicationReviewResult model, ApplicationReviewResult rules, string? modelName,
+        string defaultLanguage)
     {
         var findings = model.Findings.ToList();
         foreach (var f in rules.Findings.Where(f => f.Severity != "info"))
@@ -82,7 +89,8 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationRe
         var questions = model.Questions.ToList();
         foreach (var q in rules.Questions)
         {
-            if (!questions.Any(m => string.Equals(m.En, q.En, StringComparison.OrdinalIgnoreCase))) questions.Add(q);
+            if (!questions.Any(m => string.Equals(m.Get(defaultLanguage), q.Get(defaultLanguage), StringComparison.OrdinalIgnoreCase)))
+                questions.Add(q);
         }
 
         // The built-in checks found something the applicant must fix: ask, whatever the model said.
@@ -95,36 +103,44 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationRe
         return new ApplicationReviewResult(recommendation, model.Summary, findings, questions, "llm", modelName);
     }
 
-    private const string SystemPrompt = """
-        You are the pre-review assistant of the UAE Ministry of Economy and Tourism. Before a ministry officer
-        decides on an e-service application, you check it and prepare the case. You never decide: the officer does.
+    private static string SystemPrompt(IReadOnlyList<string> languages)
+    {
+        var codes = string.Join(", ", languages.Select(l => $"\"{l}\""));
+        var example = "{" + string.Join(",", languages.Select(l => $"\"{l}\":\"...\"")) + "}";
+        return $$"""
+            You are the pre-review assistant of the UAE Ministry of Economy and Tourism. Before a ministry officer
+            decides on an e-service application, you check it and prepare the case. You never decide: the officer does.
 
-        Check the application against the service's review checklist and common sense:
-        - Is anything missing, inconsistent or implausible? (e.g. an Arabic field not written in Arabic,
-          names that don't match, dates that don't make sense, a trade name that imitates a brand or a government body).
-        - Is the reference (e.g. trade name) confusingly similar to the similar existing references listed?
+            Check the application against the service's review checklist and common sense:
+            - Is anything missing, inconsistent or implausible? (e.g. an Arabic field not written in Arabic,
+              names that don't match, dates that don't make sense, a trade name that imitates a brand or a government body).
+            - Is the reference (e.g. trade name) confusingly similar to the similar existing references listed?
 
-        Recommend:
-        - "request_information" only when the APPLICANT can fix something by editing the application. Then write
-          short, polite questions for the applicant, each in English ("en") and Arabic ("ar").
-        - "reject" when the checklist is clearly not met and the applicant can't fix it (the officer decides).
-        - "approve" otherwise.
+            Recommend:
+            - "request_information" only when the APPLICANT can fix something by editing the application. Then write
+              short, polite questions for the applicant.
+            - "reject" when the checklist is clearly not met and the applicant can't fix it (the officer decides).
+            - "approve" otherwise.
 
-        Write findings for the officer: severity "issue" (must be resolved), "warning" (officer should look) or
-        "info" (checked, fine). Refer to fields by their key. Be specific and brief. Do not invent facts.
+            Write findings for the officer: severity "issue" (must be resolved), "warning" (officer should look) or
+            "info" (checked, fine). Refer to fields by their key. Be specific and brief. Do not invent facts.
 
-        Answer with JSON only, no prose, exactly this shape:
-        {"recommendation":"approve|request_information|reject","summary":"one or two sentences for the officer",
-         "findings":[{"severity":"issue|warning|info","field":"key or null","message":"..."}],
-         "questions":[{"en":"...","ar":"..."}]}
-        """;
+            Write every text (summary, finding messages, questions) in each of these languages, keyed by language code:
+            {{codes}}. Each text is an object like {{example}}.
+
+            Answer with JSON only, no prose, exactly this shape:
+            {"recommendation":"approve|request_information|reject","summary":{{example}},
+             "findings":[{"severity":"issue|warning|info","field":"key or null","message":{{example}}}],
+             "questions":[{{example}}]}
+            """;
+    }
 
     private static string UserPrompt(ApplicationReviewRequest r) => $"""
-        Service: {r.Service.Name} ({r.Service.Code})
-        {r.Service.Description}
+        Service (names by language): {JsonSerializer.Serialize(r.Service.Name, Json)} ({r.Service.Code})
+        {JsonSerializer.Serialize(r.Service.Description, Json)}
 
         Review checklist:
-        {(r.Service.Checklist is { Count: > 0 } c ? string.Join("\n", c.Select(i => $"- {i}")) : "- (none: use common sense)")}
+        {(r.Service.Checklist is { Count: > 0 } c ? string.Join("\n", c.Select(i => $"- {JsonSerializer.Serialize(i, Json)}")) : "- (none: use common sense)")}
 
         Fields:
         {JsonSerializer.Serialize(r.Service.Fields, Json)}
@@ -136,7 +152,7 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationRe
         Review round: {r.Round}
         """;
 
-    private static ApplicationReviewResult? Parse(string? content)
+    private static ApplicationReviewResult? Parse(string? content, string defaultLanguage)
     {
         if (string.IsNullOrWhiteSpace(content)) return null;
         var start = content.IndexOf('{');
@@ -154,15 +170,12 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationRe
                 _ => ReviewRecommendations.Approve,
             };
             var findings = (raw.Findings ?? [])
-                .Where(f => !string.IsNullOrWhiteSpace(f.Message))
+                .Where(f => f.Message is { IsEmpty: false })
                 .Select(f => new ReviewFinding(f.Severity is "issue" or "warning" ? f.Severity : "info",
-                    string.IsNullOrWhiteSpace(f.Field) || f.Field == "null" ? null : f.Field, f.Message!.Trim()))
+                    string.IsNullOrWhiteSpace(f.Field) || f.Field == "null" ? null : f.Field, Trim(f.Message!)))
                 .Take(30).ToList();
-            var questions = (raw.Questions ?? [])
-                .Where(q => !string.IsNullOrWhiteSpace(q.En))
-                .Select(q => new ReviewQuestion(q.En!.Trim(), string.IsNullOrWhiteSpace(q.Ar) ? q.En!.Trim() : q.Ar!.Trim()))
-                .Take(5).ToList();
-            return new ApplicationReviewResult(recommendation, raw.Summary?.Trim() ?? "", findings, questions, "llm", null);
+            var questions = (raw.Questions ?? []).Where(q => q is { IsEmpty: false }).Select(Trim).Take(5).ToList();
+            return new ApplicationReviewResult(recommendation, Trim(raw.Summary ?? new LocalizedText()), findings, questions, "llm", null);
         }
         catch (JsonException)
         {
@@ -170,64 +183,65 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, ILogger<ApplicationRe
         }
     }
 
-    private sealed record RawReview(string? Recommendation, string? Summary, List<RawFinding>? Findings,
-        List<RawQuestion>? Questions);
+    private static LocalizedText Trim(LocalizedText text) => new(text.Select(p => KeyValuePair.Create(p.Key, p.Value.Trim())));
 
-    private sealed record RawFinding(string? Severity, string? Field, string? Message);
+    private sealed record RawReview(string? Recommendation, LocalizedText? Summary, List<RawFinding>? Findings,
+        List<LocalizedText>? Questions);
 
-    private sealed record RawQuestion(string? En, string? Ar);
+    private sealed record RawFinding(string? Severity, string? Field, LocalizedText? Message);
 }
 
 /// <summary>
 /// Deterministic checks that need no model: completeness, script of Arabic and English fields, similar names,
-/// dates in the past, and the service's checklist turned into items for the officer to confirm.
+/// dates in the past, and the service's checklist turned into items for the officer to confirm. Every text is a
+/// message key rendered in each enabled language.
 /// </summary>
 public static partial class RuleBasedReview
 {
-    public static ApplicationReviewResult Review(ApplicationReviewRequest request)
+    public static ApplicationReviewResult Review(ApplicationReviewRequest request, MultilingualRenderer renderer)
     {
         var findings = new List<ReviewFinding>();
-        var questions = new List<ReviewQuestion>();
+        var questions = new List<LocalizedText>();
         var data = request.Data;
+        void Find(string severity, string? field, string key, params (string, object?)[] args) =>
+            findings.Add(new ReviewFinding(severity, field, renderer.Render(MessageRef.Of(key, args))));
+        void Ask(string key, params (string, object?)[] args) => questions.Add(renderer.Render(MessageRef.Of(key, args)));
 
         foreach (var field in request.Service.Fields)
         {
             var value = data.GetValueOrDefault(field.Key)?.Trim();
-            var labelAr = field.LabelAr ?? field.Label;
+            var label = ("label", (object?)field.Label);
 
             if (string.IsNullOrEmpty(value))
             {
                 if (field.Required)
                 {
-                    findings.Add(new ReviewFinding("issue", field.Key, $"{field.Label} is missing."));
-                    questions.Add(new ReviewQuestion($"Please provide {field.Label}.", $"يرجى تقديم {labelAr}."));
+                    Find("issue", field.Key, "ai.rules.missing", label);
+                    Ask("ai.rules.ask.missing", label);
                 }
                 continue;
             }
 
+            var shown = ("value", (object?)value);
             if (field.Type is "text" or "textarea")
             {
                 if (ExpectsArabic(field) && !ArabicLetters().IsMatch(value))
                 {
-                    findings.Add(new ReviewFinding("issue", field.Key, $"{field.Label} is not written in Arabic letters (\"{value}\")."));
-                    questions.Add(new ReviewQuestion(
-                        $"{field.Label} must be written in Arabic letters. Please correct it.",
-                        $"يجب كتابة {labelAr} بالحروف العربية. يرجى تصحيحه."));
+                    Find("issue", field.Key, "ai.rules.notArabic", label, shown);
+                    Ask("ai.rules.ask.notArabic", label);
                 }
                 else if (ExpectsArabic(field) && LatinLetters().IsMatch(value))
                 {
-                    findings.Add(new ReviewFinding("warning", field.Key, $"{field.Label} mixes Arabic and Latin letters (\"{value}\")."));
+                    Find("warning", field.Key, "ai.rules.mixed", label, shown);
                 }
                 else if (ExpectsEnglish(field) && ArabicLetters().IsMatch(value))
                 {
-                    findings.Add(new ReviewFinding("issue", field.Key, $"{field.Label} contains Arabic letters (\"{value}\")."));
-                    questions.Add(new ReviewQuestion(
-                        $"{field.Label} must be written in English (Latin) letters. Please correct it.",
-                        $"يجب كتابة {labelAr} بالحروف الإنجليزية. يرجى تصحيحه."));
+                    Find("issue", field.Key, "ai.rules.hasArabic", label, shown);
+                    Ask("ai.rules.ask.notLatin", label);
                 }
                 else if (LooksLikePlaceholder(value))
                 {
-                    findings.Add(new ReviewFinding("warning", field.Key, $"{field.Label} looks like a placeholder or test value (\"{value}\")."));
+                    Find("warning", field.Key, "ai.rules.placeholder", label, shown);
                 }
             }
 
@@ -235,39 +249,36 @@ public static partial class RuleBasedReview
                 DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var start) &&
                 start < DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-30))
             {
-                findings.Add(new ReviewFinding("warning", field.Key, $"{field.Label} ({value}) is more than 30 days in the past."));
+                Find("warning", field.Key, "ai.rules.datePast", label, shown);
             }
 
-            if (field.Type == "file")
-                findings.Add(new ReviewFinding("info", field.Key, $"{field.Label} is attached. Open it to check it matches the application."));
+            if (field.Type == "file") Find("info", field.Key, "ai.rules.fileAttached", label);
         }
 
         if (request.SimilarReferences is { Count: > 0 } similar)
-        {
-            findings.Add(new ReviewFinding("warning", null,
-                $"Similar to existing applications: {string.Join(", ", similar.Select(s => $"\"{s}\""))}. Check they can't be confused."));
-        }
+            Find("warning", null, "ai.rules.similar", ("names", string.Join(", ", similar.Select(s => $"\"{s}\""))));
 
         foreach (var item in request.Service.Checklist ?? [])
-            findings.Add(new ReviewFinding("info", null, $"Officer to confirm: {item}"));
+            Find("info", null, "ai.rules.confirmItem", ("item", item));
 
         var issues = findings.Count(f => f.Severity == "issue");
         var warnings = findings.Count(f => f.Severity == "warning");
         var recommendation = questions.Count > 0 ? ReviewRecommendations.RequestInformation : ReviewRecommendations.Approve;
         var summary = questions.Count > 0
-            ? $"The built-in checks found {issues} issue(s) the applicant can fix; the applicant is asked to correct them before staff review."
+            ? renderer.Render(MessageRef.Of("ai.rules.summary.ask", ("issues", issues)))
             : warnings > 0
-                ? $"No blocking issues. {warnings} point(s) for the officer to look at."
-                : "No issues found by the built-in checks. Confirm the checklist items before deciding.";
+                ? renderer.Render(MessageRef.Of("ai.rules.summary.warnings", ("warnings", warnings)))
+                : renderer.Render(MessageRef.Of("ai.rules.summary.clean"));
 
         return new ApplicationReviewResult(recommendation, summary, findings, questions, "rules", null);
     }
 
+    // Field intent comes from the key convention (…Ar / …En) or the English label.
     private static bool ExpectsArabic(ReviewField f) =>
-        f.Key.EndsWith("Ar", StringComparison.Ordinal) || f.Label.Contains("Arabic", StringComparison.OrdinalIgnoreCase);
+        f.Key.EndsWith("Ar", StringComparison.Ordinal) || f.Label.Get("en").Contains("Arabic", StringComparison.OrdinalIgnoreCase);
 
     private static bool ExpectsEnglish(ReviewField f) =>
-        f.Key.EndsWith("En", StringComparison.Ordinal) || f.Label.Contains("English", StringComparison.OrdinalIgnoreCase);
+        f.Key.EndsWith("En", StringComparison.Ordinal) || f.Label.Get("en").Contains("English", StringComparison.OrdinalIgnoreCase);
 
     private static bool LooksLikePlaceholder(string value)
     {
