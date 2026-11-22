@@ -1,18 +1,20 @@
 import { getLang, t } from '@dsp/core';
-import enActive from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Active.png';
-import enFocus from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Focus.png';
-import enPressed from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Pressed.png';
-import enDisabled from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Disabled.png';
-import arActive from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Active.png';
-import arFocus from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Focus.png';
-import arPressed from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Pressed.png';
-import arDisabled from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Disabled.png';
+import enActive from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Active.svg';
+import enFocus from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Focus.svg';
+import enPressed from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Pressed.svg';
+import enDisabled from '../assets/uaepass/UAEPASS_Sign_in_Btn_Default_Black_Disabled.svg';
+import arActive from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Active.svg';
+import arFocus from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Focus.svg';
+import arPressed from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Pressed.svg';
+import arDisabled from '../assets/uaepass/AR_UAEPASS_Sign_in_Btn_Default_Black_Disabled.svg';
 
 // The official UAE PASS "Sign in with UAE PASS" button (UAE PASS Buttons Guidelines, version 2), used unmodified as
 // the guidelines and the UAE Design System require. Black style with the default corner radius, for light
 // backgrounds. UAE PASS publishes English and Arabic artwork; every other language uses the English artwork.
 // Each state (active, focus, pressed, disabled) is its own official artwork, shown by CSS state. We use the official
-// PNGs: the official SVGs set the title as live text in fonts most devices lack, so the lettering would change.
+// SVGs (sharp at any screen density; the official PNGs exist only at 1x and blur on phones). The SVGs set the title
+// as live text in SF Pro Text Semibold (English) and GE SS Two Medium (Arabic); devices without those fonts use
+// their own sans-serif. See assets/uaepass/README.md.
 
 const art = {
   en: { active: enActive, focus: enFocus, pressed: enPressed, disabled: enDisabled },
