@@ -22,10 +22,12 @@ public static class HostingExtensions
         builder.WebHost.UseUrls($"http://*:{port}");
 
         builder.Logging.ClearProviders();
-        builder.Logging.AddJsonConsole(o =>
+        // Single-line logs read cleanly in Railway; OpenTelemetry carries structured data to the Grafana stack.
+        builder.Logging.AddSimpleConsole(o =>
         {
+            o.SingleLine = true;
             o.IncludeScopes = true;
-            o.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ ";
+            o.TimestampFormat = "HH:mm:ss ";
             o.UseUtcTimestamp = true;
         });
 

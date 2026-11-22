@@ -1,0 +1,13 @@
+{
+  "name": "dsp-web",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:portal": "npm run dev -w @dsp/portal",
+    "dev:backoffice": "npm run dev -w @dsp/backoffice",
+    "build": "npm run build -w @dsp/portal && npm run build -w @dsp/backoffice"
+  }
+}
