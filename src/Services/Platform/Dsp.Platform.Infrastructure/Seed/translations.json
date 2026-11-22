@@ -39,8 +39,8 @@
    "ar": "غير متاح"
   },
   "ai.none": {
-   "en": "This application used the standard process, without an AI pre-review.",
-   "ar": "اتبع هذا الطلب الإجراء الاعتيادي دون تدقيق آلي."
+   "en": "This application used the standard process, without an AI review.",
+   "ar": "اتبع هذا الطلب الإجراء الاعتيادي دون مراجعة الذكاء الاصطناعي."
   },
   "ai.questions": {
    "en": "Asked the applicant",
@@ -83,8 +83,8 @@
    "ar": "يرجى مراجعة طلبك وإرساله مرة أخرى."
   },
   "ai.review.unavailable": {
-   "en": "The AI pre-review was unavailable. Review this application manually.",
-   "ar": "لم تكن المراجعة المسبقة متاحة. راجع هذا الطلب يدويًا."
+   "en": "The AI review was unavailable. Review this application manually.",
+   "ar": "لم تكن مراجعة الذكاء الاصطناعي متاحة. راجع هذا الطلب يدويًا."
   },
   "ai.round": {
    "en": "Round {n}",
@@ -223,8 +223,8 @@
    "ar": "تعليمات إضافية"
   },
   "ai.settings.intro": {
-   "en": "The model behind the chat assistant and the AI pre-review. Any OpenAI-compatible service works. Without a model, the guided chat and the built-in checks are used.",
-   "ar": "النموذج الذي يعمل خلف المساعد والمراجعة المسبقة. تعمل أي خدمة متوافقة مع OpenAI. وبدون نموذج تُستخدم المحادثة الموجهة والفحوص المدمجة."
+   "en": "The model behind the chat assistant and the AI review. Any OpenAI-compatible service works. Without a model, the guided chat and the built-in checks are used.",
+   "ar": "النموذج الذي يعمل خلف المساعد ومراجعة الذكاء الاصطناعي. تعمل أي خدمة متوافقة مع OpenAI. وبدون نموذج تُستخدم المحادثة الموجهة والفحوص المدمجة."
   },
   "ai.settings.iterations": {
    "en": "Tool steps per message",
@@ -255,8 +255,8 @@
    "ar": "إيقاف الذكاء الاصطناعي مؤقتًا"
   },
   "ai.settings.pauseIntro": {
-   "en": "The model is always used when it is set up. Pause it only in an emergency, for example if it gives wrong answers or the provider has problems. While paused, the chat uses the guided conversation and the pre-review uses the built-in checks. Nothing else changes and the settings are kept.",
-   "ar": "يُستخدم النموذج دائمًا عند إعداده. أوقفه مؤقتًا في حالات الطوارئ فقط، مثل تقديمه إجابات خاطئة أو وجود مشكلات لدى المزوّد. أثناء الإيقاف تستخدم المحادثة الأسئلة الموجّهة وتستخدم المراجعة المسبقة الفحوصات المدمجة، ولا يتغير شيء آخر وتبقى الإعدادات محفوظة."
+   "en": "The model is always used when it is set up. Pause it only in an emergency, for example if it gives wrong answers or the provider has problems. While paused, the chat uses the guided conversation and the AI review uses the built-in checks. Nothing else changes and the settings are kept.",
+   "ar": "يُستخدم النموذج دائمًا عند إعداده. أوقفه مؤقتًا في حالات الطوارئ فقط، مثل تقديمه إجابات خاطئة أو وجود مشكلات لدى المزوّد. أثناء الإيقاف تستخدم المحادثة الأسئلة الموجّهة وتستخدم مراجعة الذكاء الاصطناعي الفحوصات المدمجة، ولا يتغير شيء آخر وتبقى الإعدادات محفوظة."
   },
   "ai.settings.pauseTitle": {
    "en": "Emergency stop",
@@ -271,8 +271,8 @@
    "ar": "تم إيقاف الذكاء الاصطناعي مؤقتًا. يصل التغيير إلى جميع الخدمات خلال 30 ثانية."
   },
   "ai.settings.pausedNotice": {
-   "en": "The AI is paused. The chat uses the guided conversation and the pre-review uses the built-in checks.",
-   "ar": "الذكاء الاصطناعي متوقف مؤقتًا. تستخدم المحادثة الأسئلة الموجّهة وتستخدم المراجعة المسبقة الفحوصات المدمجة."
+   "en": "The AI is paused. The chat uses the guided conversation and the AI review uses the built-in checks.",
+   "ar": "الذكاء الاصطناعي متوقف مؤقتًا. تستخدم المحادثة الأسئلة الموجّهة وتستخدم مراجعة الذكاء الاصطناعي الفحوصات المدمجة."
   },
   "ai.settings.promptCustom": {
    "en": "Customised",
@@ -315,12 +315,12 @@
    "ar": "تم استئناف الذكاء الاصطناعي. يصل التغيير إلى جميع الخدمات خلال 30 ثانية."
   },
   "ai.settings.reviewInstructions": {
-   "en": "For the AI pre-review",
-   "ar": "للمراجعة المسبقة"
+   "en": "For the AI review",
+   "ar": "لمراجعة الذكاء الاصطناعي"
   },
   "ai.settings.reviewPrompt": {
-   "en": "AI pre-review prompt",
-   "ar": "موجّه المراجعة المسبقة بالذكاء الاصطناعي"
+   "en": "AI review prompt",
+   "ar": "موجّه مراجعة الذكاء الاصطناعي"
   },
   "ai.settings.saved": {
    "en": "AI settings saved. They apply within 30 seconds.",
@@ -379,8 +379,8 @@
    "ar": "تعذر الوصول إلى خدمة النموذج."
   },
   "ai.title": {
-   "en": "AI pre-review",
-   "ar": "التدقيق الآلي"
+   "en": "AI review",
+   "ar": "مراجعة الذكاء الاصطناعي"
   },
   "app.backoffice": {
    "en": "Back Office",
@@ -511,8 +511,8 @@
    "ar": "بعض بنود قائمة التحقق تحتاج إلى مراجعة."
   },
   "builder.checklistHelp": {
-   "en": "What the AI pre-review checks, one item per line. The officer sees the findings next to each application.",
-   "ar": "ما يتحقق منه التدقيق الآلي، بندًا في كل سطر. يرى الموظف النتائج بجانب كل طلب."
+   "en": "What the AI review checks, one item per line. The officer sees the findings next to each application.",
+   "ar": "ما تتحقق منه مراجعة الذكاء الاصطناعي، بندًا في كل سطر. يرى الموظف النتائج بجانب كل طلب."
   },
   "builder.checklistV1": {
    "en": "The checklist is used by the AI-assisted process. Switch the process on the Details tab to use it.",
@@ -759,8 +759,8 @@
    "ar": "اعتيادي: مراجعة الموظف ثم الدفع ثم الشهادة"
   },
   "builder.processV2": {
-   "en": "AI-assisted: AI pre-review first (it can ask the applicant to fix things), then staff review",
-   "ar": "بمساعدة الذكاء الاصطناعي: تدقيق آلي أولًا (قد يطلب من مقدم الطلب التصحيح) ثم مراجعة الموظف"
+   "en": "AI-assisted: AI review first (it can ask the applicant to fix things), then staff review",
+   "ar": "بمساعدة الذكاء الاصطناعي: مراجعة الذكاء الاصطناعي أولًا (قد يطلب من مقدم الطلب التصحيح) ثم مراجعة الموظف"
   },
   "builder.processV2Auto": {
    "en": "The AI checks each application and can ask the applicant to fix things. It approves clear cases itself; anything unclear, every rejection and an audit sample go to a case officer.",
@@ -996,7 +996,7 @@
   },
   "builder.tab.review": {
    "en": "AI review",
-   "ar": "التدقيق الآلي"
+   "ar": "مراجعة الذكاء الاصطناعي"
   },
   "builder.tab.versions": {
    "en": "Versions",
@@ -1671,8 +1671,8 @@
    "ar": "جارٍ الرفع…"
   },
   "inbox.ai": {
-   "en": "AI pre-review",
-   "ar": "التدقيق الآلي"
+   "en": "AI review",
+   "ar": "مراجعة الذكاء الاصطناعي"
   },
   "inbox.application": {
    "en": "Application",
@@ -2367,8 +2367,8 @@
    "ar": "الحالة"
   },
   "status.AiReview": {
-   "en": "AI pre-review",
-   "ar": "تدقيق آلي"
+   "en": "AI review",
+   "ar": "مراجعة الذكاء الاصطناعي"
   },
   "status.Approved": {
    "en": "Completed",

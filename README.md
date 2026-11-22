@@ -8,7 +8,7 @@ Publicly the platform is **MoET E-Services**; DSP is the internal name.
 - E-services defined as **data** (steps, fields, validation) — the shape the OutSystems extraction pipeline produces —
   and built without code in the back-office **service builder**, published as numbered versions.
 - Two **process versions** side by side (Elsa): v1 standard (submit → staff review → payment → certificate) and
-  v2 **agentic** (an AI pre-review first, which can ask the applicant to fix things, then staff review with the AI's findings).
+  v2 **agentic** (an AI review first, which can ask the applicant to fix things and approves clear cases; everything else goes to staff with the AI's findings).
 - **Multilingual** everywhere, managed at run time: add, enable, disable or delete languages and edit every text (including the ministry and product names) in the Back Office. English and Arabic ship; only one language is required.
 - Two **portals**: the citizen E-Service Portal and the staff Back Office, built from one component library
   (`@dsp/ui`) on the UAE Design System (AEGOV), with React Aria and TanStack Table where AEGOV has no component.
@@ -47,11 +47,11 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | Service | Responsibility | Database |
 |---|---|---|
 | Identity | Citizen sign-in through pluggable providers (UAE PASS now), staff sign-in (local accounts now, AD later), platform tokens | `DspIdentity` |
-| E-Services | Service catalog and builder (versioned definitions), applications, validation, business rules, review tasks, AI pre-review records, Elsa workflows v1 and v2 | `DspEServices`, `DspWorkflows` |
+| E-Services | Service catalog and builder (versioned definitions), applications, validation, business rules, review tasks, AI review records, Elsa workflows v1 and v2 | `DspEServices`, `DspWorkflows` |
 | Payments | Payment requests and (simulated) processing; publishes `PaymentCompleted` | `DspPayments` |
 | Documents | Uploads and generated certificates in SeaweedFS, SHA-256, owner-scoped access | `DspDocuments` |
 | Notifications | In-app notifications from `ApplicationStatusChanged` events | `DspNotifications` |
-| AI Orchestrator | Chat view (an LLM with tools over the E-Services API using the user's own token, or a guided mode) and the AI pre-review for the agentic process (model review when configured, built-in checks always) | — |
+| AI Orchestrator | Chat view (an LLM with tools over the E-Services API using the user's own token, or a guided mode) and the AI review for the agentic process (model review when configured, built-in checks always) | — |
 | Platform | Languages, every text of the portals and services (with import and export), AI model settings | `DspPlatform` |
 | Gateway | YARP routing (`/api/v1/{service}/**`, deprecated unversioned aliases) and rate limiting; `/internal/**` is never exposed | — |
 
@@ -66,12 +66,12 @@ version they started on, so changing a live service never affects applications i
 `src/Services/EServices/Dsp.EServices.Infrastructure/Catalog/Definitions/` seed the catalog on first start. Rules beyond
 field validation go in an `IServiceRules` class in `Dsp.EServices.Domain/Rules`.
 
-Both portals, the chat view, validation and the AI pre-review pick a service up automatically.
+Both portals, the chat view, validation and the AI review pick a service up automatically.
 
 ## Agentic process (workflow v2)
 
 ```
-submit → AI pre-review ─┬─ fixable problem → ask the applicant (at most twice) → applicant edits and resends ─┐
+submit → AI review ─────┬─ fixable problem → ask the applicant (at most twice) → applicant edits and resends ─┐
                         │                                                                                  │
                         └──────────────────────────────── ok ─────────────────────────────────────────────┴→ staff review → payment → certificate
 ```
@@ -99,7 +99,7 @@ Back Office → Settings has three pages:
 - **Currencies**: ISO code, name in every language, symbol and its position, decimals, enabled and default. The
   builder offers enabled currencies only and checks the fee's decimals; every amount is written with these settings.
 - **AI**: provider, address, model, key (write-only, encrypted), temperature, timeout, limits, chat and review
-  an emergency **Pause AI** (the model is otherwise always used once set up), the chat and pre-review prompts (with reset to default; `{ministry}` and `{portal}` come from
+  an emergency **Pause AI** (the model is otherwise always used once set up), the chat and AI review prompts (with reset to default; `{ministry}` and `{portal}` come from
   Translations), extra instructions, and a connection test. The platform's safety rules are always added and
   can't be edited.
 
@@ -112,7 +112,7 @@ come back in the reader's language. Service definitions hold a text per language
 |---|---|---|
 | `Jwt__Key` | all APIs | Shared signing key for platform tokens (≥ 32 bytes) |
 | `Internal__ApiKey` | E-Services, Payments, Documents, Notifications, AI Orchestrator, Platform | Service-to-service calls under `/internal` |
-| `Services__AiOrchestrator` | E-Services | AI pre-review endpoint (private network) |
+| `Services__AiOrchestrator` | E-Services | AI review endpoint (private network) |
 | `RabbitMq__Url` | E-Services, Payments, Notifications | `amqp://user:pass@host:5672` |
 | `Database__Provider` | services with a database | `SqlServer` (default, FedNet) or `Postgres` (Railway POC) |
 | `ConnectionStrings__<Service>` | each service | One database and one login per service ([deploy/database](deploy/database/README.md)) |

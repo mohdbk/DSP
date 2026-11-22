@@ -69,7 +69,7 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
   issues, warnings or questions (`AutoApprovalPolicy`). Everything else, every rejection, a random audit sample
   (Settings → AI) and every case while the AI is paused or unavailable go to a case officer.
 - The AI Orchestrator acts with the user's own token over the public API (chat) or through `/internal/ai/review`
-  (pre-review). Built-in checks always run as guardrails next to any model. Models are reached through an
+  (AI review). Built-in checks always run as guardrails next to any model. Models are reached through an
   OpenAI-compatible endpoint (Net0 in production) — never hard-code a vendor. Provider, address, model, key,
   temperature, timeout, limits, toggles, the prompts and extra instructions are set in Back Office → Settings → AI
   (stored in Platform, key encrypted); `Llm__*` variables are only the fallback.
@@ -169,7 +169,7 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   includes the ministry name (`entity.name`), the product name (`app.portal`) and `site.name`. No hard-coded
   user-facing text in components, pages or services.
 - New keys go in `src/Services/Platform/Dsp.Platform.Infrastructure/Seed/translations.json` with every shipped
-  language. The seeder adds missing keys at start-up and never overwrites a text staff edited. Then run
+  language. The seeder adds missing keys at start-up and updates shipped texts nobody has edited (author "Platform"), so wording fixes reach existing installs; it never touches a text staff edited or imported. Then run
   `node tools/i18n/usage.mjs`: it records where each key is used (portal, back office, service messages) for the
   Translations page, and CI fails when it is out of date. Prefer literal keys (`t('a.b')`) or a clear prefix
   (``t(`status.${s}`)``) so the tool can find them.
