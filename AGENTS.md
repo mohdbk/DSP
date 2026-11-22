@@ -129,9 +129,9 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
   `key` that changes with its structure so React replaces it whole.
 - Use AEGOV events (`onAegovButtonClick`, `onAegovInputValue`…) rather than React DOM events on AEGOV elements.
   Content inside `aegov-dropdown`/`aegov-popover` moves to `<body>`: React handlers there don't fire.
-- Ministry identity: the official MoET logo (`moet-logo-en.png`, `moet-logo-ar.png`) stays on the **left in every
-  language**, so `AppShell` lays the header and footer out left to right and sets their content back to the page
-  direction. The Global Star Rating badge comes from the header's `gsrStars` (never an image).
+- The header shows the official MoET logo in the page language (`moet-logo-en.png`, `moet-logo-ar.png`) and mirrors
+  for right-to-left as AEGOV specifies. The Global Star Rating badge comes from the header's `gsrStars` (never an
+  image). Slotted images need explicit size utilities: Tailwind's base styles override AEGOV's `::slotted` sizing.
 - One solid primary button per view; secondary actions are `appearance="outline"`, tertiary `appearance="link"`.
 - Forms: visible label on every field, "(optional)" on optional fields (no asterisks), hint for formats, validation
   on blur and submit, errors next to the field. Five or fewer choices are radio buttons, more are a select.
