@@ -7,11 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddDspDefaults("dsp-gateway");
 
 // One route per service and API version: /api/v1/{service}/** (see ApiVersions in the building blocks).
-// The unversioned paths of the first release (/api/{service}/**) still work: they are forwarded to the current
-// version with Deprecation, Sunset and successor Link headers, so existing clients and the UAE PASS redirect URI
-// keep working while callers move to /api/v1. /internal/** is never routed.
+// /internal/** is never routed.
 const string currentVersion = "v1";
-const string legacySunset = "Wed, 30 Jun 2027 00:00:00 GMT";
 
 var services = new Dictionary<string, (string DefaultUrl, TimeSpan Timeout)>
 {
@@ -24,33 +21,14 @@ var services = new Dictionary<string, (string DefaultUrl, TimeSpan Timeout)>
     ["ai"] = ("http://ai-orchestrator.railway.internal:8080", TimeSpan.FromSeconds(150)),
 };
 
-var routes = services.SelectMany(s => new[]
-{
+var routes = services.Select(s =>
     new RouteConfig
     {
         RouteId = $"{s.Key}-{currentVersion}",
         ClusterId = s.Key,
         RateLimiterPolicy = "per-client",
         Match = new RouteMatch { Path = $"/api/{currentVersion}/{s.Key}/{{**rest}}" },
-    },
-    new RouteConfig
-    {
-        RouteId = $"{s.Key}-legacy",
-        ClusterId = s.Key,
-        RateLimiterPolicy = "per-client",
-        Match = new RouteMatch { Path = $"/api/{s.Key}/{{**rest}}" },
-        Transforms =
-        [
-            new Dictionary<string, string> { ["PathPattern"] = $"/api/{currentVersion}/{s.Key}/{{**rest}}" },
-            new Dictionary<string, string> { ["ResponseHeader"] = "Deprecation", ["Set"] = "true", ["When"] = "Always" },
-            new Dictionary<string, string> { ["ResponseHeader"] = "Sunset", ["Set"] = legacySunset, ["When"] = "Always" },
-            new Dictionary<string, string>
-            {
-                ["ResponseHeader"] = "Link", ["Set"] = $"</api/{currentVersion}/{s.Key}>; rel=\"successor-version\"", ["When"] = "Always",
-            },
-        ],
-    },
-}).ToList();
+    }).ToList();
 
 var clusters = services.Select(s => new ClusterConfig
 {

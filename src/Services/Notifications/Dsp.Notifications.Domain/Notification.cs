@@ -19,16 +19,10 @@ public sealed class Notification : Entity
     public string Recipient { get; private set; } = "";
 
     /// <summary>The title as a message reference (JSON).</summary>
-    public string? TitleMessage { get; private set; }
+    public string TitleMessage { get; private set; } = "";
 
     /// <summary>The body as a message reference (JSON).</summary>
-    public string? BodyMessage { get; private set; }
-
-    /// <summary>Notifications written before messages were references keep their English and Arabic texts here.</summary>
-    public string Title { get; private set; } = "";
-    public string Body { get; private set; } = "";
-    public string? TitleAr { get; private set; }
-    public string? BodyAr { get; private set; }
+    public string BodyMessage { get; private set; } = "";
 
     public string? Link { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
@@ -45,17 +39,14 @@ public sealed class Notification : Entity
 
     /// <summary>The title in the reader's language.</summary>
     public string RenderTitle(IMessages messages) =>
-        Render(TitleMessage, messages) ?? Legacy(Title, TitleAr, messages);
+        Render(TitleMessage, messages);
 
     /// <summary>The body in the reader's language.</summary>
     public string RenderBody(IMessages messages) =>
-        Render(BodyMessage, messages) ?? Legacy(Body, BodyAr, messages);
+        Render(BodyMessage, messages);
 
     public void MarkRead() => ReadAt ??= DateTimeOffset.UtcNow;
 
-    private static string? Render(string? json, IMessages messages) =>
-        json is null ? null : JsonSerializer.Deserialize<MessageRef>(json, Json)?.Render(messages);
-
-    private static string Legacy(string english, string? arabic, IMessages messages) =>
-        messages.Pick(new LocalizedText([new("en", english), new("ar", arabic ?? "")]));
+    private static string Render(string json, IMessages messages) =>
+        JsonSerializer.Deserialize<MessageRef>(json, Json)?.Render(messages) ?? "";
 }

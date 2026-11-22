@@ -114,61 +114,16 @@ public sealed class FieldOption
     public required LocalizedText Label { get; init; }
 }
 
-/// <summary>
-/// Reads and writes definitions as JSON. Definitions saved before languages became dynamic kept Arabic in separate
-/// properties (<c>name</c> + <c>nameAr</c>); reading folds those into the language maps, so old versions still open.
-/// </summary>
+/// <summary>Reads and writes definitions as JSON (every text a language map).</summary>
 public static class ServiceDefinitionJson
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    private static readonly string[] LocalizedProperties =
-        ["name", "description", "category", "title", "label", "help", "placeholder", "patternMessage"];
-
     public static string Serialize(ServiceDefinition definition) => JsonSerializer.Serialize(definition, Json);
 
-    public static ServiceDefinition Deserialize(string json)
-    {
-        var node = JsonNode.Parse(json) ?? throw new DomainException("errors.service.unreadable");
-        Upgrade(node);
-        return node.Deserialize<ServiceDefinition>(Json) ?? throw new DomainException("errors.service.unreadable");
-    }
+    public static ServiceDefinition Deserialize(string json) =>
+        JsonSerializer.Deserialize<ServiceDefinition>(json, Json) ?? throw new DomainException("errors.service.unreadable");
 
-    public static ServiceDefinition Deserialize(Stream json)
-    {
-        using var reader = new StreamReader(json);
-        return Deserialize(reader.ReadToEnd());
-    }
-
-    private static void Upgrade(JsonNode node)
-    {
-        switch (node)
-        {
-            case JsonObject obj:
-                foreach (var name in LocalizedProperties)
-                {
-                    var arName = name + "Ar";
-                    if (!obj.TryGetPropertyValue(arName, out var arabic)) continue;
-                    obj.Remove(arName);
-                    var arabicText = arabic?.GetValueKind() == JsonValueKind.String ? arabic.GetValue<string>() : null;
-                    if (obj[name] is JsonObject existing)
-                    {
-                        if (!string.IsNullOrWhiteSpace(arabicText)) existing["ar"] = arabicText;
-                        continue;
-                    }
-                    var map = obj[name] is JsonValue value && value.GetValueKind() == JsonValueKind.String
-                        ? new JsonObject { ["en"] = value.GetValue<string>() }
-                        : new JsonObject();
-                    if (!string.IsNullOrWhiteSpace(arabicText)) map["ar"] = arabicText;
-                    obj[name] = map.Count > 0 ? map : null;
-                }
-                foreach (var (_, child) in obj.ToList())
-                    if (child is not null) Upgrade(child);
-                break;
-            case JsonArray array:
-                foreach (var child in array)
-                    if (child is not null) Upgrade(child);
-                break;
-        }
-    }
+    public static ServiceDefinition Deserialize(Stream json) =>
+        JsonSerializer.Deserialize<ServiceDefinition>(json, Json) ?? throw new DomainException("errors.service.unreadable");
 }

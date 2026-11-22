@@ -63,7 +63,6 @@ public sealed class MessageRefConverter : System.Text.Json.Serialization.JsonCon
         System.Text.Json.JsonSerializerOptions options)
     {
         if (reader.TokenType == System.Text.Json.JsonTokenType.Null) return null;
-        if (reader.TokenType == System.Text.Json.JsonTokenType.String) return new MessageRef(reader.GetString() ?? "");
 
         string key = "";
         Dictionary<string, LocalizedText>? args = null;

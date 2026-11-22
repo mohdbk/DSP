@@ -16,9 +16,6 @@ public sealed class SubscriptionRegistry
 
     public string QueueName => $"dsp.{ServiceName}";
     public string DeadLetterQueueName => $"dsp.{ServiceName}.dead-letter";
-
-    /// <summary>Queue name used before dead-lettering was added; removed on startup.</summary>
-    public string LegacyQueueName => ServiceName;
 }
 
 /// <summary>
@@ -39,7 +36,6 @@ public sealed class RabbitMqSubscriber(
         if (registry.EventTypes.Count == 0) return;
 
         var conn = await connection.GetAsync(stoppingToken);
-        await RemoveLegacyQueueAsync(conn, stoppingToken);
 
         _channel = await conn.CreateChannelAsync(cancellationToken: stoppingToken);
         await _channel.ExchangeDeclareAsync(connection.Exchange, ExchangeType.Topic, durable: true, autoDelete: false,
@@ -122,19 +118,6 @@ public sealed class RabbitMqSubscriber(
             logger.LogError(ex, "Failed handling {EventType} (redelivered: {Redelivered})", ea.RoutingKey, ea.Redelivered);
             await channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: !ea.Redelivered,
                 cancellationToken: ct);
-        }
-    }
-
-    private async Task RemoveLegacyQueueAsync(IConnection conn, CancellationToken ct)
-    {
-        try
-        {
-            await using var ch = await conn.CreateChannelAsync(cancellationToken: ct);
-            await ch.QueueDeleteAsync(registry.LegacyQueueName, ifUnused: false, ifEmpty: false, cancellationToken: ct);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug("Legacy queue cleanup skipped: {Error}", ex.Message);
         }
     }
 
