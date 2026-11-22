@@ -111,10 +111,11 @@ export function FilterDialog({ open, value, columns, onApply, onClose, icon }: {
                 <ChoiceField id={`${base}-column`} as="select" label={t('table.column')} value={column.id}
                   choices={columns.map(x => ({ value: x.id, label: x.label }))}
                   onChange={v => { const next = byId.get(v); if (next) update(c.id, { ...blankCondition(next), id: c.id }); }} />
-                <ChoiceField id={`${base}-op`} as="select" label={t('table.operator')} value={c.op}
+                {/* AEGOV selects move their options into their own markup: replace the controls whole when they change. */}
+                <ChoiceField key={`op-${column.type}`} id={`${base}-op`} as="select" label={t('table.operator')} value={c.op}
                   choices={ops.map(o => ({ value: o, label: t(`table.op.${o}`) }))}
                   onChange={v => update(c.id, { op: v as Operator, value: undefined, value2: undefined })} />
-                <div>
+                <div key={`value-${column.id}-${c.op}`}>
                   {n === 'many' && (
                     <MultiChoiceField id={`${base}-values`} label={t('table.value')} value={c.values ?? []}
                       choices={column.options ?? []} onChange={v => update(c.id, { values: v })} />
@@ -137,7 +138,7 @@ export function FilterDialog({ open, value, columns, onApply, onClose, icon }: {
                 </div>
               </div>
               {n === 2 && (
-                <div className="grid gap-x-4 md:grid-cols-3">
+                <div key={`value2-${column.id}-${c.op}`} className="grid gap-x-4 md:grid-cols-3">
                   <div className="md:col-start-3">
                     {column.type === 'date'
                       ? <DateField id={`${base}-v2`} label={t('table.to')} value={c.value2 ?? ''} onChange={v => update(c.id, { value2: v })} />

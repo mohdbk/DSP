@@ -9,7 +9,7 @@ export interface CitizenUser {
   accountLevel?: string;
 }
 
-export const { api, currentUser, signOut } = createSession<CitizenUser>({
+export const { api, currentUser, useCurrentUser, signOut } = createSession<CitizenUser>({
   storageKey: 'dsp.portal.token',
   role: 'citizen',
   loginPath: '/login',

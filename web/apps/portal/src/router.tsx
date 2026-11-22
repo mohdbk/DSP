@@ -3,7 +3,7 @@ import { countUnread, t, useLang } from '@dsp/core';
 import {
   EmptyState, Files, PortalFrame, requireSignedIn, Tray, validateListSearch,
 } from '@dsp/ui';
-import { api, currentUser, signOut } from './session';
+import { api, currentUser, signOut, useCurrentUser } from './session';
 import { AuthCallbackPage, LoginPage } from './pages/Login';
 import { CatalogPage } from './pages/Catalog';
 import { MyApplicationsPage } from './pages/MyApplications';
@@ -13,7 +13,7 @@ import { NotificationsPage } from './pages/Notifications';
 /** The portal frame: government header and footer, navigation and the signed-in citizen. */
 function Root() {
   useLang(); // the portal name and labels below follow the language
-  const user = currentUser();
+  const user = useCurrentUser(); // re-renders the frame (and its menu) right after sign-in
   return (
     <PortalFrame service={t('app.portal')} homeLabel={t('app.portalHome')} publicPaths={['/login', '/auth']} onSignOut={signOut}
       user={user && { name: user.name, role: user.accountLevel ? `${t('uaePass')} · ${user.accountLevel}` : t('uaePass') }}
