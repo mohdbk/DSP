@@ -135,7 +135,8 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
   Use the shared fields (`TextField`, `ChoiceField`, `DateField`, `FileField`…) and `StepFields` for e-service forms.
 - Tables: every list uses `DataTable` — search, column filters (`meta.filter`), sorting and paging — with its state
   in the URL (`validateListSearch` + `listStateProps`).
-- Citizens sign in with UAE PASS only.
+- Citizens sign in with UAE PASS only, through `UaePassButton`: the official UAE PASS artwork, unmodified
+  (`web/packages/ui/src/assets/uaepass`, see its README). Never redraw, restyle or relabel the UAE PASS button.
 
 ### Routing
 

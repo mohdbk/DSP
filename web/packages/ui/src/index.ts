@@ -9,6 +9,7 @@ export * from './layout/PortalFrame';
 export * from './layout/mountApp';
 export * from './navigation/LanguageSwitch';
 export * from './navigation/AccountArea';
+export * from './identity/UaePassButton';
 export * from './navigation/useInternalLinks';
 export * from './navigation/routing';
 

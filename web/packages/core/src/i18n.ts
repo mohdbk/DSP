@@ -91,6 +91,7 @@ const en = {
   'back': 'Back',
   'staff': 'Staff',
   'uaePass': 'UAE PASS',
+  'uaePass.signIn': 'Sign in with UAE PASS',
 
   // Statuses
   'status.Draft': 'Draft',
@@ -427,6 +428,7 @@ const ar: Partial<Record<keyof typeof en, string>> = {
   'back': 'رجوع',
   'staff': 'موظف',
   'uaePass': 'الهوية الرقمية',
+  'uaePass.signIn': 'تسجيل الدخول بالهوية الرقمية',
 
   'status.Draft': 'مسودة',
   'status.Submitted': 'مقدّم',
