@@ -23,8 +23,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         // Own database for e-service data; a separate database for the workflow engine.
-        services.AddDbContext<EServicesDbContext>(o =>
-            o.UseDspDatabase(configuration, "EServices"));
+        services.AddDspDbContext<EServicesDbContext, EServicesSqlServerDbContext, EServicesPostgresDbContext>(configuration, "EServices");
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
         services.AddScoped<IReviewTaskRepository, ReviewTaskRepository>();
         services.AddSingleton<IServiceCatalog, EmbeddedServiceCatalog>();
@@ -62,7 +61,7 @@ public static class DependencyInjection
             c.DefaultRequestHeaders.Add(InternalApi.Header, internalKey);
         }).AddHttpMessageHandler<CorrelationIdHandler>();
 
-        services.AddDspMessaging(configuration, "eservices");
+        services.AddDspMessaging<EServicesDbContext>(configuration, "eservices");
         services.AddEventSubscription<PaymentCompleted, PaymentCompletedHandler>();
         return services;
     }

@@ -17,7 +17,7 @@ app.UseDspDefaults();
 app.UseAuthentication();
 app.UseAuthorization();
 
-await app.EnsureDatabaseAsync<DocumentsDbContext>();
+await app.MigrateDatabaseAsync<DocumentsDbContext>();
 
 // Service-to-service: store generated documents (e.g. certificates) on behalf of a user.
 app.MapPost("/internal/documents", async (IFormFile file, [FromForm] string ownerId, [FromForm] string? kind,

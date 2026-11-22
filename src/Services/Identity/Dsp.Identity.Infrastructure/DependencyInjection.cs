@@ -16,8 +16,7 @@ public static class DependencyInjection
     public static IServiceCollection AddIdentityInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<IdentityDbContext>(o =>
-            o.UseDspDatabase(configuration, "Identity"));
+        services.AddDspDbContext<IdentityDbContext, IdentitySqlServerDbContext, IdentityPostgresDbContext>(configuration, "Identity");
         services.AddScoped<IStaffAccountRepository, StaffAccountRepository>();
         services.AddSingleton<IPasswordService, PasswordService>();
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();

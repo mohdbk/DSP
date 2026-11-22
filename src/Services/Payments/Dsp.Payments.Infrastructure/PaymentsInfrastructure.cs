@@ -8,13 +8,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Dsp.Payments.Infrastructure;
 
-public sealed class PaymentsDbContext(DbContextOptions<PaymentsDbContext> options) : DbContext(options)
+/// <summary>The service model. Provider-specific subclasses carry their own migrations.</summary>
+public abstract class PaymentsDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<Payment> Payments => Set<Payment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("payments");
+        modelBuilder.AddMessagingTables();
         modelBuilder.Entity<Payment>(e =>
         {
             e.ToTable("Payments");
@@ -60,11 +62,10 @@ public static class DependencyInjection
     public static IServiceCollection AddPaymentsInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<PaymentsDbContext>(o =>
-            o.UseDspDatabase(configuration, "Payments"));
+        services.AddDspDbContext<PaymentsDbContext, PaymentsSqlServerDbContext, PaymentsPostgresDbContext>(configuration, "Payments");
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddSingleton<IPaymentProcessor, SimulatedPaymentProcessor>();
-        services.AddDspMessaging(configuration, "payments");
+        services.AddDspMessaging<PaymentsDbContext>(configuration, "payments");
         return services;
     }
 }

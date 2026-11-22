@@ -51,10 +51,11 @@ public sealed class PaymentService(IPaymentRepository payments, IPaymentProcesso
         var payment = await LoadVisibleAsync(payerId, isStaff: false, id, ct);
         var transaction = await processor.ChargeAsync(payment, ct);
         payment.MarkPaid(processor.Method, transaction);
-        await payments.SaveChangesAsync(ct);
 
+        // Staged in the outbox and committed with the payment, so E-Services is always told.
         await bus.PublishAsync(new PaymentCompleted(payment.Id, payment.ReferenceId, payment.PayerId, payment.Amount,
             payment.Currency), ct);
+        await payments.SaveChangesAsync(ct);
         return PaymentDto.From(payment);
     }
 
