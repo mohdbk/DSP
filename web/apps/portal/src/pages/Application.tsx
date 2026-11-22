@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { ApiError, loc, t, type Application, type ServiceDefinition } from '@dsp/core';
 import {
-  AegovTab, AegovTabPanel, AegovTabs, ApplicationSummary, Loading, Notice, PageHeader, Panel, SplitLayout, StatusBadge,
+  AegovTab, AegovTabPanel, AegovTabs, ApplicationSummary, useTabsScrollFix, Loading, Notice, PageHeader, Panel, SplitLayout, StatusBadge,
 } from '@dsp/ui';
 import { api } from '../session';
 import { FormView } from './FormView';
@@ -11,6 +11,7 @@ import { StatusView } from './StatusView';
 
 /** One application: fill it in (form or chat), answer an information request, or follow its progress. */
 export function ApplicationPage() {
+  const tabsRef = useTabsScrollFix();
   const { id } = useParams({ strict: false }) as { id: string };
   const [app, setApp] = useState<Application>();
   const [service, setService] = useState<ServiceDefinition>();
@@ -59,7 +60,7 @@ export function ApplicationPage() {
         main={infoRequested
           ? <FormView app={app} service={service} onChange={setApp} resubmit />
           : (
-            <AegovTabs variant="segmented" labelTablist={t('app.howToApply')}>
+            <AegovTabs ref={tabsRef} variant="segmented" labelTablist={t('app.howToApply')}>
               <AegovTab slot="tabs" tabId="form">{t('app.form')}</AegovTab>
               <AegovTab slot="tabs" tabId="chat">{t('app.chat')}</AegovTab>
               <AegovTabPanel tabId="form"><div className="pt-4"><FormView app={app} service={service} onChange={setApp} /></div></AegovTabPanel>

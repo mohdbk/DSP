@@ -13,15 +13,13 @@ import { SettingsNav } from './SettingsNav';
 
 const route = getRouteApi('/settings/translations');
 
-/** One value per key for filtering: which portal shows it, or "services" for API messages only, or "unused". */
-function scopeOf(r: TranslationRow): string {
-  const portal = r.usedIn.includes('portal');
-  const backoffice = r.usedIn.includes('backoffice');
-  if (portal && backoffice) return 'both';
-  if (portal) return 'portal';
-  if (backoffice) return 'backoffice';
-  return r.usedIn.includes('services') ? 'services' : 'unused';
-}
+/** Where the key is used, as a list for the tags and the multiple filter ("unused" when nowhere). */
+const usageOf = (r: TranslationRow): string[] => (r.usedIn.length ? r.usedIn : ['unused']);
+const usageOrder = ['portal', 'backoffice', 'services', 'unused'];
+const usageVariant: Record<string, 'aegold' | 'seablue' | 'camel' | 'slate'> = {
+  portal: 'aegold', backoffice: 'seablue', services: 'camel', unused: 'slate',
+};
+
 const base = '/api/v1/platform/admin';
 
 /** Every key with its text in the default language and in the chosen language. */
@@ -79,7 +77,8 @@ export function TranslationsPage() {
 
   const edit = (row: TranslationRow) => { setEditing(row); setText(row.text ?? ''); setMessage(undefined); };
 
-  const columns = useMemo<ColumnDef<TranslationRow, string>[]>(() => [
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const columns = useMemo<ColumnDef<TranslationRow, any>[]>(() => [
     { id: 'key', header: t('settings.key'), accessorFn: r => r.key, cell: c => <code className="text-xs"><bdi>{c.getValue()}</bdi></code> },
     {
       id: 'default', header: t('settings.defaultText'), accessorFn: r => r.defaultText,
@@ -90,14 +89,13 @@ export function TranslationsPage() {
       cell: c => c.getValue() ? <span lang={code} dir={language?.direction}>{c.getValue()}</span> : '—',
     },
     {
-      id: 'usedIn', header: t('settings.usedIn'), accessorFn: scopeOf,
+      id: 'usedIn', header: t('settings.usedIn'), accessorFn: usageOf, enableSorting: false,
       cell: c => (
         <span className="flex flex-wrap gap-1">
-          <Tag variant={c.getValue() === 'unused' ? 'slate' : 'aegold'}>{t(`settings.use.${c.getValue()}`)}</Tag>
-          {c.getValue() !== 'services' && c.row.original.usedIn.includes('services') && <Tag variant="slate">{t('settings.use.services')}</Tag>}
+          {c.getValue<string[]>().map(u => <Tag key={u} variant={usageVariant[u] ?? 'slate'}>{t(`settings.use.${u}`)}</Tag>)}
         </span>
       ),
-      meta: { filter: true, filterLabel: v => t(`settings.use.${v}`) },
+      meta: { filter: true, multiple: true, filterOptions: usageOrder, filterLabel: v => t(`settings.use.${v}`) },
     },
     {
       id: 'state', header: t('status'), accessorFn: r => (r.text ? 'translated' : 'missing'),

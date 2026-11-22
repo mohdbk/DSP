@@ -87,16 +87,19 @@ export function MarkdownEditor(props: {
 
   const label = props.markOptional ? `${props.label} ${t('form.optional')}` : props.label;
   const tabClass = (active: boolean) =>
-    `px-3 py-2 text-sm font-semibold border-b-2 ${active ? 'border-primary-600 text-aeblack-900' : 'border-transparent text-aeblack-600 hover:text-aeblack-900'}`;
+    `relative rounded-none px-3 py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary-600 ${active ? 'text-aeblack-900' : 'text-aeblack-600 hover:text-aeblack-900'}`;
+  // A straight bar under the active tab (a border on the button would follow its rounded corners).
+  const underline = <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-0.5 bg-primary-600" />;
 
   return (
     <div className="mb-5">
       <label htmlFor={props.id} className="mb-2 block font-semibold text-aeblack-800">{label}</label>
-      <div className={`overflow-hidden rounded-xl border-2 ${props.error ? 'border-aered-600' : 'border-aeblack-100 focus-within:border-primary-600'}`}>
+      {/* Highlighted only while typing in the text, not when a tab or toolbar button has focus. */}
+      <div className={`overflow-hidden rounded-xl border-2 ${props.error ? 'border-aered-600' : 'border-aeblack-100 has-[textarea:focus]:border-primary-600'}`}>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-aeblack-100 bg-whitely-50 px-2">
           <div role="tablist" aria-label={label} className="flex">
-            <button type="button" role="tab" aria-selected={tab === 'write'} className={tabClass(tab === 'write')} onClick={() => setTab('write')}>{t('md.write')}</button>
-            <button type="button" role="tab" aria-selected={tab === 'preview'} className={tabClass(tab === 'preview')} onClick={() => setTab('preview')}>{t('md.preview')}</button>
+            <button type="button" role="tab" aria-selected={tab === 'write'} className={tabClass(tab === 'write')} onClick={() => setTab('write')}>{t('md.write')}{tab === 'write' && underline}</button>
+            <button type="button" role="tab" aria-selected={tab === 'preview'} className={tabClass(tab === 'preview')} onClick={() => setTab('preview')}>{t('md.preview')}{tab === 'preview' && underline}</button>
           </div>
           {tab === 'write' && (
             <div role="toolbar" aria-label={t('md.toolbar')} aria-controls={props.id} className="flex flex-wrap gap-1 py-1">
