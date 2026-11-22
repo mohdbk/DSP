@@ -7,7 +7,7 @@ import type { Icon as PhosphorIcon, IconWeight } from '@phosphor-icons/react';
 // help, status and empty states — not on every list item.
 
 export {
-  ArrowLeft, ArrowRight, Bell, List, X, Certificate, ChatCircleText, Coins, CreditCard, FileText, Files, FloppyDisk, FolderOpen, GearSix,
+  ArrowLeft, ArrowRight, Bell, ClipboardText, DownloadSimple, PencilSimple, List, X, Certificate, ChatCircleText, Coins, CreditCard, FileText, Files, FloppyDisk, FolderOpen, GearSix,
   Globe, House, ListChecks, MagnifyingGlass, PaperPlaneRight, Plus, Robot, SignOut, Translate, Tray, Wrench,
 } from '@phosphor-icons/react';
 

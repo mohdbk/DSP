@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { formatDate, formatMoney, loc, openDocument, t, type Application, type Payment, type ServiceDefinition } from '@dsp/core';
 import {
-  AegovButton, ApplicationJourney, ApplicationSummary, CreditCard, DescriptionList, IconLabel, Money, Notice, Panel, ServiceAnswers, SplitLayout,
+  AegovButton, ApplicationJourney, ApplicationSummary, CreditCard, DescriptionList, DownloadSimple, IconLabel, Money, Notice, Panel, ServiceAnswers, SplitLayout,
 } from '@dsp/ui';
 import { api } from '../session';
 
@@ -74,7 +74,7 @@ export function StatusView({ app, service, onRefresh }: {
             <Panel title={t('status.certificateReady')}>
               <p className="mb-4 text-aeblack-600">{t('status.issued', { date: formatDate(app.completedAt) })}</p>
               <AegovButton onAegovButtonClick={() => openDocument(api, app.certificateDocumentId!, `certificate-${app.number}.html`)}>
-                {t('status.download')}
+                <IconLabel icon={DownloadSimple}>{t('status.download')}</IconLabel>
               </AegovButton>
             </Panel>
           )}

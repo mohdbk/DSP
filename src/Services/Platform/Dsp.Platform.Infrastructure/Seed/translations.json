@@ -391,12 +391,12 @@
    "ar": "الصفحة الرئيسية للمكتب الخلفي"
   },
   "app.chat": {
-   "en": "💬 Chat",
-   "ar": "💬 المحادثة"
+   "en": "Chat",
+   "ar": "المحادثة"
   },
   "app.form": {
-   "en": "📝 Form",
-   "ar": "📝 النموذج"
+   "en": "Form",
+   "ar": "النموذج"
   },
   "app.howToApply": {
    "en": "How do you want to apply?",

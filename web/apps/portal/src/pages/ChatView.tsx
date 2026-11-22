@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { t, type Application, type ChatMessage, type ChatResponse } from '@dsp/core';
-import { AegovButton, ChatThread, Notice, Panel, TextField } from '@dsp/ui';
+import {
+  AegovButton, ChatThread, IconLabel, Notice, Panel, PaperPlaneRight, TextField,
+} from '@dsp/ui';
 import { api } from '../session';
 
 interface ChatState { messages: ChatMessage[]; pendingField: string | null; mode?: string }
@@ -56,7 +58,7 @@ export function ChatView({ app, onApplication }: {
               onChange={setInput} disabled={busy} />
           </div>
           <div className="mb-5">
-            <AegovButton type="submit" isDisabled={busy || !input.trim()}>{t('chat.send')}</AegovButton>
+            <AegovButton type="submit" isDisabled={busy || !input.trim()}><IconLabel icon={PaperPlaneRight} mirror>{t('chat.send')}</IconLabel></AegovButton>
           </div>
         </form>
       )} />
