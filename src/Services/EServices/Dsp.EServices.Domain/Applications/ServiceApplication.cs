@@ -169,6 +169,18 @@ public sealed class ServiceApplication : Entity
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>The AI approved a clear case itself (see <see cref="AutoApprovalPolicy"/>).</summary>
+    public void ApproveAutomatically()
+    {
+        EnsureStatus(ApplicationStatus.AiReview, "Only applications in AI review can be approved automatically.");
+        Approved = true;
+        DecisionComment = null;
+        DecidedBy = AutoApprovalPolicy.Decider;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public bool DecidedByAi => DecidedBy == AutoApprovalPolicy.Decider;
+
     public void RequestPayment(Guid paymentId)
     {
         if (Approved != true) throw new DomainException("errors.application.paymentBeforeApproval");

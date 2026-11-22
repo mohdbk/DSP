@@ -76,8 +76,10 @@ submit → AI pre-review ─┬─ fixable problem → ask the applicant (at mos
                         └──────────────────────────────── ok ─────────────────────────────────────────────┴→ staff review → payment → certificate
 ```
 
-- The AI **never approves or rejects**. It prepares the case: a recommendation, findings for the officer and, when the
-  applicant can fix something, short questions in every enabled language.
+- The AI **never rejects** and **approves only clear cases**: when the model recommends approval with no issues,
+  warnings or questions, the application goes straight to payment. Anything else, every rejection, a random audit
+  sample (Settings → AI, 10% by default) and every case while the AI is paused or unavailable go to a case officer,
+  with the AI's findings. When the applicant can fix something, it asks short questions in every enabled language.
 - With a model configured (Back Office → Settings → AI, Net0 in production) the model reviews against the service's
   checklist; the built-in checks (missing fields, Arabic fields not in Arabic, English fields in Arabic, placeholder
   values, similar existing names, old start dates) always run as guardrails. Without a model, the built-in checks alone run.

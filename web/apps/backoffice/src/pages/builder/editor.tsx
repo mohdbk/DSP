@@ -47,7 +47,7 @@ export function DetailsSection({ def, change, err }: EditorProps) {
       <ChoiceField id="process" as="cards" label={t('builder.process')} error={err('workflowVersion')} value={String(def.workflowVersion)}
         choices={[
           { value: '1', label: t('process.v1'), hint: t('builder.processV1') },
-          { value: '2', label: t('process.v2'), hint: t('builder.processV2') },
+          { value: '2', label: t('process.v2'), hint: t('builder.processV2Auto') },
         ]}
         onChange={v => change(d => { d.workflowVersion = Number(v); })} />
     </Panel>

@@ -162,6 +162,22 @@
    "en": "A key is saved. Enter a new one to replace it.",
    "ar": "يوجد مفتاح محفوظ. أدخل مفتاحًا جديدًا لاستبداله."
   },
+  "ai.settings.auditSample": {
+   "en": "Audit sample (%)",
+   "ar": "عينة التدقيق (%)"
+  },
+  "ai.settings.auditSampleHint": {
+   "en": "Share of clear cases still sent to an officer, to keep checking the AI. 0 to 100.",
+   "ar": "نسبة الحالات الواضحة التي تُحال مع ذلك إلى موظف لمواصلة التحقق من الذكاء الاصطناعي. من 0 إلى 100."
+  },
+  "ai.settings.autoIntro": {
+   "en": "Services using the agentic process are approved automatically when the model recommends approval with no issues, warnings or questions. Anything else, and every rejection, goes to a case officer. While the AI is paused, every case goes to an officer.",
+   "ar": "تتم الموافقة تلقائيًا على طلبات الخدمات التي تستخدم المسار الذكي عندما يوصي النموذج بالموافقة دون مشكلات أو تحذيرات أو أسئلة. أما غير ذلك وجميع حالات الرفض فتُحال إلى موظف. وأثناء إيقاف الذكاء الاصطناعي مؤقتًا تُحال جميع الحالات إلى موظف."
+  },
+  "ai.settings.autoTitle": {
+   "en": "Automatic approval",
+   "ar": "الموافقة التلقائية"
+  },
   "ai.settings.baseUrl": {
    "en": "Service address",
    "ar": "عنوان الخدمة"
@@ -437,6 +453,14 @@
   "apps.back": {
    "en": "← All applications",
    "ar": "→ جميع الطلبات"
+  },
+  "apps.decidedBy": {
+   "en": "Decided by",
+   "ar": "صاحب القرار"
+  },
+  "apps.decidedByAi": {
+   "en": "AI (automatic approval)",
+   "ar": "الذكاء الاصطناعي (موافقة تلقائية)"
   },
   "apps.empty": {
    "en": "No submitted applications yet",
@@ -729,6 +753,10 @@
   "builder.processV2": {
    "en": "AI-assisted: AI pre-review first (it can ask the applicant to fix things), then staff review",
    "ar": "بمساعدة الذكاء الاصطناعي: تدقيق آلي أولًا (قد يطلب من مقدم الطلب التصحيح) ثم مراجعة الموظف"
+  },
+  "builder.processV2Auto": {
+   "en": "The AI checks each application and can ask the applicant to fix things. It approves clear cases itself; anything unclear, every rejection and an audit sample go to a case officer.",
+   "ar": "يفحص الذكاء الاصطناعي كل طلب ويمكنه أن يطلب من المتعامل تصحيح البيانات. يوافق على الحالات الواضحة بنفسه، وتُحال الحالات غير الواضحة وجميع حالات الرفض وعينة للتدقيق إلى موظف."
   },
   "builder.publish": {
    "en": "Publish v{n}",
@@ -1193,6 +1221,10 @@
   "entity.name": {
    "en": "Ministry of Economy & Tourism",
    "ar": "وزارة الاقتصاد والسياحة"
+  },
+  "errors.ai.auditSample": {
+   "en": "The audit sample must be between 0 and 100.",
+   "ar": "يجب أن تكون عينة التدقيق بين 0 و100."
   },
   "errors.ai.baseUrl": {
    "en": "Enter a full address starting with https:// or http://.",
@@ -2549,6 +2581,18 @@
   "ai.settings.apiKeySaved": [
    "backoffice"
   ],
+  "ai.settings.auditSample": [
+   "backoffice"
+  ],
+  "ai.settings.auditSampleHint": [
+   "backoffice"
+  ],
+  "ai.settings.autoIntro": [
+   "backoffice"
+  ],
+  "ai.settings.autoTitle": [
+   "backoffice"
+  ],
   "ai.settings.baseUrl": [
    "backoffice"
   ],
@@ -2759,6 +2803,12 @@
   "apps.back": [
    "backoffice"
   ],
+  "apps.decidedBy": [
+   "backoffice"
+  ],
+  "apps.decidedByAi": [
+   "backoffice"
+  ],
   "apps.empty": [
    "backoffice"
   ],
@@ -2966,7 +3016,8 @@
   "builder.processV1": [
    "backoffice"
   ],
-  "builder.processV2": [
+  "builder.processV2": [],
+  "builder.processV2Auto": [
    "backoffice"
   ],
   "builder.publish": [
@@ -3312,6 +3363,9 @@
   "entity.name": [
    "portal",
    "backoffice",
+   "services"
+  ],
+  "errors.ai.auditSample": [
    "services"
   ],
   "errors.ai.baseUrl": [

@@ -79,7 +79,8 @@ public sealed record ImportResultDto(int Added, int Updated, int Skipped);
 public sealed record AiSettingsDto(string ProviderName, string BaseUrl, string Model, bool HasApiKey, double Temperature,
     int TimeoutSeconds, bool Paused, int MaxToolIterations, int MaxHistoryMessages,
     string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt, string? ReviewPrompt,
-    string DefaultChatPrompt, string DefaultReviewPrompt, bool IsConfigured, DateTimeOffset UpdatedAt, string UpdatedBy);
+    string DefaultChatPrompt, string DefaultReviewPrompt, bool IsConfigured, DateTimeOffset UpdatedAt, string UpdatedBy,
+    int AuditSamplePercent);
 
 /// <summary>
 /// Saving AI settings. <c>ApiKey</c>: null keeps the current key, "" removes it, anything else replaces it.
@@ -87,7 +88,11 @@ public sealed record AiSettingsDto(string ProviderName, string BaseUrl, string M
 /// </summary>
 public sealed record AiSettingsRequest(string? ProviderName, string? BaseUrl, string? Model, string? ApiKey, double Temperature,
     int TimeoutSeconds, bool Paused, int MaxToolIterations, int MaxHistoryMessages,
-    string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt = null, string? ReviewPrompt = null);
+    string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt = null, string? ReviewPrompt = null,
+    int? AuditSamplePercent = null);
+
+/// <summary>The AI policy other services act on (internal API): no model address or key.</summary>
+public sealed record AiPolicyDto(int AuditSamplePercent, bool Paused);
 
 /// <summary>
 /// Everything the AI Orchestrator needs to call the model, with the key decrypted (internal API only).
@@ -340,11 +345,18 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
         current.Update(request.ProviderName ?? "", request.BaseUrl ?? "", request.Model ?? "", request.Temperature,
             request.TimeoutSeconds, request.Paused, request.MaxToolIterations,
             request.MaxHistoryMessages, request.ChatInstructions, request.ReviewInstructions,
-            Custom(request.ChatPrompt, AiPrompts.DefaultChat), Custom(request.ReviewPrompt, AiPrompts.DefaultReview), caller.Name);
+            Custom(request.ChatPrompt, AiPrompts.DefaultChat), Custom(request.ReviewPrompt, AiPrompts.DefaultReview), caller.Name,
+            request.AuditSamplePercent);
         if (request.ApiKey is not null)
             current.SetProtectedApiKey(request.ApiKey.Length == 0 ? null : protector.Protect(request.ApiKey.Trim()), caller.Name);
         await settings.SaveChangesAsync(ct);
         return ToDto(current);
+    }
+
+    public async Task<AiPolicyDto> GetPolicyAsync(CancellationToken ct)
+    {
+        var s = await settings.GetAsync(ct);
+        return new AiPolicyDto(s.AuditSamplePercent, s.Paused);
     }
 
     /// <summary>The settings in force, falling back to configuration for anything not set in the back office.</summary>
@@ -371,7 +383,7 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
         s.MaxToolIterations, s.MaxHistoryMessages, s.ChatInstructions, s.ReviewInstructions,
         s.ChatPrompt, s.ReviewPrompt, AiPrompts.DefaultChat, AiPrompts.DefaultReview,
         s.IsConfigured || (!string.IsNullOrWhiteSpace(defaults.BaseUrl) && !string.IsNullOrWhiteSpace(defaults.Model)),
-        s.UpdatedAt, s.UpdatedBy);
+        s.UpdatedAt, s.UpdatedBy, s.AuditSamplePercent);
 }
 
 /// <summary>The languages and texts shipped with a release, added to the database on start-up.</summary>

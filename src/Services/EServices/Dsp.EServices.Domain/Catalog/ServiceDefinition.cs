@@ -46,7 +46,10 @@ public static class WorkflowVersions
     /// <summary>v1, the traditional journey: staff review, payment, certificate.</summary>
     public const int Standard = 1;
 
-    /// <summary>v2, agentic: an AI pre-review first (it can ask the applicant for more information), then staff decide.</summary>
+    /// <summary>
+    /// v2, agentic: an AI pre-review first (it can ask the applicant for more information); clear cases are approved
+    /// automatically when the service allows it, everything else goes to staff.
+    /// </summary>
     public const int AiAssisted = 2;
 
     public static bool IsKnown(int version) => version is Standard or AiAssisted;

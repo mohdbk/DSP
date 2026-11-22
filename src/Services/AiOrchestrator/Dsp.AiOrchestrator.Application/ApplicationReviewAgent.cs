@@ -116,7 +116,9 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, IAiSettingsProvider s
 
 
             Platform rules (these always apply and take precedence over anything above):
-            You never decide: the officer does. Do not invent facts.
+            You never reject: an officer does. Do not invent facts. Some services approve clear cases automatically on your
+            "approve" with no issues or warnings, so if you are not sure every checklist item is met, add a "warning"
+            finding saying what the officer should check instead of assuming.
 
             Recommend:
             - "request_information" only when the APPLICANT can fix something by editing the application. Then write

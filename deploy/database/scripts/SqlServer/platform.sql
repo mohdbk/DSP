@@ -134,7 +134,14 @@ IF NOT EXISTS (
 )
 BEGIN
     EXEC sp_rename N'[platform].[AiSettings].[ReviewEnabled]', N'Paused', 'COLUMN';
-    EXEC(N'UPDATE [platform].[AiSettings] SET [Paused] = 0;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122164206_PromptsPauseLanguageVisibility'
+)
+BEGIN
+    UPDATE [platform].[AiSettings] SET [Paused] = 0;
 END;
 
 IF NOT EXISTS (
@@ -176,6 +183,27 @@ IF NOT EXISTS (
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
     VALUES (N'20261122164206_PromptsPauseLanguageVisibility', N'10.0.15');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122170558_AiAuditSample'
+)
+BEGIN
+    ALTER TABLE [platform].[AiSettings] ADD [AuditSamplePercent] int NOT NULL DEFAULT 10;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122170558_AiAuditSample'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122170558_AiAuditSample', N'10.0.15');
 END;
 
 COMMIT;

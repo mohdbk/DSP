@@ -115,6 +115,12 @@ DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122164209_PromptsPauseLanguageVisibility') THEN
     ALTER TABLE platform."AiSettings" RENAME COLUMN "ReviewEnabled" TO "Paused";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122164209_PromptsPauseLanguageVisibility') THEN
     UPDATE platform."AiSettings" SET "Paused" = FALSE;
     END IF;
 END $EF$;
@@ -152,6 +158,24 @@ BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122164209_PromptsPauseLanguageVisibility') THEN
     INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
     VALUES ('20261122164209_PromptsPauseLanguageVisibility', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122170601_AiAuditSample') THEN
+    ALTER TABLE platform."AiSettings" ADD "AuditSamplePercent" integer NOT NULL DEFAULT 10;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122170601_AiAuditSample') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261122170601_AiAuditSample', '10.0.15');
     END IF;
 END $EF$;
 COMMIT;

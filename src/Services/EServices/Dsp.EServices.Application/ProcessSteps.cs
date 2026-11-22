@@ -22,7 +22,8 @@ public sealed class ProcessSteps(
     IServiceCatalog catalog,
     IAiAssessmentRepository assessments,
     IAiReviewer reviewer,
-    ILocalization localization)
+    ILocalization localization,
+    IAiPolicy aiPolicy)
 {
     public static readonly TimeSpan ReviewSla = TimeSpan.FromDays(2);
 
@@ -65,6 +66,24 @@ public sealed class ProcessSteps(
         logger.LogInformation("AI pre-review round {Round} for {Number}: {Recommendation} ({Mode}); ask applicant: {Ask}",
             round, app.Number, assessment.Recommendation, assessment.Mode, askApplicant);
         return askApplicant;
+    }
+
+    /// <summary>
+    /// AI-assisted process, after the pre-review: approves a clear case automatically when the service allows it.
+    /// Returns true when approved (the process goes straight to payment); false sends it to a case officer.
+    /// </summary>
+    public async Task<bool> TryAutoApproveAsync(Guid applicationId, CancellationToken ct)
+    {
+        var app = await LoadAsync(applicationId, ct);
+        if (app.Status != ApplicationStatus.AiReview) return false;
+        var latest = (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault();
+        var outcome = AutoApprovalPolicy.Evaluate(app.WorkflowVersion, latest, app.Id, await aiPolicy.GetAuditSamplePercentAsync(ct));
+        logger.LogInformation("Automatic approval for {Number}: {Approve} ({Reason})", app.Number, outcome.Approve, outcome.Reason);
+        if (!outcome.Approve) return false;
+
+        app.ApproveAutomatically(); // the payment request that follows tells the applicant it was approved
+        await applications.SaveChangesAsync(ct);
+        return true;
     }
 
     /// <summary>AI-assisted process: asks the applicant the questions from the latest pre-review.</summary>

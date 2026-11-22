@@ -104,5 +104,12 @@ public interface IAiReviewer
     Task<AiReviewResult> ReviewAsync(AiReviewRequest request, CancellationToken ct);
 }
 
+/// <summary>The platform's AI policy (Settings → AI): the share of clear agentic cases still sent to an officer.</summary>
+public interface IAiPolicy
+{
+    /// <summary>0–100. If the setting can't be read, 100: everything goes to an officer.</summary>
+    Task<int> GetAuditSamplePercentAsync(CancellationToken ct);
+}
+
 /// <summary>The signed-in caller, as passed in from the API layer. Their language comes with <see cref="IMessages"/>.</summary>
 public sealed record Caller(string UserId, string Name, bool IsStaff, IReadOnlyDictionary<string, string?> Profile);

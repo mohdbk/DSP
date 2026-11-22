@@ -65,6 +65,16 @@ public sealed class RunAiReview : CodeActivity<bool>
     }
 }
 
+[Activity("DSP", "Applications", "Approve a clear case automatically when the service allows it. Returns true when approved.")]
+public sealed class TryAutoApprove : CodeActivity<bool>
+{
+    protected override async ValueTask ExecuteAsync(ActivityExecutionContext context)
+    {
+        var approved = await context.Steps().TryAutoApproveAsync(context.ApplicationId(), context.CancellationToken);
+        context.Set(Result, approved);
+    }
+}
+
 [Activity("DSP", "Applications", "Ask the applicant for the information the AI pre-review needs.")]
 public sealed class RequestInformation : CodeActivity
 {

@@ -72,6 +72,7 @@ public class AgenticProcessStepsTests
     private readonly InMemoryAssessments _assessments = new();
     private readonly StubReviewer _reviewer = new();
     private readonly ProcessSteps _steps;
+    private readonly PaymentCompletedHandlerTests.FixedAiPolicy _policy = new(0);
     private readonly ServiceApplication _app;
 
     public AgenticProcessStepsTests()
@@ -79,7 +80,7 @@ public class AgenticProcessStepsTests
         _apps = new ApplicationServiceTests.FakeApplications(_log);
         _steps = new ProcessSteps(_apps, new PaymentCompletedHandlerTests.NoTasks(), new PaymentCompletedHandlerTests.NoPayments(),
             new PaymentCompletedHandlerTests.NoCertificates(), _bus, new StatusNotifier(_bus),
-            NullLogger<ProcessSteps>.Instance, new EmbeddedServiceCatalog(), _assessments, _reviewer, TestText.Localization);
+            NullLogger<ProcessSteps>.Instance, new EmbeddedServiceCatalog(), _assessments, _reviewer, TestText.Localization, _policy);
 
         _app = ServiceApplication.Create("TRADE_NAME_RESERVATION", "Trade Name Reservation", WorkflowVersions.AiAssisted,
             "uaepass:abc", "Fatima", 200, "AED", new Dictionary<string, string?> { ["tradeNameAr"] = "Falcon" });
@@ -114,6 +115,57 @@ public class AgenticProcessStepsTests
         var assessment = Assert.Single(_assessments.Items);
         Assert.Equal("llm", assessment.Mode);
         Assert.Equal(AiRecommendations.Approve, assessment.Recommendation);
+    }
+
+    [Fact]
+    public async Task A_clear_case_reviewed_by_the_model_is_approved_automatically()
+    {
+        _reviewer.Next = new AiReviewResult(AiRecommendations.Approve, "Looks fine.",
+            [new AiFinding("info", null, "Checklist item confirmed.")], [], "llm", "test-model");
+        await _steps.RunAiReviewAsync(_app.Id, default);
+
+        Assert.True(await _steps.TryAutoApproveAsync(_app.Id, default));
+        Assert.True(_app.Approved);
+        Assert.True(_app.DecidedByAi);
+    }
+
+    [Theory]
+    [InlineData("warning", "llm", 0)]   // something for an officer to look at
+    [InlineData("info", "rules", 0)]    // the model didn't review it (paused, missing or failing)
+    [InlineData("info", "llm", 100)]    // in the audit sample
+    public async Task Anything_short_of_a_clear_model_approval_goes_to_an_officer(string severity, string mode, int audit)
+    {
+        _policy.Percent = audit;
+        _reviewer.Next = new AiReviewResult(AiRecommendations.Approve, "Looks fine.",
+            [new AiFinding(severity, "tradeNameEn", "Check this.")], [], mode, mode == "llm" ? "test-model" : null);
+        await _steps.RunAiReviewAsync(_app.Id, default);
+
+        Assert.False(await _steps.TryAutoApproveAsync(_app.Id, default));
+        Assert.Null(_app.Approved);
+        Assert.Equal(ApplicationStatus.AiReview, _app.Status);
+    }
+
+    [Fact]
+    public async Task The_ai_never_rejects()
+    {
+        _reviewer.Next = new AiReviewResult(AiRecommendations.Reject, "Imitates a brand.",
+            [new AiFinding("issue", "tradeNameEn", "Brand.")], [], "llm", "test-model");
+        await _steps.RunAiReviewAsync(_app.Id, default);
+
+        Assert.False(await _steps.TryAutoApproveAsync(_app.Id, default));
+        Assert.Null(_app.Approved);
+    }
+
+    [Fact]
+    public void The_audit_sample_is_stable_and_roughly_the_chosen_share()
+    {
+        var ids = Enumerable.Range(0, 2000).Select(_ => Guid.NewGuid()).ToList();
+        var share = ids.Count(id => AutoApprovalPolicy.InAuditSample(id, 10)) / 2000.0;
+
+        Assert.InRange(share, 0.06, 0.14);
+        Assert.All(ids, id => Assert.Equal(AutoApprovalPolicy.InAuditSample(id, 10), AutoApprovalPolicy.InAuditSample(id, 10)));
+        Assert.DoesNotContain(ids, id => AutoApprovalPolicy.InAuditSample(id, 0));
+        Assert.All(ids, id => Assert.True(AutoApprovalPolicy.InAuditSample(id, 100)));
     }
 
     [Fact]

@@ -95,6 +95,8 @@ export interface Application {
   certificateDocumentId?: string | null;
   informationRequest: LocalizedText[];
   informationRequestCount: number;
+  /** Approved automatically by the AI (agentic process), not by an officer. */
+  decidedByAi?: boolean;
 }
 
 export interface FieldError { field: string; message: string }
@@ -243,6 +245,8 @@ export interface AiSettingsView {
   timeoutSeconds: number;
   /** Emergency stop: the chat uses the guided conversation and the pre-review the built-in checks. */
   paused: boolean;
+  /** Share of clear agentic cases (0–100) still sent to an officer. */
+  auditSamplePercent: number;
   maxToolIterations: number;
   maxHistoryMessages: number;
   chatInstructions?: string | null;

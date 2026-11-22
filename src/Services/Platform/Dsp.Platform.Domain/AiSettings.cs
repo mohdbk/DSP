@@ -28,6 +28,12 @@ public sealed class AiSettings : Entity
     /// </summary>
     public bool Paused { get; private set; }
 
+    /// <summary>
+    /// Share of clear cases (0–100) in agentic services that still go to a case officer instead of being approved
+    /// automatically, so people keep checking the AI's judgement.
+    /// </summary>
+    public int AuditSamplePercent { get; private set; } = 10;
+
     public int MaxToolIterations { get; private set; } = 6;
     public int MaxHistoryMessages { get; private set; } = 30;
 
@@ -55,8 +61,10 @@ public sealed class AiSettings : Entity
 
     public void Update(string providerName, string baseUrl, string model, double temperature, int timeoutSeconds,
         bool paused, int maxToolIterations, int maxHistoryMessages,
-        string? chatInstructions, string? reviewInstructions, string? chatPrompt, string? reviewPrompt, string by)
+        string? chatInstructions, string? reviewInstructions, string? chatPrompt, string? reviewPrompt, string by,
+        int? auditSamplePercent = null)
     {
+        if (auditSamplePercent is < 0 or > 100) throw new ValidationException([new FieldError("auditSamplePercent", "errors.ai.auditSample")]);
         var url = (baseUrl ?? "").Trim();
         if (url.Length > 0 && (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("https" or "http")))
             throw new ValidationException([new FieldError("baseUrl", "errors.ai.baseUrl")]);
@@ -74,6 +82,7 @@ public sealed class AiSettings : Entity
         Temperature = temperature;
         TimeoutSeconds = timeoutSeconds;
         Paused = paused;
+        if (auditSamplePercent is { } audit) AuditSamplePercent = audit;
         MaxToolIterations = maxToolIterations;
         MaxHistoryMessages = maxHistoryMessages;
         ChatInstructions = string.IsNullOrWhiteSpace(chatInstructions) ? null : chatInstructions.Trim();
