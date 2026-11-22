@@ -20,6 +20,11 @@ export function LoginPage() {
     if (signedIn) navigate({ href: returnUrl.startsWith('/') ? returnUrl : '/', replace: true });
   }, [signedIn, returnUrl, navigate]);
 
+  // Show a sign-in error once: drop it from the address so a reload or a later visit doesn't show it again.
+  useEffect(() => {
+    if (initialError) navigate({ to: '/login', search: { returnUrl }, replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     api.get<Provider[]>('/api/v1/identity/providers').then(setProviders).catch(() => setError(t('login.unavailable')));
   }, []);
