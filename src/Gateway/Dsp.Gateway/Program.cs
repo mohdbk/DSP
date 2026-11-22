@@ -35,7 +35,10 @@ var clusters = services.Select(s => new ClusterConfig
     },
 }).ToList();
 
-builder.Services.AddReverseProxy().LoadFromMemory(routes, clusters);
+builder.Services.AddReverseProxy()
+    .LoadFromMemory(routes, clusters)
+    // Recycle connections so a redeployed service (new private IP) is picked up quickly.
+    .ConfigureHttpClient((_, handler) => handler.PooledConnectionLifetime = TimeSpan.FromMinutes(1));
 
 // Basic abuse protection: 300 requests per minute per client IP.
 builder.Services.AddRateLimiter(o =>
