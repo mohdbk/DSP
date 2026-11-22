@@ -1,3 +1,4 @@
+using Dsp.SharedKernel;
 using System.Security.Claims;
 using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Web;
@@ -17,9 +18,11 @@ app.UseAuthorization();
 
 await app.MigrateDatabaseAsync<NotificationsDbContext>();
 
-var api = app.MapGroup("/api/notifications").RequireAuthorization();
-api.MapGet("/me", async (ClaimsPrincipal user, NotificationService svc, CancellationToken ct) =>
-    await svc.ListAsync(user.UserId(), user.IsStaff(), ct));
+app.MapApiDocuments("notifications");
+
+var api = app.MapApi("notifications").RequireAuthorization();
+api.MapGet("/me", async (int? page, int? pageSize, ClaimsPrincipal user, NotificationService svc, CancellationToken ct) =>
+    PagedList.From(await svc.ListAsync(user.UserId(), user.IsStaff(), ct), page, pageSize));
 api.MapPost("/{id:guid}/read", async (Guid id, ClaimsPrincipal user, NotificationService svc, CancellationToken ct) =>
 {
     await svc.MarkReadAsync(user.UserId(), user.IsStaff(), id, ct);

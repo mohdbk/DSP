@@ -1,0 +1,7 @@
+/* The UAE Design System, in the required order, plus the sources Tailwind must scan. Both portals import this file. */
+@import "tailwindcss";
+@import "@aegov/designsystem/base";
+@import "@aegov/designsystem/theme";
+
+/* This library's components (the app's own files are found automatically). */
+@source "./";

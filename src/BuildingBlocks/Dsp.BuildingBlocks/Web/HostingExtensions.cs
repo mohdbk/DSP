@@ -50,6 +50,7 @@ public static class HostingExtensions
             otel.UseOtlpExporter();
 
         builder.Services.AddProblemDetails();
+        builder.Services.AddApiDocuments(serviceName);
         builder.Services.AddHealthChecks();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddTransient<CorrelationIdHandler>();

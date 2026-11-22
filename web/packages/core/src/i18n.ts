@@ -63,7 +63,14 @@ export function t(key: keyof typeof en, vars?: Vars): string {
 }
 
 const en = {
-  // Shell
+  // Entity and shell
+  'entity.name': 'Ministry of Economy and Tourism',
+  'entity.home': 'Ministry of Economy and Tourism home',
+  'nav.main': 'Main navigation',
+  'nav.menu': 'Menu',
+  'footer.about': 'Government services for businesses, investors and visitors, online.',
+  'footer.services': 'E-Services',
+  'footer.rights': 'All rights reserved.',
   'lang.switch': 'العربية',
   'lang.switchLabel': 'Switch to Arabic',
   'app.portal': 'MoET E-Services',
@@ -122,6 +129,10 @@ const en = {
   'process.v2': 'AI-assisted review',
 
   // Form rendering
+  'form.optional': '(optional)',
+  'form.allRequired': 'All fields are required unless marked as optional.',
+  'form.uploadedName': 'Uploaded: {name}',
+  'form.fileHint': 'PDF, JPG or PNG, up to 10 MB',
   'form.select': 'Select…',
   'form.uploading': 'Uploading…',
   'form.uploaded': 'File uploaded',
@@ -132,6 +143,14 @@ const en = {
   'form.attached': 'File attached',
   'form.uploadFailed': 'Upload failed',
   'form.review': 'Review',
+
+  // Tables
+  'table.search': 'Search',
+  'table.searchHint': 'Search any column',
+  'table.results': '{n} result(s)',
+  'table.all': 'All',
+  'table.sortAscending': 'sorted ascending',
+  'table.sortDescending': 'sorted descending',
 
   // Portal: login
   'login.title': 'Sign in',
@@ -157,6 +176,8 @@ const en = {
   'my.toStart': 'to start one.',
   'notifications.title': 'Notifications',
   'notifications.empty': "You're all caught up",
+  'notifications.open': 'View details',
+  'notifications.markRead': 'Mark as read',
 
   // Portal: application
   'app.notFound': 'Application not found.',
@@ -301,6 +322,7 @@ const en = {
   'builder.nameAr': 'Name (Arabic)',
   'builder.descEn': 'Description (English)',
   'builder.descAr': 'Description (Arabic)',
+  'builder.category': 'Category',
   'builder.categoryEn': 'Category (English)',
   'builder.categoryAr': 'Category (Arabic)',
   'builder.fee': 'Fee',
@@ -347,6 +369,11 @@ const en = {
   'builder.remove': 'Remove',
   'builder.more': 'More settings',
   'builder.less': 'Fewer settings',
+  'builder.steps': 'Steps',
+  'builder.fields': 'Fields in this step',
+  'builder.drag': 'Drag to reorder',
+  'builder.stepSettings': 'Step settings',
+  'builder.fieldSettings': 'Field settings',
   'builder.previewIntro': 'This is how citizens will see the form. Switch the language at the top to check the Arabic.',
   'builder.version': 'Version',
   'builder.created': 'Created',
@@ -373,6 +400,13 @@ const en = {
 } as const;
 
 const ar: Partial<Record<keyof typeof en, string>> = {
+  'entity.name': 'وزارة الاقتصاد والسياحة',
+  'entity.home': 'الصفحة الرئيسية لوزارة الاقتصاد والسياحة',
+  'nav.main': 'التنقل الرئيسي',
+  'nav.menu': 'القائمة',
+  'footer.about': 'الخدمات الحكومية للشركات والمستثمرين والزوار، إلكترونيًا.',
+  'footer.services': 'الخدمات الإلكترونية',
+  'footer.rights': 'جميع الحقوق محفوظة.',
   'lang.switch': 'English',
   'lang.switchLabel': 'التبديل إلى الإنجليزية',
   'app.portal': 'الخدمات الإلكترونية',
@@ -428,6 +462,10 @@ const ar: Partial<Record<keyof typeof en, string>> = {
   'process.v1': 'مراجعة اعتيادية',
   'process.v2': 'مراجعة بمساعدة الذكاء الاصطناعي',
 
+  'form.optional': '(اختياري)',
+  'form.allRequired': 'جميع الحقول مطلوبة ما لم يُذكر أنها اختيارية.',
+  'form.uploadedName': 'تم الرفع: {name}',
+  'form.fileHint': 'PDF أو JPG أو PNG، حتى 10 ميجابايت',
   'form.select': 'اختر…',
   'form.uploading': 'جارٍ الرفع…',
   'form.uploaded': 'تم رفع الملف',
@@ -438,6 +476,13 @@ const ar: Partial<Record<keyof typeof en, string>> = {
   'form.attached': 'ملف مرفق',
   'form.uploadFailed': 'تعذر الرفع',
   'form.review': 'المراجعة',
+
+  'table.search': 'بحث',
+  'table.searchHint': 'ابحث في أي عمود',
+  'table.results': '{n} نتيجة',
+  'table.all': 'الكل',
+  'table.sortAscending': 'مرتب تصاعديًا',
+  'table.sortDescending': 'مرتب تنازليًا',
 
   'login.title': 'تسجيل الدخول',
   'login.intro': 'سجّل الدخول للتقدم بطلبات خدمات الوزارة ومتابعة طلباتك وتنزيل الشهادات.',
@@ -460,6 +505,8 @@ const ar: Partial<Record<keyof typeof en, string>> = {
   'my.toStart': 'لبدء طلب.',
   'notifications.title': 'الإشعارات',
   'notifications.empty': 'لا توجد إشعارات جديدة',
+  'notifications.open': 'عرض التفاصيل',
+  'notifications.markRead': 'تحديد كمقروء',
 
   'app.notFound': 'الطلب غير موجود.',
   'app.howToApply': 'كيف تريد تقديم الطلب؟',
@@ -596,6 +643,7 @@ const ar: Partial<Record<keyof typeof en, string>> = {
   'builder.nameAr': 'الاسم (بالعربية)',
   'builder.descEn': 'الوصف (بالإنجليزية)',
   'builder.descAr': 'الوصف (بالعربية)',
+  'builder.category': 'الفئة',
   'builder.categoryEn': 'الفئة (بالإنجليزية)',
   'builder.categoryAr': 'الفئة (بالعربية)',
   'builder.fee': 'الرسوم',
@@ -642,6 +690,11 @@ const ar: Partial<Record<keyof typeof en, string>> = {
   'builder.remove': 'حذف',
   'builder.more': 'إعدادات إضافية',
   'builder.less': 'إعدادات أقل',
+  'builder.steps': 'الخطوات',
+  'builder.fields': 'حقول هذه الخطوة',
+  'builder.drag': 'اسحب لإعادة الترتيب',
+  'builder.stepSettings': 'إعدادات الخطوة',
+  'builder.fieldSettings': 'إعدادات الحقل',
   'builder.previewIntro': 'هكذا سيرى المتعاملون النموذج. بدّل اللغة من الأعلى لمراجعة النسخة العربية.',
   'builder.version': 'الإصدار',
   'builder.created': 'الإنشاء',

@@ -29,7 +29,8 @@ public class ApplicationServiceTests
         _apps = new FakeApplications(_log);
         _bus = new RecordingBus(_log);
         _service = new ApplicationService(new EmbeddedServiceCatalog(), _apps,
-            [new TradeNameReservationRules(), new CommercialAgencyRules()], _workflow, new StatusNotifier(_bus));
+            [new TradeNameReservationRules(), new CommercialAgencyRules()], _workflow, new StatusNotifier(_bus),
+            new InMemoryAssessments());
     }
 
     private static Dictionary<string, string?> ValidTradeName(string name = "Falcon Trading") => new()

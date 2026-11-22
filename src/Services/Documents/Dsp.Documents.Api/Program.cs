@@ -29,7 +29,9 @@ app.MapPost("/internal/documents", async (IFormFile file, [FromForm] string owne
     })
     .RequireInternalKey().AllowAnonymous().DisableAntiforgery();
 
-var api = app.MapGroup("/api/documents").RequireAuthorization();
+app.MapApiDocuments("documents");
+
+var api = app.MapApi("documents").RequireAuthorization();
 
 api.MapPost("/documents", async (IFormFile file, ClaimsPrincipal user, DocumentService svc, CancellationToken ct) =>
 {

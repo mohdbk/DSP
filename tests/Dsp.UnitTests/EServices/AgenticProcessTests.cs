@@ -69,8 +69,8 @@ public class AgenticProcessStepsTests
     private readonly List<string> _log = [];
     private readonly ApplicationServiceTests.FakeApplications _apps;
     private readonly RecordingBus _bus = new();
-    private readonly Assessments _assessments = new();
-    private readonly FakeReviewer _reviewer = new();
+    private readonly InMemoryAssessments _assessments = new();
+    private readonly StubReviewer _reviewer = new();
     private readonly ProcessSteps _steps;
     private readonly ServiceApplication _app;
 
@@ -138,35 +138,6 @@ public class AgenticProcessStepsTests
 
         Assert.Contains("Falcon Trading Co", _reviewer.LastRequest!.SimilarReferences);
     }
-
-    private sealed class FakeReviewer : IAiReviewer
-    {
-        public AiReviewResult? Next { get; set; }
-        public bool Fail { get; set; }
-        public AiReviewRequest? LastRequest { get; private set; }
-
-        public Task<AiReviewResult> ReviewAsync(AiReviewRequest request, CancellationToken ct)
-        {
-            LastRequest = request;
-            if (Fail) throw new HttpRequestException("AI Orchestrator unavailable");
-            return Task.FromResult(Next!);
-        }
-    }
-
-    private sealed class Assessments : IAiAssessmentRepository
-    {
-        public List<AiAssessment> Items { get; } = [];
-
-        public Task<IReadOnlyList<AiAssessment>> ListForApplicationAsync(Guid applicationId, CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<AiAssessment>>(Items.Where(a => a.ApplicationId == applicationId)
-                .OrderByDescending(a => a.Round).ToList());
-
-        public Task AddAsync(AiAssessment assessment, CancellationToken ct)
-        {
-            Items.Add(assessment);
-            return Task.CompletedTask;
-        }
-    }
 }
 
 public class ResubmissionTests
@@ -186,7 +157,8 @@ public class ResubmissionTests
     {
         var bus = new RecordingBus();
         _service = new ApplicationService(new EmbeddedServiceCatalog(), _apps,
-            [new TradeNameReservationRules(), new CommercialAgencyRules()], _workflow, new StatusNotifier(bus));
+            [new TradeNameReservationRules(), new CommercialAgencyRules()], _workflow, new StatusNotifier(bus),
+            new InMemoryAssessments());
     }
 
     [Fact]

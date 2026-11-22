@@ -1,33 +1,27 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@tanstack/react-router';
+import { ApiError, getLang, loc, t, type Application, type ServiceDefinition } from '@dsp/core';
 import {
-  Alert, ApiError, formatMoney, getLang, loc, Spinner, StatusBadge, t,
-  type Application, type ServiceDefinition,
-} from '@dsp/shared';
+  AegovTab, AegovTabPanel, AegovTabs, ApplicationSummary, Loading, Notice, PageHeader, Panel, SplitLayout, StatusBadge,
+} from '@dsp/ui';
 import { api } from '../session';
 import { FormView } from './FormView';
 import { ChatView } from './ChatView';
-import { ApplicationStatusView } from './ApplicationStatusView';
+import { StatusView } from './StatusView';
 
-type ViewMode = 'form' | 'chat';
-
-function savedMode(): ViewMode {
-  try { return localStorage.getItem('dsp.view') === 'chat' ? 'chat' : 'form'; } catch { return 'form'; }
-}
-
+/** One application: fill it in (form or chat), answer an information request, or follow its progress. */
 export function ApplicationPage() {
-  const { id } = useParams();
+  const { id } = useParams({ strict: false }) as { id: string };
   const [app, setApp] = useState<Application>();
   const [service, setService] = useState<ServiceDefinition>();
   const [error, setError] = useState<string>();
-  const [mode, setMode] = useState<ViewMode>(savedMode);
 
   const load = useCallback(async () => {
     try {
-      const a = await api.get<Application>(`/api/eservices/applications/${id}`);
+      const a = await api.get<Application>(`/api/v1/eservices/applications/${id}`);
       setApp(a);
       // The version the application was started on, so the form matches what was filled in.
-      if (!service) setService(await api.get<ServiceDefinition>(`/api/eservices/services/${a.serviceCode}?version=${a.serviceVersion}`));
+      if (!service) setService(await api.get<ServiceDefinition>(`/api/v1/eservices/services/${a.serviceCode}?version=${a.serviceVersion}`));
     } catch (e) {
       setError(e instanceof ApiError && e.status === 404 ? t('app.notFound') : (e as Error).message);
     }
@@ -35,69 +29,53 @@ export function ApplicationPage() {
 
   useEffect(() => { load(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function switchMode(m: ViewMode) {
-    setMode(m);
-    try { localStorage.setItem('dsp.view', m); } catch { /* not saved */ }
-    load(); // both views share the same saved data; refresh when switching
-  }
-
-  if (error) return <Alert kind="error">{error}</Alert>;
-  if (!app || !service) return <Spinner />;
+  if (error) return <Notice kind="error">{error}</Notice>;
+  if (!app || !service) return <Loading />;
 
   const isDraft = app.status === 'Draft';
   const infoRequested = app.status === 'InformationRequested';
   const required = service.steps.flatMap(s => s.fields).filter(f => f.required);
   const filled = required.filter(f => !!app.data[f.key]).length;
-  const ar = getLang() === 'ar';
+
+  const header = (
+    <PageHeader overline={<bdi>{app.number}</bdi>} title={loc(service.name, service.nameAr)} badges={<StatusBadge status={app.status} />} />
+  );
+
+  if (!isDraft && !infoRequested) {
+    return <>{header}<StatusView app={app} service={service} onRefresh={load} /></>;
+  }
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <div className="muted"><bdi>{app.number}</bdi></div>
-          <h1>{loc(service.name, service.nameAr)}</h1>
-          <StatusBadge status={app.status} />
-        </div>
-        {isDraft && (
-          <div className="toggle" role="tablist" aria-label={t('app.howToApply')}>
-            <button role="tab" aria-selected={mode === 'form'} className={mode === 'form' ? 'on' : ''} onClick={() => switchMode('form')}>{t('app.form')}</button>
-            <button role="tab" aria-selected={mode === 'chat'} className={mode === 'chat' ? 'on' : ''} onClick={() => switchMode('chat')}>{t('app.chat')}</button>
-          </div>
-        )}
-      </div>
-
+      {header}
       {infoRequested && (
-        <div className="info-request" role="status">
-          <h2>{t('app.infoNeeded')}</h2>
-          <p style={{ margin: 0 }}>{t('app.infoNeededIntro')}</p>
-          <ul>{app.informationRequest.map((q, i) => <li key={i}>{ar ? q.ar : q.en}</li>)}</ul>
-          <p className="muted" style={{ margin: 0 }}>{t('app.infoNeededHow')}</p>
-        </div>
+        <Notice kind="warning" title={t('app.infoNeeded')}>
+          <p>{t('app.infoNeededIntro')}</p>
+          <ul className="my-2 ps-5">{app.informationRequest.map((q, i) => <li key={i}>{getLang() === 'ar' ? q.ar : q.en}</li>)}</ul>
+          <p>{t('app.infoNeededHow')}</p>
+        </Notice>
       )}
-
-      {isDraft || infoRequested ? (
-        <div className="split">
-          <div>
-            {mode === 'form' || infoRequested
-              ? <FormView app={app} service={service} onChange={setApp} resubmit={infoRequested} />
-              : <ChatView app={app} onApplication={partial => {
-                  if (partial.status !== 'Draft') load();
-                  else setApp({ ...app, ...partial });
-                }} />}
-          </div>
-          <aside className="card">
-            <h3>{t('app.yours')}</h3>
-            <dl className="kv">
-              <dt>{t('number')}</dt><dd><bdi>{app.number}</bdi></dd>
-              <dt>{t('fee')}</dt><dd>{formatMoney(app.fee, app.currency)}</dd>
-              <dt>{t('app.progress')}</dt><dd>{t('app.progressValue', { filled, total: required.length })}</dd>
-            </dl>
-            <p className="muted" style={{ fontSize: 13, marginTop: 16 }}>{t('app.sideNote')}</p>
-          </aside>
-        </div>
-      ) : (
-        <ApplicationStatusView app={app} service={service} onRefresh={load} />
-      )}
+      <SplitLayout
+        main={infoRequested
+          ? <FormView app={app} service={service} onChange={setApp} resubmit />
+          : (
+            <AegovTabs variant="segmented" labelTablist={t('app.howToApply')}>
+              <AegovTab slot="tabs" tabId="form">{t('app.form')}</AegovTab>
+              <AegovTab slot="tabs" tabId="chat">{t('app.chat')}</AegovTab>
+              <AegovTabPanel tabId="form"><div className="pt-4"><FormView app={app} service={service} onChange={setApp} /></div></AegovTabPanel>
+              <AegovTabPanel tabId="chat">
+                <div className="pt-4">
+                  <ChatView app={app} onApplication={partial => (partial.status !== 'Draft' ? load() : setApp({ ...app, ...partial }))} />
+                </div>
+              </AegovTabPanel>
+            </AegovTabs>
+          )}
+        aside={(
+          <Panel title={t('app.yours')}>
+            <ApplicationSummary app={app} extra={[{ label: t('app.progress'), value: t('app.progressValue', { filled, total: required.length }) }]} />
+            <p className="mt-4 text-sm text-aeblack-600">{t('app.sideNote')}</p>
+          </Panel>
+        )} />
     </>
   );
 }

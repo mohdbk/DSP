@@ -1,44 +1,43 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Alert, EmptyState, formatDate, Spinner, StatusBadge, t, type Application } from '@dsp/shared';
+import { useEffect, useMemo, useState } from 'react';
+import { getRouteApi, Link, useNavigate } from '@tanstack/react-router';
+import { formatDate, t, type Application, type ApplicationStatus, type TKey } from '@dsp/core';
+import { DataTable, listStateProps, Loading, Notice, PageHeader, StatusBadge, type ColumnDef } from '@dsp/ui';
 import { api } from '../session';
+
+const route = getRouteApi('/applications');
 
 export function MyApplicationsPage() {
   const navigate = useNavigate();
+  const search = route.useSearch();
   const [apps, setApps] = useState<Application[]>();
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    api.get<Application[]>('/api/eservices/applications').then(setApps).catch(e => setError(e.message));
+    api.list<Application>('/api/v1/eservices/applications').then(setApps).catch(e => setError(e.message));
   }, []);
+
+  const columns = useMemo<ColumnDef<Application, string>[]>(() => [
+    { id: 'number', header: t('number'), accessorFn: a => a.number, cell: c => <strong><bdi>{c.getValue()}</bdi></strong> },
+    { id: 'service', header: t('service'), accessorFn: a => a.serviceName, meta: { filter: true } },
+    { id: 'reference', header: t('reference'), accessorFn: a => a.referenceValue ?? '', cell: c => c.getValue() ? <bdi>{c.getValue()}</bdi> : '—' },
+    {
+      id: 'status', header: t('status'), accessorFn: a => a.status,
+      cell: c => <StatusBadge status={c.getValue() as ApplicationStatus} />,
+      meta: { filter: true, filterLabel: v => t(`status.${v}` as TKey) },
+    },
+    { id: 'updated', header: t('lastUpdate'), accessorFn: a => a.updatedAt, cell: c => formatDate(c.getValue(), true) },
+  ], []);
 
   return (
     <>
-      <div className="page-head"><h1>{t('my.title')}</h1></div>
-      {error && <Alert kind="error">{error}</Alert>}
-      {!apps && !error && <Spinner />}
-      {apps?.length === 0 && (
-        <EmptyState title={t('my.empty')}><Link to="/">{t('my.browse')}</Link> {t('my.toStart')}</EmptyState>
-      )}
-      {apps && apps.length > 0 && (
-        <div className="table-wrap">
-          <table className="table">
-            <thead>
-              <tr><th>{t('number')}</th><th>{t('service')}</th><th>{t('reference')}</th><th>{t('status')}</th><th>{t('lastUpdate')}</th></tr>
-            </thead>
-            <tbody>
-              {apps.map(a => (
-                <tr key={a.id} className="clickable" onClick={() => navigate(`/applications/${a.id}`)}>
-                  <td><strong><bdi>{a.number}</bdi></strong></td>
-                  <td>{a.serviceName}</td>
-                  <td>{a.referenceValue ? <bdi>{a.referenceValue}</bdi> : <span className="muted">—</span>}</td>
-                  <td><StatusBadge status={a.status} /></td>
-                  <td>{formatDate(a.updatedAt, true)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <PageHeader title={t('my.title')} />
+      {error && <Notice kind="error">{error}</Notice>}
+      {!apps && !error && <Loading />}
+      {apps && (
+        <DataTable label={t('my.title')} data={apps} columns={columns} getRowId={a => a.id}
+          onRowAction={a => navigate({ to: '/applications/$id', params: { id: a.id } })}
+          {...listStateProps(search, next => navigate({ to: '/applications', search: next, replace: true }))}
+          emptyTitle={t('my.empty')} emptyHint={<><Link to="/">{t('my.browse')}</Link> {t('my.toStart')}</>} />
       )}
     </>
   );

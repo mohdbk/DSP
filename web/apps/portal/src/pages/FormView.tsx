@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import {
-  Alert, ApiError, DynamicForm, loc, openBlob, Stepper, t,
-  type Application, type DocumentInfo, type FieldDefinition, type FieldError, type FormData, type SaveResult, type ServiceDefinition,
-} from '@dsp/shared';
+import { ApiError, loc, openDocument, t, uploadDocument, type Application, type FieldError, type FormData, type SaveResult, type ServiceDefinition } from '@dsp/core';
+import { Actions, AegovButton, Notice, Panel, ServiceAnswers, StepFields, StepProgress } from '@dsp/ui';
 import { api } from '../session';
 
-/** Traditional view: one step at a time, rendered from the service definition. */
+/** The form view: one step at a time, rendered from the service definition, then a review before submitting. */
 export function FormView({ app, service, onChange, resubmit }: {
   app: Application;
   service: ServiceDefinition;
@@ -25,7 +23,7 @@ export function FormView({ app, service, onChange, resubmit }: {
   async function saveStep(index: number) {
     const keys = steps[index].fields.map(f => f.key);
     const payload = Object.fromEntries(keys.map(k => [k, values[k] ?? '']));
-    const result = await api.put<SaveResult>(`/api/eservices/applications/${app.id}/data`, { values: payload });
+    const result = await api.put<SaveResult>(`/api/v1/eservices/applications/${app.id}/data`, { values: payload });
     onChange(result.application);
     setErrors(result.errors);
     return result.errors.length === 0;
@@ -47,8 +45,7 @@ export function FormView({ app, service, onChange, resubmit }: {
     setBusy(true);
     setMessage(undefined);
     try {
-      const submitted = await api.post<Application>(`/api/eservices/applications/${app.id}/submit`);
-      onChange(submitted);
+      onChange(await api.post<Application>(`/api/v1/eservices/applications/${app.id}/submit`));
     } catch (e) {
       if (e instanceof ApiError && e.errors.length > 0) {
         setErrors(e.errors);
@@ -63,53 +60,43 @@ export function FormView({ app, service, onChange, resubmit }: {
     }
   }
 
-  async function upload(field: FieldDefinition, file: File) {
-    const doc = await api.upload<DocumentInfo>('/api/documents/documents', file);
-    setFileNames(n => ({ ...n, [field.key]: doc.fileName }));
-    return doc.id;
-  }
+  const titles = [...steps.map(s => loc(s.title, s.titleAr)), t('form.review')];
 
   return (
-    <div className="card">
-      <Stepper steps={[...steps, { id: 'review', title: t('form.review'), fields: [] }]} current={current}
-        onSelect={i => !busy && i <= current && setCurrent(i)} />
-      {message && <Alert kind="error">{message}</Alert>}
+    <Panel>
+      <StepProgress titles={titles} current={current} />
+      {message && <Notice kind="error">{message}</Notice>}
 
       {!reviewing ? (
         <>
-          <h2>{loc(steps[current].title, steps[current].titleAr)}</h2>
-          <DynamicForm step={steps[current]} values={values} errors={errors} fileNames={fileNames}
+          <h2 className="mb-1 text-h5 font-bold text-aeblack-900">{titles[current]}</h2>
+          <p className="mb-5 text-sm text-aeblack-600">{t('form.allRequired')}</p>
+          <StepFields step={steps[current]} values={values} errors={errors} fileNames={fileNames}
             onChange={(k, v) => setValues(prev => ({ ...prev, [k]: v }))}
-            onUpload={upload} />
-          <div className="actions">
-            {current > 0 && <button className="btn btn-ghost" disabled={busy} onClick={() => setCurrent(current - 1)}>{t('back')}</button>}
-            <button className="btn btn-primary" disabled={busy} onClick={next}>
-              {busy ? t('form.saving') : current === steps.length - 1 ? t('form.saveReview') : t('form.saveContinue')}
-            </button>
-          </div>
+            onUpload={file => uploadDocument(api, file)}
+            onFileName={(k, name) => setFileNames(n => ({ ...n, [k]: name }))} />
+          <Actions align="between">
+            {current > 0
+              ? <AegovButton appearance="outline" isDisabled={busy} onAegovButtonClick={() => setCurrent(current - 1)}>{t('back')}</AegovButton>
+              : <span />}
+            <AegovButton isLoading={busy} onAegovButtonClick={next}>
+              {current === steps.length - 1 ? t('form.saveReview') : t('form.saveContinue')}
+            </AegovButton>
+          </Actions>
         </>
       ) : (
         <>
-          <h2>{t('form.reviewTitle')}</h2>
-          {steps.map((s, i) => (
-            <section key={s.id} style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3>{loc(s.title, s.titleAr)}</h3>
-                <button className="link" onClick={() => setCurrent(i)}>{t('form.change')}</button>
-              </div>
-              <DynamicForm step={{ ...s, description: null }} values={app.data} readOnly fileNames={fileNames}
-                onOpenFile={async docId => openBlob(await api.download(`/api/documents/documents/${docId}/content`))} />
-            </section>
-          ))}
-          {!resubmit && <Alert kind="info">{app.workflowVersion === 2 ? t('form.afterSubmitAi') : t('form.afterSubmit')}</Alert>}
-          <div className="actions">
-            <button className="btn btn-ghost" disabled={busy} onClick={() => setCurrent(steps.length - 1)}>{t('back')}</button>
-            <button className="btn btn-primary" disabled={busy} onClick={submit}>
-              {busy ? t('form.submitting') : resubmit ? t('form.resubmit') : t('form.submit')}
-            </button>
-          </div>
+          <h2 className="mb-4 text-h5 font-bold text-aeblack-900">{t('form.reviewTitle')}</h2>
+          <ServiceAnswers steps={steps} values={app.data} fileNames={fileNames}
+            onOpenFile={id => openDocument(api, id)}
+            stepAction={i => <AegovButton appearance="link" size="sm" onAegovButtonClick={() => setCurrent(i)}>{t('form.change')}</AegovButton>} />
+          {!resubmit && <div className="mt-6"><Notice kind="info">{app.workflowVersion === 2 ? t('form.afterSubmitAi') : t('form.afterSubmit')}</Notice></div>}
+          <Actions align="between">
+            <AegovButton appearance="outline" isDisabled={busy} onAegovButtonClick={() => setCurrent(steps.length - 1)}>{t('back')}</AegovButton>
+            <AegovButton isLoading={busy} onAegovButtonClick={submit}>{resubmit ? t('form.resubmit') : t('form.submit')}</AegovButton>
+          </Actions>
         </>
       )}
-    </div>
+    </Panel>
   );
 }

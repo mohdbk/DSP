@@ -97,4 +97,19 @@ public class CleanArchitectureTests
             .GetResult();
         Assert.True(result.IsSuccessful);
     }
+
+    [Theory]
+    [MemberData(nameof(ServiceNames))]
+    public void Use_cases_take_every_port_as_a_required_dependency(string name)
+    {
+        // Optional or defaulted ports hide missing wiring until runtime (see AGENTS.md).
+        var optional = Get(name).Application.GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false } && t.IsPublic)
+            .SelectMany(t => t.GetConstructors().SelectMany(c => c.GetParameters()
+                .Where(p => p.ParameterType.IsInterface && p.HasDefaultValue &&
+                            p.ParameterType.Namespace?.StartsWith("Dsp.", StringComparison.Ordinal) == true)
+                .Select(p => $"{t.Name}({p.ParameterType.Name} {p.Name})")))
+            .ToList();
+        Assert.True(optional.Count == 0, $"Optional dependencies: {string.Join(", ", optional)}");
+    }
 }

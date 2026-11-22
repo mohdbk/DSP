@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { Alert, t } from '@dsp/shared';
+import { Navigate, useNavigate } from '@tanstack/react-router';
+import { t } from '@dsp/core';
+import { AegovButton, Notice, PageHeader, Panel, TextField } from '@dsp/ui';
 import { api, currentUser } from '../session';
 
 /** Staff sign-in with ministry credentials (local accounts now; Active Directory later). */
@@ -18,9 +19,9 @@ export function LoginPage() {
     setBusy(true);
     setError(undefined);
     try {
-      const res = await api.post<{ accessToken: string }>('/api/identity/staff/login', { username, password });
+      const res = await api.post<{ accessToken: string }>('/api/v1/identity/staff/login', { username, password });
       api.setToken(res.accessToken);
-      navigate('/inbox', { replace: true });
+      navigate({ to: '/inbox', replace: true });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -29,21 +30,16 @@ export function LoginPage() {
   }
 
   return (
-    <div className="login-wrap">
-      <form className="card" onSubmit={submit}>
-        <h1>{t('staffLogin.title')}</h1>
-        <p className="muted">{t('staffLogin.intro')}</p>
-        {error && <Alert kind="error">{error}</Alert>}
-        <div className="field">
-          <label htmlFor="username">{t('staffLogin.username')}</label>
-          <input id="username" type="text" dir="ltr" autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} required />
-        </div>
-        <div className="field">
-          <label htmlFor="password">{t('staffLogin.password')}</label>
-          <input id="password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
-        </div>
-        <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? t('staffLogin.signingIn') : t('staffLogin.signIn')}</button>
-      </form>
+    <div className="mx-auto max-w-xl">
+      <PageHeader title={t('staffLogin.title')} intro={t('staffLogin.intro')} />
+      <Panel>
+        <form onSubmit={submit}>
+          {error && <Notice kind="error">{error}</Notice>}
+          <TextField id="username" label={t('staffLogin.username')} value={username} onChange={setUsername} required dir="ltr" />
+          <TextField id="password" label={t('staffLogin.password')} type="password" value={password} onChange={setPassword} required dir="ltr" />
+          <AegovButton type="submit" isFull isLoading={busy} isDisabled={!username || !password}>{t('staffLogin.signIn')}</AegovButton>
+        </form>
+      </Panel>
     </div>
   );
 }

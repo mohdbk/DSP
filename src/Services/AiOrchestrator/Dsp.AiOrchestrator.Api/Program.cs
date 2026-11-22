@@ -18,7 +18,9 @@ app.MapPost("/internal/ai/review", async (ApplicationReviewRequest request, Appl
         CancellationToken ct) => await agent.ReviewAsync(request, ct))
     .RequireInternalKey().AllowAnonymous();
 
-var api = app.MapGroup("/api/ai").RequireAuthorization();
+app.MapApiDocuments("ai");
+
+var api = app.MapApi("ai").RequireAuthorization();
 
 api.MapGet("/status", (ILlmClient llm) => new
 {

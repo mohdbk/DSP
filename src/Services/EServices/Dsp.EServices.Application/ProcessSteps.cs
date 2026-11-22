@@ -19,9 +19,9 @@ public sealed class ProcessSteps(
     IEventBus bus,
     StatusNotifier notifier,
     ILogger<ProcessSteps> logger,
-    IServiceCatalog? catalog = null,
-    IAiAssessmentRepository? assessments = null,
-    IAiReviewer? reviewer = null)
+    IServiceCatalog catalog,
+    IAiAssessmentRepository assessments,
+    IAiReviewer reviewer)
 {
     public static readonly TimeSpan ReviewSla = TimeSpan.FromDays(2);
 
@@ -48,9 +48,7 @@ public sealed class ProcessSteps(
             var service = await DefinitionAsync(app, ct);
             var similar = ReferenceSimilarity.FindSimilar(app.ReferenceValue,
                 await applications.ListActiveReferencesAsync(app.ServiceCode, app.Id, 500, ct));
-            result = reviewer is null
-                ? Unavailable("No AI reviewer is configured.")
-                : await reviewer.ReviewAsync(new AiReviewRequest(service, app.GetData(), similar, round), ct);
+            result = await reviewer.ReviewAsync(new AiReviewRequest(service, app.GetData(), similar, round), ct);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -60,7 +58,7 @@ public sealed class ProcessSteps(
 
         var assessment = AiAssessment.Create(app.Id, round, result.Recommendation, result.Summary, result.Findings,
             result.Questions, result.Mode, result.Model);
-        if (assessments is not null) await assessments.AddAsync(assessment, ct);
+        await assessments.AddAsync(assessment, ct);
         await applications.SaveChangesAsync(ct);
 
         var askApplicant = assessment.AsksForInformation &&
@@ -74,7 +72,7 @@ public sealed class ProcessSteps(
     public async Task RequestInformationAsync(Guid applicationId, CancellationToken ct)
     {
         var app = await LoadAsync(applicationId, ct);
-        var latest = assessments is null ? null : (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault();
+        var latest = (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault();
         var questions = latest?.GetQuestions() ?? [];
         if (questions.Count == 0)
             questions = [new LocalizedText("Please check your application and send it again.", "يرجى مراجعة طلبك وإرساله مرة أخرى.")];
@@ -92,7 +90,7 @@ public sealed class ProcessSteps(
     {
         var app = await LoadAsync(applicationId, ct);
         string? recommendation = null;
-        if (app.WorkflowVersion == WorkflowVersions.AiAssisted && assessments is not null)
+        if (app.WorkflowVersion == WorkflowVersions.AiAssisted)
             recommendation = (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault()?.Recommendation;
 
         app.StartReview();
@@ -147,13 +145,10 @@ public sealed class ProcessSteps(
         await applications.SaveChangesAsync(ct);
     }
 
-    private async Task<ServiceDefinition> DefinitionAsync(ServiceApplication app, CancellationToken ct)
-    {
-        if (catalog is null) throw new InvalidOperationException("No service catalog is configured.");
-        return await catalog.FindVersionAsync(app.ServiceCode, app.ServiceVersion, ct)
+    private async Task<ServiceDefinition> DefinitionAsync(ServiceApplication app, CancellationToken ct) =>
+        await catalog.FindVersionAsync(app.ServiceCode, app.ServiceVersion, ct)
                ?? await catalog.FindPublishedAsync(app.ServiceCode, ct)
                ?? throw new NotFoundException($"Service '{app.ServiceCode}' was not found.");
-    }
 
     private static AiReviewResult Unavailable(string summary) =>
         new(AiRecommendations.Unavailable, summary, [], [], "unavailable", null);

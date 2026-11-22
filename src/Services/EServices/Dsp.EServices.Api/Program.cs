@@ -5,6 +5,7 @@ using Dsp.EServices.Application;
 using Dsp.EServices.Domain.Catalog;
 using Dsp.EServices.Infrastructure;
 using Dsp.EServices.Infrastructure.Persistence;
+using Dsp.SharedKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddDspDefaults("dsp-eservices");
@@ -33,11 +34,13 @@ static Caller ToCaller(ClaimsPrincipal user, HttpContext http) => new(
     }.Where(p => !string.IsNullOrWhiteSpace(p.Value)).ToDictionary(p => p.Key, p => p.Value),
     Localized.Normalize(http.Request.Headers.AcceptLanguage.ToString()));
 
-var api = app.MapGroup("/api/eservices").RequireAuthorization();
+app.MapApiDocuments("eservices");
+
+var api = app.MapApi("eservices").RequireAuthorization();
 
 // Catalog (published services; ?version= shows the version an application was filled in on)
-api.MapGet("/services", async (ApplicationService svc, CancellationToken ct) => await svc.ListServicesAsync(ct))
-    .AllowAnonymous();
+api.MapGet("/services", async (int? page, int? pageSize, ApplicationService svc, CancellationToken ct) =>
+    PagedList.From(await svc.ListServicesAsync(ct), page, pageSize)).AllowAnonymous();
 api.MapGet("/services/{code}", async (string code, int? version, ApplicationService svc, CancellationToken ct) =>
     await svc.GetServiceAsync(code, version, ct)).AllowAnonymous();
 
@@ -46,9 +49,9 @@ api.MapPost("/applications", async (CreateApplicationRequest req, ClaimsPrincipa
         ApplicationService svc, CancellationToken ct) =>
     Results.Ok(await svc.CreateDraftAsync(ToCaller(user, http), req.ServiceCode, ct)));
 
-api.MapGet("/applications", async (bool? all, ClaimsPrincipal user, HttpContext http, ApplicationService svc,
-        CancellationToken ct) =>
-    await svc.ListAsync(ToCaller(user, http), all == true, ct));
+api.MapGet("/applications", async (bool? all, int? page, int? pageSize, ClaimsPrincipal user, HttpContext http,
+        ApplicationService svc, CancellationToken ct) =>
+    PagedList.From(await svc.ListAsync(ToCaller(user, http), all == true, ct), page, pageSize));
 
 api.MapGet("/applications/{id:guid}", async (Guid id, ClaimsPrincipal user, HttpContext http, ApplicationService svc,
         CancellationToken ct) =>
@@ -72,8 +75,9 @@ api.MapGet("/applications/{id:guid}/assessments", async (Guid id, ClaimsPrincipa
 
 // Back office: review inbox
 var staff = api.MapGroup("/tasks").RequireAuthorization("staff");
-staff.MapGet("", async (ClaimsPrincipal user, HttpContext http, ReviewService svc, CancellationToken ct) =>
-    await svc.ListOpenAsync(ToCaller(user, http), ct));
+staff.MapGet("", async (int? page, int? pageSize, ClaimsPrincipal user, HttpContext http, ReviewService svc,
+        CancellationToken ct) =>
+    PagedList.From(await svc.ListOpenAsync(ToCaller(user, http), ct), page, pageSize));
 staff.MapGet("/{id:guid}", async (Guid id, ClaimsPrincipal user, HttpContext http, ReviewService svc, CancellationToken ct) =>
     await svc.GetAsync(ToCaller(user, http), id, ct));
 staff.MapPost("/{id:guid}/decision", async (Guid id, DecisionRequest req, ClaimsPrincipal user, HttpContext http,
@@ -82,9 +86,9 @@ staff.MapPost("/{id:guid}/decision", async (Guid id, DecisionRequest req, Claims
 
 // Back office: service builder
 var builderApi = api.MapGroup("/builder").RequireAuthorization("staff");
-builderApi.MapGet("/services", async (ClaimsPrincipal user, HttpContext http, ServiceBuilderService svc,
-        CancellationToken ct) =>
-    await svc.ListAsync(ToCaller(user, http), ct));
+builderApi.MapGet("/services", async (int? page, int? pageSize, ClaimsPrincipal user, HttpContext http,
+        ServiceBuilderService svc, CancellationToken ct) =>
+    PagedList.From(await svc.ListAsync(ToCaller(user, http), ct), page, pageSize));
 builderApi.MapGet("/services/{code}", async (string code, ClaimsPrincipal user, HttpContext http,
         ServiceBuilderService svc, CancellationToken ct) =>
     await svc.GetAsync(ToCaller(user, http), code, ct));
