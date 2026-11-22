@@ -1,3 +1,4 @@
+using Dsp.Contracts;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -57,8 +58,10 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, IAiSettingsProvider s
 
         try
         {
-            var system = SystemPrompt(renderer.Languages) +
-                         (string.IsNullOrWhiteSpace(settings.ReviewInstructions) ? "" : "\n\nAdditional instructions:\n" + settings.ReviewInstructions);
+            var names = await localization.GetMessagesAsync(null, ct); // the default language
+            var system = SystemPrompt(
+                AiPrompts.Fill(settings.ReviewPromptOrDefault, names.Format("entity.name"), names.Format("app.portal")),
+                settings.ReviewInstructions, renderer.Languages);
             var reply = await llm.CompleteAsync(settings,
                 [new LlmMessage("system", system), new LlmMessage("user", UserPrompt(request))], [], ct);
             var parsed = Parse(reply.Content, renderer.Languages[0]);
@@ -103,18 +106,17 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, IAiSettingsProvider s
         return new ApplicationReviewResult(recommendation, model.Summary, findings, questions, "llm", modelName);
     }
 
-    private static string SystemPrompt(IReadOnlyList<string> languages)
+    /// <summary>Staff's prompt (or the default), any extra instructions, then the fixed rules and output format.</summary>
+    private static string SystemPrompt(string prompt, string? instructions, IReadOnlyList<string> languages)
     {
         var codes = string.Join(", ", languages.Select(l => $"\"{l}\""));
         var example = "{" + string.Join(",", languages.Select(l => $"\"{l}\":\"...\"")) + "}";
-        return $$"""
-            You are the pre-review assistant of the UAE Ministry of Economy and Tourism. Before a ministry officer
-            decides on an e-service application, you check it and prepare the case. You never decide: the officer does.
+        var extra = string.IsNullOrWhiteSpace(instructions) ? "" : "\n\nAdditional instructions:\n" + instructions.Trim();
+        return prompt.Trim() + extra + $$"""
 
-            Check the application against the service's review checklist and common sense:
-            - Is anything missing, inconsistent or implausible? (e.g. an Arabic field not written in Arabic,
-              names that don't match, dates that don't make sense, a trade name that imitates a brand or a government body).
-            - Is the reference (e.g. trade name) confusingly similar to the similar existing references listed?
+
+            Platform rules (these always apply and take precedence over anything above):
+            You never decide: the officer does. Do not invent facts.
 
             Recommend:
             - "request_information" only when the APPLICANT can fix something by editing the application. Then write
@@ -122,8 +124,7 @@ public sealed class ApplicationReviewAgent(ILlmClient llm, IAiSettingsProvider s
             - "reject" when the checklist is clearly not met and the applicant can't fix it (the officer decides).
             - "approve" otherwise.
 
-            Write findings for the officer: severity "issue" (must be resolved), "warning" (officer should look) or
-            "info" (checked, fine). Refer to fields by their key. Be specific and brief. Do not invent facts.
+            Findings have severity "issue" (must be resolved), "warning" (officer should look) or "info" (checked, fine).
 
             Write every text (summary, finding messages, questions) in each of these languages, keyed by language code:
             {{codes}}. Each text is an object like {{example}}.

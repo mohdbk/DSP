@@ -105,10 +105,18 @@ export function AiSettingsPage() {
         </div>
       </Panel>
 
+      <Panel className="mb-6 block" title={t('ai.settings.prompts')}>
+        <p className="mb-4 text-aeblack-700">{t('ai.settings.promptsIntro')}</p>
+        <PromptField id="chatPrompt" label={t('ai.settings.chatPrompt')} value={form.chatPrompt} fallback={form.defaultChatPrompt}
+          error={err('chatPrompt')} onChange={v => set('chatPrompt', v)} />
+        <PromptField id="reviewPrompt" label={t('ai.settings.reviewPrompt')} value={form.reviewPrompt} fallback={form.defaultReviewPrompt}
+          error={err('reviewPrompt')} onChange={v => set('reviewPrompt', v)} />
+      </Panel>
+
       <Panel className="mb-6 block" title={t('ai.settings.instructions')}>
-        <TextAreaField id="chatInstructions" label={t('ai.settings.chatInstructions')} hint={t('ai.settings.instructionsHint')}
+        <TextAreaField id="chatInstructions" label={t('ai.settings.chatInstructions')} hint={t('ai.settings.extraHint')}
           markOptional value={form.chatInstructions ?? ''} onChange={v => set('chatInstructions', v || null)} />
-        <TextAreaField id="reviewInstructions" label={t('ai.settings.reviewInstructions')} hint={t('ai.settings.instructionsHint')}
+        <TextAreaField id="reviewInstructions" label={t('ai.settings.reviewInstructions')} hint={t('ai.settings.extraHint')}
           markOptional value={form.reviewInstructions ?? ''} onChange={v => set('reviewInstructions', v || null)} />
       </Panel>
 
@@ -122,5 +130,27 @@ export function AiSettingsPage() {
         </span>
       </Actions>
     </>
+  );
+}
+
+/** A prompt shown in full: staff's version, or the default until they change it. Null means "use the default". */
+function PromptField(props: {
+  id: string; label: string; value?: string | null; fallback: string; error?: string;
+  onChange: (value: string | null) => void;
+}) {
+  const custom = props.value != null && props.value.trim() !== '' && props.value.trim() !== props.fallback.trim();
+  return (
+    <div className="mb-6">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <Tag variant={custom ? 'aegold' : 'slate'}>{t(custom ? 'ai.settings.promptCustom' : 'ai.settings.promptDefault')}</Tag>
+        {custom && (
+          <AegovButton appearance="link" size="sm" onAegovButtonClick={() => props.onChange(null)}>{t('ai.settings.resetPrompt')}</AegovButton>
+        )}
+      </div>
+      <div dir="ltr">
+        <TextAreaField id={props.id} label={props.label} value={props.value ?? props.fallback} maxLength={8000} error={props.error}
+          onChange={v => props.onChange(v.trim() === props.fallback.trim() ? null : v)} />
+      </div>
+    </div>
   );
 }

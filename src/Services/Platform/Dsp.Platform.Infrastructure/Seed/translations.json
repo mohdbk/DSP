@@ -186,6 +186,10 @@
    "en": "For the chat assistant",
    "ar": "للمساعد"
   },
+  "ai.settings.chatPrompt": {
+   "en": "Chat assistant prompt",
+   "ar": "موجّه مساعد المحادثة"
+  },
   "ai.settings.configured": {
    "en": "Connected: {model}",
    "ar": "متصل: {model}"
@@ -193,6 +197,10 @@
   "ai.settings.connection": {
    "en": "Connection",
    "ar": "الاتصال"
+  },
+  "ai.settings.extraHint": {
+   "en": "Added after the prompt. You can leave this empty and edit the prompt directly.",
+   "ar": "تُضاف بعد الموجّه. يمكنك تركها فارغة وتعديل الموجّه مباشرة."
   },
   "ai.settings.history": {
    "en": "Messages remembered",
@@ -238,6 +246,22 @@
    "en": "No model",
    "ar": "لا يوجد نموذج"
   },
+  "ai.settings.promptCustom": {
+   "en": "Customised",
+   "ar": "مخصّص"
+  },
+  "ai.settings.promptDefault": {
+   "en": "Default",
+   "ar": "افتراضي"
+  },
+  "ai.settings.prompts": {
+   "en": "Prompts",
+   "ar": "موجّهات النموذج"
+  },
+  "ai.settings.promptsIntro": {
+   "en": "These prompts tell the model who it is and how to work. {ministry} and {portal} are replaced with the ministry and product names set in Translations. The platform rules (language, tools, output format, never deciding and never submitting without the applicant's confirmation) are always added after them and can't be changed here.",
+   "ar": "تحدد هذه الموجّهات للنموذج دوره وطريقة عمله. يُستبدل {ministry} و{portal} باسم الوزارة واسم المنتج المحددين في الترجمات. تُضاف قواعد المنصة دائمًا بعدها (اللغة والأدوات وصيغة الإجابة وعدم اتخاذ القرار وعدم التقديم دون تأكيد المتعامل)، ولا يمكن تغييرها هنا."
+  },
   "ai.settings.provider": {
    "en": "Provider name",
    "ar": "اسم المزوّد"
@@ -250,6 +274,10 @@
    "en": "Remove the saved key",
    "ar": "إزالة المفتاح المحفوظ"
   },
+  "ai.settings.resetPrompt": {
+   "en": "Reset to default",
+   "ar": "استعادة الافتراضي"
+  },
   "ai.settings.reviewEnabled": {
    "en": "Use the model for the AI pre-review",
    "ar": "استخدام النموذج في المراجعة المسبقة"
@@ -261,6 +289,10 @@
   "ai.settings.reviewInstructions": {
    "en": "For the AI pre-review",
    "ar": "للمراجعة المسبقة"
+  },
+  "ai.settings.reviewPrompt": {
+   "en": "AI pre-review prompt",
+   "ar": "موجّه المراجعة المسبقة بالذكاء الاصطناعي"
   },
   "ai.settings.saved": {
    "en": "AI settings saved. They apply within 30 seconds.",
@@ -1161,6 +1193,10 @@
   "errors.ai.iterations": {
    "en": "Tool steps must be between 1 and 20.",
    "ar": "يجب أن يكون عدد خطوات الأدوات بين 1 و20."
+  },
+  "errors.ai.promptLength": {
+   "en": "A prompt can't be longer than 8,000 characters.",
+   "ar": "لا يمكن أن يزيد الموجّه على 8,000 حرف."
   },
   "errors.ai.temperature": {
    "en": "Temperature must be between 0 and 2.",

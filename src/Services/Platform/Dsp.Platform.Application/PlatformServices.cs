@@ -1,3 +1,4 @@
+using Dsp.Contracts;
 using Dsp.Platform.Domain;
 using Dsp.SharedKernel;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,17 +70,24 @@ public sealed record ImportResultDto(int Added, int Updated, int Skipped);
 
 public sealed record AiSettingsDto(string ProviderName, string BaseUrl, string Model, bool HasApiKey, double Temperature,
     int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
-    string? ChatInstructions, string? ReviewInstructions, bool IsConfigured, DateTimeOffset UpdatedAt, string UpdatedBy);
+    string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt, string? ReviewPrompt,
+    string DefaultChatPrompt, string DefaultReviewPrompt, bool IsConfigured, DateTimeOffset UpdatedAt, string UpdatedBy);
 
-/// <summary>Saving AI settings. <c>ApiKey</c>: null keeps the current key, "" removes it, anything else replaces it.</summary>
+/// <summary>
+/// Saving AI settings. <c>ApiKey</c>: null keeps the current key, "" removes it, anything else replaces it.
+/// <c>ChatPrompt</c>/<c>ReviewPrompt</c>: null, empty or the shipped default means "use the default".
+/// </summary>
 public sealed record AiSettingsRequest(string? ProviderName, string? BaseUrl, string? Model, string? ApiKey, double Temperature,
     int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
-    string? ChatInstructions, string? ReviewInstructions);
+    string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt = null, string? ReviewPrompt = null);
 
-/// <summary>Everything the AI Orchestrator needs to call the model, with the key decrypted (internal API only).</summary>
+/// <summary>
+/// Everything the AI Orchestrator needs to call the model, with the key decrypted (internal API only).
+/// The prompts are the ones in force (staff's version or the default), placeholders not yet filled in.
+/// </summary>
 public sealed record AiRuntimeSettingsDto(string ProviderName, string BaseUrl, string Model, string? ApiKey, double Temperature,
     int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
-    string? ChatInstructions, string? ReviewInstructions)
+    string? ChatInstructions, string? ReviewInstructions, string ChatPrompt, string ReviewPrompt)
 {
     public bool IsConfigured => !string.IsNullOrWhiteSpace(BaseUrl) && !string.IsNullOrWhiteSpace(Model);
 }
@@ -309,7 +317,8 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
         var current = await settings.GetAsync(ct);
         current.Update(request.ProviderName ?? "", request.BaseUrl ?? "", request.Model ?? "", request.Temperature,
             request.TimeoutSeconds, request.ChatEnabled, request.ReviewEnabled, request.MaxToolIterations,
-            request.MaxHistoryMessages, request.ChatInstructions, request.ReviewInstructions, caller.Name);
+            request.MaxHistoryMessages, request.ChatInstructions, request.ReviewInstructions,
+            Custom(request.ChatPrompt, AiPrompts.DefaultChat), Custom(request.ReviewPrompt, AiPrompts.DefaultReview), caller.Name);
         if (request.ApiKey is not null)
             current.SetProtectedApiKey(request.ApiKey.Length == 0 ? null : protector.Protect(request.ApiKey.Trim()), caller.Name);
         await settings.SaveChangesAsync(ct);
@@ -323,14 +332,22 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
         var key = s.ProtectedApiKey is null ? defaults.ApiKey : protector.Unprotect(s.ProtectedApiKey);
         return new AiRuntimeSettingsDto(s.ProviderName, string.IsNullOrWhiteSpace(s.BaseUrl) ? defaults.BaseUrl ?? "" : s.BaseUrl,
             string.IsNullOrWhiteSpace(s.Model) ? defaults.Model ?? "" : s.Model, key, s.Temperature, s.TimeoutSeconds,
-            s.ChatEnabled, s.ReviewEnabled, s.MaxToolIterations, s.MaxHistoryMessages, s.ChatInstructions, s.ReviewInstructions);
+            s.ChatEnabled, s.ReviewEnabled, s.MaxToolIterations, s.MaxHistoryMessages, s.ChatInstructions, s.ReviewInstructions,
+            s.ChatPrompt ?? AiPrompts.DefaultChat, s.ReviewPrompt ?? AiPrompts.DefaultReview);
     }
+
+    /// <summary>Staff's prompt, or null when it is empty or the same as the default (so later default updates apply).</summary>
+    private static string? Custom(string? prompt, string defaultPrompt) =>
+        string.IsNullOrWhiteSpace(prompt) || Normalise(prompt) == Normalise(defaultPrompt) ? null : prompt;
+
+    private static string Normalise(string text) => text.Replace("\r\n", "\n").Trim();
 
     private AiSettingsDto ToDto(AiSettings s) => new(s.ProviderName,
         string.IsNullOrWhiteSpace(s.BaseUrl) ? defaults.BaseUrl ?? "" : s.BaseUrl,
         string.IsNullOrWhiteSpace(s.Model) ? defaults.Model ?? "" : s.Model,
         s.HasApiKey || !string.IsNullOrEmpty(defaults.ApiKey), s.Temperature, s.TimeoutSeconds, s.ChatEnabled, s.ReviewEnabled,
         s.MaxToolIterations, s.MaxHistoryMessages, s.ChatInstructions, s.ReviewInstructions,
+        s.ChatPrompt, s.ReviewPrompt, AiPrompts.DefaultChat, AiPrompts.DefaultReview,
         s.IsConfigured || (!string.IsNullOrWhiteSpace(defaults.BaseUrl) && !string.IsNullOrWhiteSpace(defaults.Model)),
         s.UpdatedAt, s.UpdatedBy);
 }

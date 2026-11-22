@@ -93,7 +93,9 @@ Back Office → Settings has three pages:
 - **Translations**: every key with the default text and the chosen language's text; search, filter missing, edit,
   add keys, import and export JSON. Changes reach both portals and every service within 30 seconds.
 - **AI**: provider, address, model, key (write-only, encrypted), temperature, timeout, limits, chat and review
-  switches, extra instructions, and a connection test.
+  switches, the chat and pre-review prompts (with reset to default; `{ministry}` and `{portal}` come from
+  Translations), extra instructions, and a connection test. The platform's safety rules are always added and
+  can't be edited.
 
 The portals send `Accept-Language` with every call, so validation messages, chat, notifications and certificates
 come back in the reader's language. Service definitions hold a text per language; only the default is required.

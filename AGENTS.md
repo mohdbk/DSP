@@ -69,8 +69,12 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
 - The AI Orchestrator acts with the user's own token over the public API (chat) or through `/internal/ai/review`
   (pre-review). Built-in checks always run as guardrails next to any model. Models are reached through an
   OpenAI-compatible endpoint (Net0 in production) — never hard-code a vendor. Provider, address, model, key,
-  temperature, timeout, limits, toggles and extra instructions are set in Back Office → Settings → AI (stored in
-  Platform, key encrypted); `Llm__*` variables are only the fallback.
+  temperature, timeout, limits, toggles, the prompts and extra instructions are set in Back Office → Settings → AI
+  (stored in Platform, key encrypted); `Llm__*` variables are only the fallback.
+- **Prompts.** The editable part of each prompt (who the model is, how to work) ships in `Dsp.Contracts/AiPrompts.cs`
+  with `{ministry}` and `{portal}` placeholders filled from the texts `entity.name` and `app.portal`. Never write the
+  ministry's or product's name into a prompt. Safety rules (language, tools, output format, never deciding, never
+  submitting without confirmation) are appended in the AI Orchestrator's code and are not editable.
 
 ### Service definitions
 

@@ -1,3 +1,4 @@
+using Dsp.Contracts;
 using Dsp.SharedKernel;
 
 namespace Dsp.AiOrchestrator.Application;
@@ -41,9 +42,16 @@ public interface IEServicesApi
 /// </summary>
 public sealed record AiSettings(string ProviderName, string BaseUrl, string Model, string? ApiKey, double Temperature,
     int TimeoutSeconds, bool ChatEnabled, bool ReviewEnabled, int MaxToolIterations, int MaxHistoryMessages,
-    string? ChatInstructions, string? ReviewInstructions)
+    string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt = null, string? ReviewPrompt = null)
 {
     public bool IsConfigured => !string.IsNullOrWhiteSpace(BaseUrl) && !string.IsNullOrWhiteSpace(Model);
+
+    /// <summary>The editable part of the chat prompt in force (placeholders not filled in).</summary>
+    public string ChatPromptOrDefault => string.IsNullOrWhiteSpace(ChatPrompt) ? AiPrompts.DefaultChat : ChatPrompt;
+
+    /// <summary>The editable part of the pre-review prompt in force (placeholders not filled in).</summary>
+    public string ReviewPromptOrDefault => string.IsNullOrWhiteSpace(ReviewPrompt) ? AiPrompts.DefaultReview : ReviewPrompt;
+
     public bool ChatActive => IsConfigured && ChatEnabled;
     public bool ReviewActive => IsConfigured && ReviewEnabled;
 }

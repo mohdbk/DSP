@@ -56,6 +56,8 @@ public abstract class PlatformDbContext(DbContextOptions options) : DbContext(op
             e.Property(x => x.ProtectedApiKey).HasMaxLength(2000);
             e.Property(x => x.ChatInstructions).HasMaxLength(8000);
             e.Property(x => x.ReviewInstructions).HasMaxLength(8000);
+            e.Property(x => x.ChatPrompt).HasMaxLength(AiSettings.MaxPromptLength);
+            e.Property(x => x.ReviewPrompt).HasMaxLength(AiSettings.MaxPromptLength);
             e.Property(x => x.UpdatedBy).HasMaxLength(200);
         });
     }

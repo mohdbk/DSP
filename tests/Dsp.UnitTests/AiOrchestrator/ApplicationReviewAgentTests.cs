@@ -8,8 +8,8 @@ public class ApplicationReviewAgentTests
     private static readonly MultilingualRenderer Renderer =
         MultilingualRenderer.CreateAsync(TestText.Localization, null, default).GetAwaiter().GetResult();
 
-    private static ApplicationReviewAgent Agent(FakeLlm llm) =>
-        new(llm, new FakeSettings(llm.Configured), TestText.Localization, NullLogger<ApplicationReviewAgent>.Instance);
+    private static ApplicationReviewAgent Agent(FakeLlm llm, string? reviewPrompt = null) =>
+        new(llm, new FakeSettings(llm.Configured, reviewPrompt), TestText.Localization, NullLogger<ApplicationReviewAgent>.Instance);
 
     private static ApplicationReviewRequest Request(string tradeNameAr, IReadOnlyList<string>? similar = null) => new(
         new ReviewServiceInfo("TRADE_NAME_RESERVATION", TestText.Text("Trade Name Reservation", "حجز اسم تجاري"), "Reserve a name.",
@@ -88,22 +88,50 @@ public class ApplicationReviewAgentTests
         Assert.Equal("rules", result.Mode);
     }
 
+    [Fact]
+    public async Task The_review_prompt_is_editable_and_names_come_from_the_texts_while_the_fixed_rules_stay()
+    {
+        var llm = new FakeLlm("""{"recommendation":"approve","summary":{"en":"Fine.","ar":"سليم."},"findings":[],"questions":[]}""");
+
+        await Agent(llm, "You review applications for {ministry} ({portal}). Be strict.").ReviewAsync(Request("الصقر"), default);
+
+        var system = llm.LastMessages![0].Content!;
+        Assert.StartsWith("You review applications for Ministry of Economy", system);
+        Assert.DoesNotContain("{ministry}", system);
+        Assert.Contains("Be strict.", system);
+        Assert.Contains("You never decide: the officer does.", system);
+        Assert.Contains("Answer with JSON only", system);
+    }
+
+    [Fact]
+    public async Task Without_a_saved_prompt_the_default_is_used()
+    {
+        var llm = new FakeLlm("""{"recommendation":"approve","summary":{"en":"Fine.","ar":"سليم."},"findings":[],"questions":[]}""");
+
+        await Agent(llm).ReviewAsync(Request("الصقر"), default);
+
+        Assert.StartsWith("You are the pre-review assistant of Ministry of Economy", llm.LastMessages![0].Content!);
+    }
+
     private sealed class FakeLlm(string? reply) : ILlmClient
     {
         public bool Configured => reply is not null;
         public IReadOnlyList<LlmTool>? LastTools { get; private set; }
+        public IReadOnlyList<LlmMessage>? LastMessages { get; private set; }
 
         public Task<LlmReply> CompleteAsync(AiSettings settings, IReadOnlyList<LlmMessage> messages, IReadOnlyList<LlmTool> tools,
             CancellationToken ct)
         {
             LastTools = tools;
+            LastMessages = messages;
             return Task.FromResult(new LlmReply(reply, []));
         }
     }
 
-    private sealed class FakeSettings(bool configured) : IAiSettingsProvider
+    private sealed class FakeSettings(bool configured, string? reviewPrompt = null) : IAiSettingsProvider
     {
         public Task<AiSettings> GetAsync(CancellationToken ct) => Task.FromResult(new AiSettings("test",
-            configured ? "https://llm.test/v1" : "", configured ? "test-model" : "", null, 0.2, 30, true, true, 6, 30, null, null));
+            configured ? "https://llm.test/v1" : "", configured ? "test-model" : "", null, 0.2, 30, true, true, 6, 30, null, null,
+            ReviewPrompt: reviewPrompt));
     }
 }

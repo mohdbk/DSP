@@ -31,6 +31,14 @@ public sealed class AiSettings : Entity
     public int MaxToolIterations { get; private set; } = 6;
     public int MaxHistoryMessages { get; private set; } = 30;
 
+    /// <summary>Staff's version of the chat assistant's prompt; null uses the shipped default.</summary>
+    public string? ChatPrompt { get; private set; }
+
+    /// <summary>Staff's version of the pre-review prompt; null uses the shipped default.</summary>
+    public string? ReviewPrompt { get; private set; }
+
+    public const int MaxPromptLength = 8000;
+
     /// <summary>Extra instructions added to the chat assistant's prompt.</summary>
     public string? ChatInstructions { get; private set; }
 
@@ -47,7 +55,7 @@ public sealed class AiSettings : Entity
 
     public void Update(string providerName, string baseUrl, string model, double temperature, int timeoutSeconds,
         bool chatEnabled, bool reviewEnabled, int maxToolIterations, int maxHistoryMessages,
-        string? chatInstructions, string? reviewInstructions, string by)
+        string? chatInstructions, string? reviewInstructions, string? chatPrompt, string? reviewPrompt, string by)
     {
         var url = (baseUrl ?? "").Trim();
         if (url.Length > 0 && (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("https" or "http")))
@@ -56,6 +64,9 @@ public sealed class AiSettings : Entity
         if (timeoutSeconds is < 5 or > 600) throw new ValidationException([new FieldError("timeoutSeconds", "errors.ai.timeout")]);
         if (maxToolIterations is < 1 or > 20) throw new ValidationException([new FieldError("maxToolIterations", "errors.ai.iterations")]);
         if (maxHistoryMessages is < 2 or > 200) throw new ValidationException([new FieldError("maxHistoryMessages", "errors.ai.history")]);
+
+        if (chatPrompt?.Length > MaxPromptLength) throw new ValidationException([new FieldError("chatPrompt", "errors.ai.promptLength")]);
+        if (reviewPrompt?.Length > MaxPromptLength) throw new ValidationException([new FieldError("reviewPrompt", "errors.ai.promptLength")]);
 
         ProviderName = (providerName ?? "").Trim();
         BaseUrl = url.TrimEnd('/');
@@ -68,6 +79,8 @@ public sealed class AiSettings : Entity
         MaxHistoryMessages = maxHistoryMessages;
         ChatInstructions = string.IsNullOrWhiteSpace(chatInstructions) ? null : chatInstructions.Trim();
         ReviewInstructions = string.IsNullOrWhiteSpace(reviewInstructions) ? null : reviewInstructions.Trim();
+        ChatPrompt = string.IsNullOrWhiteSpace(chatPrompt) ? null : chatPrompt.Trim();
+        ReviewPrompt = string.IsNullOrWhiteSpace(reviewPrompt) ? null : reviewPrompt.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
         UpdatedBy = by;
     }

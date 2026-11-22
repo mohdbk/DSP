@@ -243,6 +243,11 @@ export interface AiSettingsView {
   maxHistoryMessages: number;
   chatInstructions?: string | null;
   reviewInstructions?: string | null;
+  /** Staff's prompt; null means the shipped default is in force. */
+  chatPrompt?: string | null;
+  reviewPrompt?: string | null;
+  defaultChatPrompt: string;
+  defaultReviewPrompt: string;
   isConfigured: boolean;
   updatedAt: string;
   updatedBy: string;

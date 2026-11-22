@@ -101,3 +101,34 @@ public class ServiceDefinitionJsonTests
         Assert.Equal("تصريح", ServiceDefinitionJson.Deserialize(ServiceDefinitionJson.Serialize(d)).Name["ar"]);
     }
 }
+
+public class AiPromptTests
+{
+    [Fact]
+    public void Placeholders_are_filled_and_other_braces_are_left_alone()
+    {
+        var text = Dsp.Contracts.AiPrompts.Fill("{portal} of {ministry}. Keep {other}.", "Ministry X", "Portal Y");
+
+        Assert.Equal("Portal Y of Ministry X. Keep {other}.", text);
+    }
+
+    [Fact]
+    public void Both_default_prompts_use_the_configurable_ministry_name()
+    {
+        Assert.Contains("{ministry}", Dsp.Contracts.AiPrompts.DefaultChat);
+        Assert.Contains("{ministry}", Dsp.Contracts.AiPrompts.DefaultReview);
+        Assert.DoesNotContain("Economy", Dsp.Contracts.AiPrompts.DefaultChat + Dsp.Contracts.AiPrompts.DefaultReview);
+    }
+
+    [Fact]
+    public void Settings_keep_a_custom_prompt_and_refuse_one_that_is_too_long()
+    {
+        var settings = Dsp.Platform.Domain.AiSettings.CreateDefault();
+        settings.Update("", "", "", 0.2, 90, true, true, 6, 30, null, null, "  Be kind.  ", null, "staff");
+
+        Assert.Equal("Be kind.", settings.ChatPrompt);
+        Assert.Null(settings.ReviewPrompt);
+        Assert.Throws<Dsp.SharedKernel.ValidationException>(() =>
+            settings.Update("", "", "", 0.2, 90, true, true, 6, 30, null, null, new string('a', 8001), null, "staff"));
+    }
+}
