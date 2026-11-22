@@ -75,6 +75,13 @@ public static class DependencyInjection
             c.Timeout = TimeSpan.FromSeconds(120);
         }).AddHttpMessageHandler<CorrelationIdHandler>();
 
+        services.AddHttpClient<IAiPolicy, PlatformAiPolicy>(c =>
+        {
+            c.BaseAddress = new Uri(configuration["Services:Platform"] ?? "http://platform.railway.internal:8080");
+            c.DefaultRequestHeaders.Add(InternalApi.Header, internalKey);
+            c.Timeout = TimeSpan.FromSeconds(10);
+        }).AddHttpMessageHandler<CorrelationIdHandler>();
+
         services.AddDspMessaging<EServicesDbContext>(configuration, "eservices");
         services.AddEventSubscription<PaymentCompleted, PaymentCompletedHandler>();
         return services;

@@ -17,7 +17,7 @@ public class PaymentCompletedHandlerTests
     {
         var steps = new ProcessSteps(_store, new NoTasks(), new NoPayments(), new NoCertificates(), _bus,
             new StatusNotifier(_bus), NullLogger<ProcessSteps>.Instance, new Dsp.EServices.Infrastructure.Catalog.EmbeddedServiceCatalog(),
-            new InMemoryAssessments(), new StubReviewer(), TestText.Localization);
+            new InMemoryAssessments(), new StubReviewer(), TestText.Localization, new FixedAiPolicy(100));
         _handler = new PaymentCompletedHandler(_store, steps, _workflow, NullLogger<PaymentCompletedHandler>.Instance);
     }
 
@@ -93,6 +93,12 @@ public class PaymentCompletedHandlerTests
         public Task SignalInformationProvidedAsync(Guid id, CancellationToken ct) => Task.CompletedTask;
         public Task SignalStaffDecisionAsync(Guid id, CancellationToken ct) => Task.CompletedTask;
         public Task SignalPaymentCompletedAsync(Guid id, CancellationToken ct) { Resumed.Add(id); return Task.CompletedTask; }
+    }
+
+    internal sealed class FixedAiPolicy(int auditSamplePercent) : IAiPolicy
+    {
+        public int Percent { get; set; } = auditSamplePercent;
+        public Task<int> GetAuditSamplePercentAsync(CancellationToken ct) => Task.FromResult(Percent);
     }
 
     internal sealed class NoTasks : IReviewTaskRepository

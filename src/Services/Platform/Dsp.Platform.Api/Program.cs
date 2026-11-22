@@ -83,5 +83,7 @@ internalApi.MapGet("/languages", (LanguageService svc, CancellationToken ct) => 
 internalApi.MapGet("/catalog/{lang}", async (string lang, TranslationService svc, CancellationToken ct) =>
     (await svc.GetCatalogAsync(lang, ct)).Strings);
 internalApi.MapGet("/ai", (AiSettingsService svc, CancellationToken ct) => svc.GetRuntimeAsync(ct));
+// The AI policy alone (no model address or key), for services that act on the AI's results.
+internalApi.MapGet("/ai/policy", (AiSettingsService svc, CancellationToken ct) => svc.GetPolicyAsync(ct));
 
 app.Run();

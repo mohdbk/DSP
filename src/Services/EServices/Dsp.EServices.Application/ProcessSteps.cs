@@ -22,7 +22,8 @@ public sealed class ProcessSteps(
     IServiceCatalog catalog,
     IAiAssessmentRepository assessments,
     IAiReviewer reviewer,
-    ILocalization localization)
+    ILocalization localization,
+    IAiPolicy aiPolicy)
 {
     public static readonly TimeSpan ReviewSla = TimeSpan.FromDays(2);
 
@@ -75,9 +76,8 @@ public sealed class ProcessSteps(
     {
         var app = await LoadAsync(applicationId, ct);
         if (app.Status != ApplicationStatus.AiReview) return false;
-        var service = await DefinitionAsync(app, ct);
         var latest = (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault();
-        var outcome = AutoApprovalPolicy.Evaluate(service, latest, app.Id);
+        var outcome = AutoApprovalPolicy.Evaluate(app.WorkflowVersion, latest, app.Id, await aiPolicy.GetAuditSamplePercentAsync(ct));
         logger.LogInformation("Automatic approval for {Number}: {Approve} ({Reason})", app.Number, outcome.Approve, outcome.Reason);
         if (!outcome.Approve) return false;
 

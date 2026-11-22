@@ -38,8 +38,6 @@ public static partial class ServiceDefinitionRules
         if (d.Fee <= 0) Add("fee", "builder.rule.fee");
         if (string.IsNullOrWhiteSpace(d.Currency) || d.Currency.Length != 3) Add("currency", "builder.rule.currency");
         if (!WorkflowVersions.IsKnown(d.WorkflowVersion)) Add("workflowVersion", "builder.rule.workflow");
-        if (d.AutoApproval && d.WorkflowVersion != WorkflowVersions.AiAssisted) Add("autoApproval", "builder.rule.autoApprovalV2");
-        if (d.AuditSamplePercent is < 0 or > 100) Add("auditSamplePercent", "builder.rule.auditSample");
 
         if (d.ReviewChecklist is { } checklist)
         {

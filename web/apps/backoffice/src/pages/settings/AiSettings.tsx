@@ -120,6 +120,15 @@ export function AiSettingsPage() {
         </div>
       </Panel>
 
+      <Panel className="mb-6 block" title={t('ai.settings.autoTitle')}>
+        <p className="mb-4 text-aeblack-700">{t('ai.settings.autoIntro')}</p>
+        <div className="max-w-xs">
+          <NumberField id="auditSample" label={t('ai.settings.auditSample')} hint={t('ai.settings.auditSampleHint')}
+            value={form.auditSamplePercent} error={err('auditSamplePercent')}
+            onChange={v => set('auditSamplePercent', Math.max(0, Math.min(100, Math.round(v ?? 0))))} />
+        </div>
+      </Panel>
+
       <Panel className="mb-6 block" title={t('ai.settings.prompts')}>
         <p className="mb-4 text-aeblack-700">{t('ai.settings.promptsIntro')}</p>
         <PromptField id="chatPrompt" label={t('ai.settings.chatPrompt')} value={form.chatPrompt} fallback={form.defaultChatPrompt}

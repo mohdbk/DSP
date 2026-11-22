@@ -64,8 +64,10 @@ the public name is **MoET E-Services**. It replaces OutSystems. The unit name on
 - Elsa workflows are code. Each activity calls exactly one `ProcessSteps` method; the workflow only decides order.
 - Process versions run side by side: v1 standard, v2 AI-assisted. A service changes process by publishing a new
   service version; applications in flight finish on the version they started.
-- **The AI never approves or rejects.** It recommends, lists findings for the officer and may ask the applicant to
-  fix something (at most twice). If the AI is unavailable, the application goes to staff as usual.
+- **The AI never rejects, and approves only clear cases.** In the agentic process (v2) it reviews, may ask the
+  applicant to fix something (at most twice), and approves itself only when the model recommends approval with no
+  issues, warnings or questions (`AutoApprovalPolicy`). Everything else, every rejection, a random audit sample
+  (Settings → AI) and every case while the AI is paused or unavailable go to a case officer.
 - The AI Orchestrator acts with the user's own token over the public API (chat) or through `/internal/ai/review`
   (pre-review). Built-in checks always run as guardrails next to any model. Models are reached through an
   OpenAI-compatible endpoint (Net0 in production) — never hard-code a vendor. Provider, address, model, key,

@@ -50,10 +50,6 @@ export interface ServiceDefinition {
   version?: number;
   workflowVersion: number;
   reviewChecklist?: LocalizedText[] | null;
-  /** Agentic process: the AI approves clear cases itself; the rest, and an audit sample, go to an officer. */
-  autoApproval?: boolean;
-  /** Share of clear cases (0–100) sent to an officer anyway. */
-  auditSamplePercent?: number;
   steps: FormStep[];
 }
 
@@ -249,6 +245,8 @@ export interface AiSettingsView {
   timeoutSeconds: number;
   /** Emergency stop: the chat uses the guided conversation and the pre-review the built-in checks. */
   paused: boolean;
+  /** Share of clear agentic cases (0–100) still sent to an officer. */
+  auditSamplePercent: number;
   maxToolIterations: number;
   maxHistoryMessages: number;
   chatInstructions?: string | null;
