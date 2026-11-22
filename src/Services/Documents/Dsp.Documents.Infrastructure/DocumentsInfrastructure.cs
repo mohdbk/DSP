@@ -1,3 +1,4 @@
+using Dsp.BuildingBlocks.Persistence;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -114,7 +115,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<DocumentsDbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString("Documents"), sql => sql.EnableRetryOnFailure()));
+            o.UseDspDatabase(configuration, "Documents"));
         services.AddScoped<IDocumentRepository, DocumentRepository>();
 
         var storage = new StorageOptions();

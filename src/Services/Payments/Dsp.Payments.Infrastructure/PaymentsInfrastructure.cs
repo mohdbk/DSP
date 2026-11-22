@@ -1,3 +1,4 @@
+using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Messaging;
 using Dsp.Payments.Application;
 using Dsp.Payments.Domain;
@@ -60,7 +61,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<PaymentsDbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString("Payments"), sql => sql.EnableRetryOnFailure()));
+            o.UseDspDatabase(configuration, "Payments"));
         services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddSingleton<IPaymentProcessor, SimulatedPaymentProcessor>();
         services.AddDspMessaging(configuration, "payments");

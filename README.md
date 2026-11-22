@@ -23,7 +23,7 @@ Identity  E-Services  Payments  Documents  Notifications  AI Orchestrator
  (UAE PASS, (Elsa       │          │            │          (chat view; calls
   staff)    workflow)   │          │            │           E-Services API)
    │          │         │          │            │
- SQL Server (one database per service) · RabbitMQ (events) · SeaweedFS (files)
+ SQL Server or PostgreSQL (one database per service) · RabbitMQ (events) · SeaweedFS (files)
 ```
 
 Each service follows clean architecture:
@@ -62,6 +62,7 @@ Services never share databases. They talk through REST (with OpenAPI-style contr
 | `Jwt__Key` | all APIs | Shared signing key for platform tokens (≥ 32 bytes) |
 | `Internal__ApiKey` | E-Services, Payments, Documents | Service-to-service calls under `/internal` |
 | `RabbitMq__Url` | E-Services, Payments, Notifications | `amqp://user:pass@host:5672` |
+| `Database__Provider` | services with a database | `SqlServer` (default, FedNet) or `Postgres` (Railway POC) |
 | `ConnectionStrings__<Service>` | each service | One database per service |
 | `UaePass__ClientId`, `UaePass__ClientSecret`, `UaePass__BaseUrl` | Identity | Staging: `sandbox_stage` / `https://stg-id.uaepass.ae/idshub` |
 | `Identity__PublicBaseUrl` | Identity | Citizen portal URL (UAE PASS redirect) |
@@ -83,5 +84,6 @@ cd web && npm install && npm run dev:portal   # http://localhost:5173, proxies /
 - Databases are created with `EnsureCreated`; production uses reviewed EF Core migrations.
 - Payments are simulated; the government payment gateway plugs into `IPaymentProcessor`.
 - Staff sign in with local accounts; Active Directory plugs into `IStaffAuthenticator`.
-- One SQL Server instance hosts all service databases with one login; production uses a login per service.
+- The Railway POC runs on PostgreSQL because SQL Server crashes on Railway hosts; FedNet uses SQL Server with the same code.
+- One database server hosts all service databases with one login; production uses a login per service.
 - Event publishing has no outbox yet.

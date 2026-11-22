@@ -1,3 +1,4 @@
+using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Messaging;
 using Dsp.Contracts;
 using Dsp.Notifications.Application;
@@ -50,7 +51,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<NotificationsDbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString("Notifications"), sql => sql.EnableRetryOnFailure()));
+            o.UseDspDatabase(configuration, "Notifications"));
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddDspMessaging(configuration, "notifications");
         services.AddEventSubscription<ApplicationStatusChanged, ApplicationStatusChangedHandler>();

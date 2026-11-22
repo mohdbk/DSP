@@ -1,3 +1,4 @@
+using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Web;
 using Dsp.Identity.Application;
 using Dsp.Identity.Infrastructure.Persistence;
@@ -16,7 +17,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<IdentityDbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString("Identity"), sql => sql.EnableRetryOnFailure()));
+            o.UseDspDatabase(configuration, "Identity"));
         services.AddScoped<IStaffAccountRepository, StaffAccountRepository>();
         services.AddSingleton<IPasswordService, PasswordService>();
         services.AddSingleton<ITokenIssuer, JwtTokenIssuer>();

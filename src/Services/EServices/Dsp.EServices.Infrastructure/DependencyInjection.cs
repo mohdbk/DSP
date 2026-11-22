@@ -1,3 +1,4 @@
+using Dsp.BuildingBlocks.Persistence;
 using Dsp.BuildingBlocks.Messaging;
 using Dsp.BuildingBlocks.Web;
 using Dsp.Contracts;
@@ -23,23 +24,24 @@ public static class DependencyInjection
     {
         // Own database for e-service data; a separate database for the workflow engine.
         services.AddDbContext<EServicesDbContext>(o =>
-            o.UseSqlServer(configuration.GetConnectionString("EServices"), sql => sql.EnableRetryOnFailure()));
+            o.UseDspDatabase(configuration, "EServices"));
         services.AddScoped<IApplicationRepository, ApplicationRepository>();
         services.AddScoped<IReviewTaskRepository, ReviewTaskRepository>();
         services.AddSingleton<IServiceCatalog, EmbeddedServiceCatalog>();
 
         var workflows = configuration.GetConnectionString("Workflows")
                         ?? throw new InvalidOperationException("ConnectionStrings:Workflows is required.");
+        var postgres = DatabaseProvider.IsPostgres(configuration);
         services.AddElsa(elsa =>
         {
             elsa.UseWorkflowManagement(management => management.UseEntityFrameworkCore(ef =>
             {
-                ef.UseSqlServer(workflows);
+                if (postgres) ef.UsePostgreSql(workflows); else ef.UseSqlServer(workflows);
                 ef.RunMigrations = true;
             }));
             elsa.UseWorkflowRuntime(runtime => runtime.UseEntityFrameworkCore(ef =>
             {
-                ef.UseSqlServer(workflows);
+                if (postgres) ef.UsePostgreSql(workflows); else ef.UseSqlServer(workflows);
                 ef.RunMigrations = true;
             }));
             elsa.AddActivitiesFrom<ApplicationProcessWorkflow>();
