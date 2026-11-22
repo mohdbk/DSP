@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { AegovFooter, AegovHeader, AegovNavbar, AegovNavbarItem } from '@aegov/designsystem-react';
-import { getLang, t } from '@dsp/core';
+import { getLang, siteName, t } from '@dsp/core';
 import { LanguageSwitch } from '../navigation/LanguageSwitch';
 import logoEn from '../assets/moet-logo-en.png';
 import logoAr from '../assets/moet-logo-ar.png';
@@ -47,7 +47,7 @@ export function AppShell({ service, homeLabel, nav = [], account, children }: {
         )}
         {account && <div slot="secondary-actions" className="flex items-center gap-3">{account}</div>}
         <nav slot="mobile-content" aria-label={t('nav.main')} className="flex flex-col gap-4">
-          <p className="text-sm font-semibold text-aeblack-600">{service}</p>
+          <p className="text-sm font-semibold text-aeblack-600">{siteName(service)}</p>
           {nav.length > 0 && (
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
               {nav.map(item => (
@@ -68,12 +68,12 @@ export function AppShell({ service, homeLabel, nav = [], account, children }: {
           <p className="mt-4 text-sm text-aeblack-600">{t('footer.about')}</p>
         </div>
         <div className="aegov-footer__group">
-          <h2>{t('footer.services')}</h2>
+          <h2>{service}</h2>
           <ul role="list">
             <li><a href="/">{homeLabel}</a></li>
           </ul>
         </div>
-        <p slot="copyright">© {new Date().getFullYear()} {t('entity.name')}. {t('footer.rights')} · {t('footer.platform')}</p>
+        <p slot="copyright">© {new Date().getFullYear()} {siteName(service)}. {t('footer.rights')}</p>
       </AegovFooter>
     </div>
   );
