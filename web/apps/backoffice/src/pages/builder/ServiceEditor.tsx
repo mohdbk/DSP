@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ApiError, loc, t, type BuilderService, type FieldError, type ServiceDefinition } from '@dsp/core';
 import {
-  AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, ArrowLeft, IconLabel, Loading, Notice, PageHeader, Panel, PaperPlaneRight, Tag, useTabsScrollFix,
+  AegovBadge, AegovButton, AegovLink, AegovTab, AegovTabPanel, AegovTabs, ArrowLeft, ConfirmDialog, IconLabel, Loading, Notice, PageHeader, Panel, PaperPlaneRight, Tag, useTabsScrollFix,
 } from '@dsp/ui';
 import { api } from '../../session';
 import { DetailsSection, FormSection, PreviewSection, ReviewSection, VersionsSection, type EditorProps } from './editor';
@@ -21,6 +21,7 @@ export function ServiceEditorPage() {
   const [busy, setBusy] = useState<'save' | 'publish' | 'discard'>();
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string }>();
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [confirmPublish, setConfirmPublish] = useState(false);
 
   function adopt(s: BuilderService) {
     setServer(s);
@@ -79,7 +80,6 @@ export function ServiceEditorPage() {
   });
 
   const discard = () => {
-    if (!confirmDiscard) { setConfirmDiscard(true); return; }
     run('discard', async () => {
       const remaining = await api.del<BuilderService | undefined>(`${base}/services/${code}/draft`);
       if (!remaining) { navigate({ to: '/services', replace: true }); return; }
@@ -130,20 +130,27 @@ export function ServiceEditorPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             {hasDraft && (
-              <AegovButton appearance="link" variant="danger" isDisabled={!!busy} isLoading={busy === 'discard'} onAegovButtonClick={discard}>
-                {confirmDiscard ? t('builder.discardConfirm') : t('builder.discard')}
+              <AegovButton appearance="link" variant="danger" isDisabled={!!busy} onAegovButtonClick={() => setConfirmDiscard(true)}>
+                {t('builder.discard')}
               </AegovButton>
             )}
             <AegovButton appearance="outline" isDisabled={!!busy || !dirty} isLoading={busy === 'save'} onAegovButtonClick={save}>
               {t('builder.save')}
             </AegovButton>
-            <AegovButton isDisabled={!!busy || errors.length > 0 || (!hasDraft && !dirty)} isLoading={busy === 'publish'} onAegovButtonClick={publish}>
+            <AegovButton isDisabled={!!busy || errors.length > 0 || (!hasDraft && !dirty)} isLoading={busy === 'publish'} onAegovButtonClick={() => setConfirmPublish(true)}>
               <IconLabel icon={PaperPlaneRight} mirror>{t('builder.publish', { n: draftVersion })}</IconLabel>
             </AegovButton>
           </div>
         </div>
       </Panel>
       {message && <Notice kind={message.kind}>{message.text}</Notice>}
+
+      <ConfirmDialog open={confirmDiscard} title={t('builder.discard')} message={t('builder.discardMessage')}
+        confirmLabel={t('builder.discard')} busy={busy === 'discard'} onCancel={() => setConfirmDiscard(false)} onConfirm={discard} />
+      <ConfirmDialog open={confirmPublish} destructive={false} title={t('builder.publish', { n: draftVersion })}
+        message={t('builder.publishMessage', { n: draftVersion })} confirmLabel={t('builder.publish', { n: draftVersion })}
+        busy={busy === 'publish'} onCancel={() => setConfirmPublish(false)}
+        onConfirm={() => { void Promise.resolve(publish()).finally(() => setConfirmPublish(false)); }} />
 
       <AegovTabs ref={tabsRef} isScrollable labelTablist={t('builder.pageTitle')}>
         {tabs.map(([id, label, n]) => (

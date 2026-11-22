@@ -7,6 +7,7 @@ export * from './layout/AppShell';
 export * from './layout/Page';
 export * from './layout/PortalFrame';
 export * from './layout/mountApp';
+export * from './layout/StaffShell';
 export * from './navigation/LanguageSwitch';
 export * from './navigation/AccountArea';
 export * from './identity/UaePassButton';
@@ -19,6 +20,7 @@ export * from './feedback/Feedback';
 
 // Forms
 export * from './icons';
+export * from './feedback/Modal';
 export * from './forms/fields';
 export * from './forms/MultilingualField';
 export * from './forms/MarkdownEditor';

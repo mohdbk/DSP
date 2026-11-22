@@ -13,7 +13,14 @@ export const ENTITY_DOMAIN = 'https://www.moet.gov.ae';
 /** The ministry's rating in the Global Star Rating System for Services (shown by the official header badge). */
 export const GSR_STARS = 4;
 
-export interface NavItem { href: string; label: string; active?: boolean; icon?: PhosphorIcon }
+export interface NavItem {
+  href: string;
+  label: string;
+  active?: boolean;
+  icon?: PhosphorIcon;
+  /** Sub-pages (staff side navigation only), shown under the item while it is active. */
+  children?: NavItem[];
+}
 
 /**
  * The page frame of both portals: the mandatory AEGOV government header and footer around the page.

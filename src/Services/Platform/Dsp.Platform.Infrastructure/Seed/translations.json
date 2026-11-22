@@ -570,6 +570,10 @@
    "en": "Click again to discard",
    "ar": "انقر مرة أخرى للتجاهل"
   },
+  "builder.discardMessage": {
+   "en": "Your unpublished changes will be lost. The live version stays as it is.",
+   "ar": "ستفقد تغييراتك غير المنشورة، وتبقى النسخة المنشورة كما هي."
+  },
   "builder.discarded": {
    "en": "Draft discarded.",
    "ar": "تم تجاهل المسودة."
@@ -765,6 +769,10 @@
   "builder.publish": {
    "en": "Publish v{n}",
    "ar": "نشر الإصدار {n}"
+  },
+  "builder.publishMessage": {
+   "en": "Version {n} becomes the live version for new applications. Applications already started keep their version.",
+   "ar": "يصبح الإصدار {n} هو الإصدار المعتمد للطلبات الجديدة، وتحتفظ الطلبات القائمة بالإصدار الذي بدأت عليه."
   },
   "builder.published": {
    "en": "Published. New applications use v{n}.",
@@ -1213,6 +1221,10 @@
   "chat.words.yes": {
    "en": "yes|y|yeah|yep|ok|okay|agree|i agree|i confirm|confirm|confirmed|true",
    "ar": "نعم|موافق|أوافق|اوافق|أؤكد|اؤكد"
+  },
+  "close": {
+   "en": "Close",
+   "ar": "إغلاق"
   },
   "comment": {
    "en": "Comment",
@@ -1858,6 +1870,10 @@
    "en": "Settings",
    "ar": "الإعدادات"
   },
+  "nav.skip": {
+   "en": "Skip to content",
+   "ar": "انتقل إلى المحتوى"
+  },
   "notifications": {
    "en": "Notifications",
    "ar": "الإشعارات"
@@ -2026,6 +2042,18 @@
    "en": "Delete text in all languages",
    "ar": "حذف النص من جميع اللغات"
   },
+  "settings.deleteKeyConfirm": {
+   "en": "The key {key} and its text in every language will be deleted. This can't be undone.",
+   "ar": "سيُحذف المفتاح {key} ونصه بجميع اللغات. لا يمكن التراجع عن ذلك."
+  },
+  "settings.deleteLanguageConfirm": {
+   "en": "The language and all its texts will be deleted. This can't be undone.",
+   "ar": "ستُحذف اللغة وجميع نصوصها. لا يمكن التراجع عن ذلك."
+  },
+  "settings.deleteTitle": {
+   "en": "Delete {name}?",
+   "ar": "حذف {name}؟"
+  },
   "settings.deleted": {
    "en": "The language and its texts were deleted.",
    "ar": "تم حذف اللغة ونصوصها."
@@ -2185,6 +2213,10 @@
   "settings.removeText": {
    "en": "Remove translation",
    "ar": "إزالة الترجمة"
+  },
+  "settings.removeTextConfirm": {
+   "en": "The text in this language will be removed; readers will see the default language instead.",
+   "ar": "سيُزال النص بهذه اللغة، وسيرى القرّاء نص اللغة الافتراضية بدلًا منه."
   },
   "settings.removed": {
    "en": "Removed.",
@@ -3018,7 +3050,8 @@
   "builder.discard": [
    "backoffice"
   ],
-  "builder.discardConfirm": [
+  "builder.discardConfirm": [],
+  "builder.discardMessage": [
    "backoffice"
   ],
   "builder.discarded": [
@@ -3156,6 +3189,9 @@
    "backoffice"
   ],
   "builder.publish": [
+   "backoffice"
+  ],
+  "builder.publishMessage": [
    "backoffice"
   ],
   "builder.published": [
@@ -3483,6 +3519,9 @@
   ],
   "chat.words.yes": [
    "services"
+  ],
+  "close": [
+   "backoffice"
   ],
   "comment": [
    "backoffice"
@@ -3992,6 +4031,10 @@
   "nav.settings": [
    "backoffice"
   ],
+  "nav.skip": [
+   "portal",
+   "backoffice"
+  ],
   "notifications": [
    "portal",
    "backoffice"
@@ -4118,13 +4161,20 @@
   "settings.delete": [
    "backoffice"
   ],
-  "settings.deleteConfirm": [
-   "backoffice"
-  ],
+  "settings.deleteConfirm": [],
   "settings.deleteCurrencyConfirm": [
    "backoffice"
   ],
   "settings.deleteKey": [
+   "backoffice"
+  ],
+  "settings.deleteKeyConfirm": [
+   "backoffice"
+  ],
+  "settings.deleteLanguageConfirm": [
+   "backoffice"
+  ],
+  "settings.deleteTitle": [
    "backoffice"
   ],
   "settings.deleted": [
@@ -4247,6 +4297,9 @@
   "settings.removeText": [
    "backoffice"
   ],
+  "settings.removeTextConfirm": [
+   "backoffice"
+  ],
   "settings.removed": [
    "backoffice"
   ],
@@ -4280,9 +4333,7 @@
   "settings.symbolPosition": [
    "backoffice"
   ],
-  "settings.title": [
-   "backoffice"
-  ],
+  "settings.title": [],
   "settings.tr.missing": [
    "backoffice"
   ],
