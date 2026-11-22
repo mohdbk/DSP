@@ -451,8 +451,8 @@
    "ar": "موافق عليه"
   },
   "apps.back": {
-   "en": "← All applications",
-   "ar": "→ جميع الطلبات"
+   "en": "All applications",
+   "ar": "جميع الطلبات"
   },
   "apps.decidedBy": {
    "en": "Decided by",
@@ -491,8 +491,8 @@
    "ar": "إضافة خطوة"
   },
   "builder.backToList": {
-   "en": "← All services",
-   "ar": "→ جميع الخدمات"
+   "en": "All services",
+   "ar": "جميع الخدمات"
   },
   "builder.by": {
    "en": "by {name}",
@@ -831,8 +831,8 @@
    "ar": "استخدم رمز عملة من 3 أحرف، مثل AED."
   },
   "builder.rule.currencyDisabled": {
-   "en": "{currency} isn't an enabled currency. Choose one from Settings → Currencies.",
-   "ar": "{currency} ليست عملة مفعّلة. اختر عملة من الإعدادات ← العملات."
+   "en": "{currency} isn't an enabled currency. Choose one that is enabled in Settings, under Currencies.",
+   "ar": "{currency} ليست عملة مفعّلة. اختر عملة مفعّلة من الإعدادات، ضمن العملات."
   },
   "builder.rule.description": {
    "en": "Enter a short description in the default language ({language}).",
@@ -2667,8 +2667,8 @@
    "ar": "موافقة"
   },
   "task.backToInbox": {
-   "en": "← Back to inbox",
-   "ar": "→ العودة إلى الصندوق"
+   "en": "Back to inbox",
+   "ar": "العودة إلى الصندوق"
   },
   "task.commentHint": {
    "en": "(required to reject)",
