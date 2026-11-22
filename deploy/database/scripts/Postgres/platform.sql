@@ -180,3 +180,41 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122172012_Currencies') THEN
+    CREATE TABLE platform."Currencies" (
+        "Id" uuid NOT NULL,
+        "Code" character varying(3) NOT NULL,
+        "Name" character varying(2000) NOT NULL,
+        "Symbol" character varying(10) NOT NULL,
+        "SymbolPosition" character varying(6) NOT NULL,
+        "Decimals" integer NOT NULL,
+        "IsEnabled" boolean NOT NULL,
+        "IsDefault" boolean NOT NULL,
+        "SortOrder" integer NOT NULL,
+        "UpdatedAt" timestamp with time zone NOT NULL,
+        "UpdatedBy" character varying(200) NOT NULL,
+        CONSTRAINT "PK_Currencies" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122172012_Currencies') THEN
+    CREATE UNIQUE INDEX "IX_Currencies_Code" ON platform."Currencies" ("Code");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261122172012_Currencies') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261122172012_Currencies', '10.0.15');
+    END IF;
+END $EF$;
+COMMIT;
+
