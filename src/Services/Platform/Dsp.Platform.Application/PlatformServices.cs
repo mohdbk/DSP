@@ -26,6 +26,15 @@ public interface ITranslationRepository
     Task RemoveKeyAsync(string key, CancellationToken ct);
 }
 
+public interface ICurrencyRepository
+{
+    Task<IReadOnlyList<Currency>> ListAsync(CancellationToken ct);
+    Task<Currency?> GetAsync(string code, CancellationToken ct);
+    Task AddAsync(Currency currency, CancellationToken ct);
+    void Remove(Currency currency);
+    Task SaveChangesAsync(CancellationToken ct);
+}
+
 public interface IAiSettingsRepository
 {
     Task<AiSettings> GetAsync(CancellationToken ct);
@@ -90,6 +99,15 @@ public sealed record AiSettingsRequest(string? ProviderName, string? BaseUrl, st
     int TimeoutSeconds, bool Paused, int MaxToolIterations, int MaxHistoryMessages,
     string? ChatInstructions, string? ReviewInstructions, string? ChatPrompt = null, string? ReviewPrompt = null,
     int? AuditSamplePercent = null);
+
+public sealed record CurrencyAdminDto(string Code, LocalizedText Name, string Symbol, string SymbolPosition, int Decimals,
+    bool IsEnabled, bool IsDefault, int SortOrder, DateTimeOffset UpdatedAt, string UpdatedBy)
+{
+    public static CurrencyAdminDto From(Currency c) => new(c.Code, c.Name, c.Symbol, c.SymbolPosition, c.Decimals,
+        c.IsEnabled, c.IsDefault, c.SortOrder, c.UpdatedAt, c.UpdatedBy);
+}
+
+public sealed record CurrencyRequest(string Code, LocalizedText Name, string Symbol, string SymbolPosition, int Decimals, int SortOrder);
 
 /// <summary>The AI policy other services act on (internal API): no model address or key.</summary>
 public sealed record AiPolicyDto(int AuditSamplePercent, bool Paused);
@@ -386,6 +404,79 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
         s.UpdatedAt, s.UpdatedBy, s.AuditSamplePercent);
 }
 
+/// <summary>Currencies: staff manage them; services and portals read the ones in use.</summary>
+public sealed class CurrencyService(ICurrencyRepository currencies)
+{
+    public static CurrencyInfo ToInfo(Currency c) =>
+        new(c.Code, c.Name, c.Symbol, c.SymbolPosition, c.Decimals, c.IsEnabled, c.IsDefault, c.SortOrder);
+
+    private static IOrderedEnumerable<Currency> Ordered(IEnumerable<Currency> list) =>
+        list.OrderBy(c => c.SortOrder).ThenBy(c => c.Code, StringComparer.Ordinal);
+
+    /// <summary>Every currency (enabled or not) so amounts on old applications still format; services check IsEnabled.</summary>
+    public async Task<IReadOnlyList<CurrencyInfo>> ListAllAsync(CancellationToken ct) =>
+        Ordered(await currencies.ListAsync(ct)).Select(ToInfo).ToList();
+
+    public async Task<IReadOnlyList<CurrencyAdminDto>> ListForAdminAsync(StaffCaller caller, CancellationToken ct)
+    {
+        LanguageService.EnsureStaff(caller);
+        return Ordered(await currencies.ListAsync(ct)).Select(CurrencyAdminDto.From).ToList();
+    }
+
+    public async Task<CurrencyAdminDto> CreateAsync(StaffCaller caller, CurrencyRequest request, CancellationToken ct)
+    {
+        LanguageService.EnsureStaff(caller);
+        if (await currencies.GetAsync((request.Code ?? "").Trim().ToUpperInvariant(), ct) is not null)
+            throw new ValidationException([new FieldError("code", "errors.currency.exists")]);
+        var currency = Currency.Create(request.Code ?? "", request.Name, request.Symbol, request.SymbolPosition, request.Decimals,
+            request.SortOrder, caller.Name);
+        await currencies.AddAsync(currency, ct);
+        await currencies.SaveChangesAsync(ct);
+        return CurrencyAdminDto.From(currency);
+    }
+
+    public async Task<CurrencyAdminDto> UpdateAsync(StaffCaller caller, string code, CurrencyRequest request, CancellationToken ct)
+    {
+        LanguageService.EnsureStaff(caller);
+        var currency = await GetAsync(code, ct);
+        currency.Update(request.Name, request.Symbol, request.SymbolPosition, request.Decimals, request.SortOrder, caller.Name);
+        await currencies.SaveChangesAsync(ct);
+        return CurrencyAdminDto.From(currency);
+    }
+
+    public async Task<CurrencyAdminDto> SetEnabledAsync(StaffCaller caller, string code, bool enabled, CancellationToken ct)
+    {
+        LanguageService.EnsureStaff(caller);
+        var currency = await GetAsync(code, ct);
+        if (enabled) currency.Enable(caller.Name); else currency.Disable(caller.Name);
+        await currencies.SaveChangesAsync(ct);
+        return CurrencyAdminDto.From(currency);
+    }
+
+    public async Task<CurrencyAdminDto> SetDefaultAsync(StaffCaller caller, string code, CancellationToken ct)
+    {
+        LanguageService.EnsureStaff(caller);
+        var all = await currencies.ListAsync(ct);
+        var currency = all.FirstOrDefault(c => c.Code == code.Trim().ToUpperInvariant())
+                       ?? throw new NotFoundException("errors.currency.notFound");
+        Currency.SetDefault(all, currency, caller.Name);
+        await currencies.SaveChangesAsync(ct);
+        return CurrencyAdminDto.From(currency);
+    }
+
+    public async Task DeleteAsync(StaffCaller caller, string code, CancellationToken ct)
+    {
+        LanguageService.EnsureStaff(caller);
+        var currency = await GetAsync(code, ct);
+        currency.EnsureCanDelete();
+        currencies.Remove(currency);
+        await currencies.SaveChangesAsync(ct);
+    }
+
+    private async Task<Currency> GetAsync(string code, CancellationToken ct) =>
+        await currencies.GetAsync(code.Trim().ToUpperInvariant(), ct) ?? throw new NotFoundException("errors.currency.notFound");
+}
+
 /// <summary>The languages and texts shipped with a release, added to the database on start-up.</summary>
 public sealed record SeedLanguage(string Code, LocalizedText Name, string Direction, bool IsDefault, int SortOrder);
 
@@ -396,8 +487,33 @@ public sealed record SeedData(IReadOnlyList<SeedLanguage> Languages, IReadOnlyDi
 /// First start: creates the shipped languages (the shipped default becomes the default) and their texts.
 /// Every start: adds keys that are new in this release, without touching texts staff have edited.
 /// </summary>
-public sealed class PlatformSeeder(ILanguageRepository languages, ITranslationRepository translations, IAiSettingsRepository ai)
+public sealed class PlatformSeeder(ILanguageRepository languages, ITranslationRepository translations, IAiSettingsRepository ai,
+    ICurrencyRepository currencies)
 {
+    /// <summary>Shipped currencies: the dirham is the default; the others are ready to enable.</summary>
+    private static readonly (string Code, string En, string Ar, int Decimals)[] ShippedCurrencies =
+    [
+        ("AED", "UAE dirham", "درهم إماراتي", 2),
+        ("SAR", "Saudi riyal", "ريال سعودي", 2),
+        ("QAR", "Qatari riyal", "ريال قطري", 2),
+        ("KWD", "Kuwaiti dinar", "دينار كويتي", 3),
+        ("BHD", "Bahraini dinar", "دينار بحريني", 3),
+        ("OMR", "Omani rial", "ريال عماني", 3),
+        ("USD", "US dollar", "دولار أمريكي", 2),
+        ("EUR", "Euro", "يورو", 2),
+        ("GBP", "Pound sterling", "جنيه إسترليني", 2),
+    ];
+
+    private async Task SeedCurrenciesAsync(CancellationToken ct)
+    {
+        if ((await currencies.ListAsync(ct)).Count > 0) return;
+        var created = ShippedCurrencies.Select((c, i) => Currency.Create(c.Code,
+            new LocalizedText { ["en"] = c.En, ["ar"] = c.Ar }, c.Code, SymbolPositions.Before, c.Decimals, i * 10, "Platform")).ToList();
+        foreach (var c in created) await currencies.AddAsync(c, ct);
+        Currency.SetDefault(created, created[0], "Platform");
+        await currencies.SaveChangesAsync(ct);
+    }
+
     public async Task SeedAsync(SeedData seed, CancellationToken ct)
     {
         var existing = await languages.ListAsync(ct);
@@ -423,6 +539,7 @@ public sealed class PlatformSeeder(ILanguageRepository languages, ITranslationRe
                     await translations.AddAsync(Translation.Create(key, language.Code, texts[language.Code], "Platform"), ct);
 
         await ai.GetAsync(ct); // creates the settings record on first start
+        await SeedCurrenciesAsync(ct);
         await languages.SaveChangesAsync(ct);
     }
 }
@@ -433,5 +550,6 @@ public static class DependencyInjection
         services.AddScoped<LanguageService>()
             .AddScoped<TranslationService>()
             .AddScoped<AiSettingsService>()
+            .AddScoped<CurrencyService>()
             .AddScoped<PlatformSeeder>();
 }

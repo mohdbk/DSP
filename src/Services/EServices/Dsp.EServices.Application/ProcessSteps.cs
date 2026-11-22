@@ -23,7 +23,8 @@ public sealed class ProcessSteps(
     IAiAssessmentRepository assessments,
     IAiReviewer reviewer,
     ILocalization localization,
-    IAiPolicy aiPolicy)
+    IAiPolicy aiPolicy,
+    ICurrencies currencies)
 {
     public static readonly TimeSpan ReviewSla = TimeSpan.FromDays(2);
 
@@ -124,9 +125,8 @@ public sealed class ProcessSteps(
         var description = new LocalizedText(app.ServiceName.Select(n => KeyValuePair.Create(n.Key, $"{n.Value} – {app.Number}")));
         var paymentId = await payments.CreatePaymentAsync(app.Id, app.ApplicantId, app.Fee, app.Currency, description, ct);
         app.RequestPayment(paymentId);
-        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.approvedPay",
-            ("amount", app.Fee.ToString("#,0.##", System.Globalization.CultureInfo.InvariantCulture)),
-            ("currency", await localization.RenderAllAsync(MessageRef.Of($"currency.{app.Currency}"), ct))), ct);
+        await notifier.NotifyAsync(app, MessageRef.Of("status.notify.approvedPayPrice",
+            ("price", await currencies.FormatAsync(app.Fee, app.Currency, ct))), ct);
         await applications.SaveChangesAsync(ct);
     }
 

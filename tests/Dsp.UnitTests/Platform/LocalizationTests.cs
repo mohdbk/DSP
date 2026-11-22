@@ -159,3 +159,53 @@ public class LanguageVisibilityTests
         Assert.Throws<DomainException>(() => en.SetVisibility(false, true, "staff"));
     }
 }
+
+public class CurrencyTests
+{
+    [Theory]
+    [InlineData("AED", 2, 1500, "AED 1,500")]
+    [InlineData("AED", 2, 1500.5, "AED 1,500.50")]
+    [InlineData("KWD", 3, 12.3456, "KWD 12.346")]
+    [InlineData("JPY", 0, 1999.6, "JPY 2,000")]
+    public void Amounts_follow_the_currency_decimals_and_UAE_content_rules(string code, int decimals, double amount, string expected)
+    {
+        var currency = new CurrencyInfo(code, LocalizedText.Of("en", code), code, "before", decimals, true, false, 0);
+
+        Assert.Equal(expected, currency.Format((decimal)amount));
+    }
+
+    [Fact]
+    public void The_symbol_can_follow_the_amount()
+    {
+        var euro = new CurrencyInfo("EUR", LocalizedText.Of("en", "Euro"), "€", "after", 2, true, false, 0);
+
+        Assert.Equal("10.25 €", euro.Format(10.25m));
+    }
+
+    [Fact]
+    public void A_currency_needs_an_iso_code_and_sensible_decimals()
+    {
+        Assert.Throws<ValidationException>(() => Currency.Create("dirham", LocalizedText.Of("en", "Dirham"), "AED", "before", 2, 0, "staff"));
+        Assert.Throws<ValidationException>(() => Currency.Create("AED", LocalizedText.Of("en", "Dirham"), "AED", "before", 5, 0, "staff"));
+
+        var aed = Currency.Create("aed", LocalizedText.Of("en", "UAE dirham"), "AED", "before", 2, 0, "staff");
+        Assert.Equal("AED", aed.Code);
+        Assert.False(aed.IsEnabled);
+    }
+
+    [Fact]
+    public void The_default_currency_is_enabled_and_cannot_be_disabled_or_deleted()
+    {
+        var aed = Currency.Create("AED", LocalizedText.Of("en", "UAE dirham"), "AED", "before", 2, 0, "staff");
+        var usd = Currency.Create("USD", LocalizedText.Of("en", "US dollar"), "USD", "before", 2, 10, "staff");
+        Currency.SetDefault([aed, usd], aed, "staff");
+
+        Assert.True(aed.IsEnabled);
+        Assert.Throws<DomainException>(() => aed.Disable("staff"));
+        Assert.Throws<DomainException>(() => aed.EnsureCanDelete());
+
+        Currency.SetDefault([aed, usd], usd, "staff");
+        Assert.False(aed.IsDefault);
+        Assert.True(usd.IsDefault && usd.IsEnabled);
+    }
+}

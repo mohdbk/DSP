@@ -706,6 +706,10 @@
    "en": "Options",
    "ar": "الخيارات"
   },
+  "builder.pageTitle": {
+   "en": "Service builder",
+   "ar": "منشئ الخدمات"
+  },
   "builder.pattern": {
    "en": "Pattern (regular expression)",
    "ar": "النمط (تعبير نمطي)"
@@ -818,6 +822,10 @@
    "en": "Use a 3-letter currency code, e.g. AED.",
    "ar": "استخدم رمز عملة من 3 أحرف، مثل AED."
   },
+  "builder.rule.currencyDisabled": {
+   "en": "{currency} isn't an enabled currency. Choose one from Settings → Currencies.",
+   "ar": "{currency} ليست عملة مفعّلة. اختر عملة من الإعدادات ← العملات."
+  },
   "builder.rule.description": {
    "en": "Enter a short description in the default language ({language}).",
    "ar": "أدخل وصفًا مختصرًا باللغة الافتراضية ({language})."
@@ -825,6 +833,10 @@
   "builder.rule.fee": {
    "en": "The fee must be more than zero.",
    "ar": "يجب أن تكون الرسوم أكبر من صفر."
+  },
+  "builder.rule.feeDecimals": {
+   "en": "The fee can have at most {decimals} decimal places in this currency.",
+   "ar": "يمكن أن تحتوي الرسوم على {decimals} منازل عشرية كحد أقصى في هذه العملة."
   },
   "builder.rule.fieldKey": {
    "en": "Start with a letter and use letters and digits only (e.g. tradeNameEn).",
@@ -953,6 +965,10 @@
   "builder.stepSettings": {
    "en": "Step settings",
    "ar": "إعدادات الخطوة"
+  },
+  "builder.stepTitle": {
+   "en": "Step title",
+   "ar": "عنوان الخطوة"
   },
   "builder.steps": {
    "en": "Steps",
@@ -1121,6 +1137,10 @@
   "chat.guided.allFilled": {
    "en": "Everything is filled in:\n{summary}\n\nThe fee is {currency} {fee}, payable after approval. Type \"{word}\" to send your application.",
    "ar": "اكتملت جميع البيانات:\n{summary}\n\nالرسوم {fee} {currency}، تُدفع بعد الموافقة. اكتب \"{word}\" لتقديم طلبك."
+  },
+  "chat.guided.allFilledPrice": {
+   "en": "Everything is filled in:\n{summary}\n\nThe fee is {price}, payable after approval. Type \"{word}\" to send your application.",
+   "ar": "اكتملت جميع البيانات:\n{summary}\n\nالرسوم {price}، تُدفع بعد الموافقة. اكتب \"{word}\" لتقديم طلبك."
   },
   "chat.guided.cannotSubmit": {
    "en": "I couldn't submit yet: {message}",
@@ -1293,6 +1313,42 @@
   "errors.conflict": {
    "en": "This can't be done right now",
    "ar": "لا يمكن تنفيذ ذلك الآن"
+  },
+  "errors.currency.code": {
+   "en": "Enter a three-letter ISO 4217 code, such as AED.",
+   "ar": "أدخل رمزًا من ثلاثة أحرف وفق ISO 4217، مثل AED."
+  },
+  "errors.currency.decimals": {
+   "en": "Decimals must be between 0 and 4.",
+   "ar": "يجب أن تكون المنازل العشرية بين 0 و4."
+  },
+  "errors.currency.deleteDefault": {
+   "en": "The default currency can't be deleted. Make another currency the default first.",
+   "ar": "لا يمكن حذف العملة الافتراضية. اجعل عملة أخرى افتراضية أولًا."
+  },
+  "errors.currency.disableDefault": {
+   "en": "The default currency can't be disabled. Make another currency the default first.",
+   "ar": "لا يمكن تعطيل العملة الافتراضية. اجعل عملة أخرى افتراضية أولًا."
+  },
+  "errors.currency.exists": {
+   "en": "This currency already exists.",
+   "ar": "هذه العملة موجودة بالفعل."
+  },
+  "errors.currency.name": {
+   "en": "Enter the currency's name in at least one language.",
+   "ar": "أدخل اسم العملة بلغة واحدة على الأقل."
+  },
+  "errors.currency.notFound": {
+   "en": "Currency not found.",
+   "ar": "العملة غير موجودة."
+  },
+  "errors.currency.position": {
+   "en": "Choose before or after the amount.",
+   "ar": "اختر قبل المبلغ أو بعده."
+  },
+  "errors.currency.symbol": {
+   "en": "Enter a symbol of up to 10 characters.",
+   "ar": "أدخل رمزًا لا يزيد على 10 أحرف."
   },
   "errors.document.empty": {
    "en": "The file is empty.",
@@ -1886,6 +1942,10 @@
    "en": "Service",
    "ar": "الخدمة"
   },
+  "settings.addCurrency": {
+   "en": "Add currency",
+   "ar": "إضافة عملة"
+  },
   "settings.addKey": {
    "en": "Add text",
    "ar": "إضافة نص"
@@ -1910,6 +1970,38 @@
    "en": "Translated",
    "ar": "المترجم"
   },
+  "settings.currencies": {
+   "en": "Currencies",
+   "ar": "العملات"
+  },
+  "settings.currenciesIntro": {
+   "en": "The currencies services can charge in, and how amounts are written: symbol, position and decimals. Services can only use enabled currencies.",
+   "ar": "العملات التي يمكن للخدمات تحصيل الرسوم بها وطريقة كتابة المبالغ: الرمز وموضعه وعدد المنازل العشرية. لا يمكن للخدمات استخدام إلا العملات المفعّلة."
+  },
+  "settings.currency": {
+   "en": "Currency",
+   "ar": "العملة"
+  },
+  "settings.currencyCode": {
+   "en": "Code",
+   "ar": "الرمز"
+  },
+  "settings.currencyCodeHint": {
+   "en": "Three letters, ISO 4217 (AED, USD, KWD).",
+   "ar": "ثلاثة أحرف وفق ISO 4217 (AED وUSD وKWD)."
+  },
+  "settings.currencyName": {
+   "en": "Currency name",
+   "ar": "اسم العملة"
+  },
+  "settings.decimals": {
+   "en": "Decimals",
+   "ar": "المنازل العشرية"
+  },
+  "settings.decimalsHint": {
+   "en": "0 to 4. AED 2, KWD 3, JPY 0.",
+   "ar": "من 0 إلى 4. الدرهم 2، الدينار الكويتي 3، الين 0."
+  },
   "settings.defaultSet": {
    "en": "This is now the default language.",
    "ar": "أصبحت هذه اللغة الافتراضية."
@@ -1925,6 +2017,10 @@
   "settings.deleteConfirm": {
    "en": "Delete it and its texts",
    "ar": "احذفها مع نصوصها"
+  },
+  "settings.deleteCurrencyConfirm": {
+   "en": "Delete it? Services using it can't be published until they change currency",
+   "ar": "حذفها؟ لن يمكن نشر الخدمات التي تستخدمها حتى تغيّر عملتها"
   },
   "settings.deleteKey": {
    "en": "Delete text in all languages",
@@ -1954,6 +2050,10 @@
    "en": "The language is off.",
    "ar": "تم إيقاف اللغة."
   },
+  "settings.editCurrency": {
+   "en": "Edit {currency}",
+   "ar": "تعديل {currency}"
+  },
   "settings.editLanguage": {
    "en": "Edit {language}",
    "ar": "تعديل {language}"
@@ -1969,6 +2069,10 @@
   "settings.enabled": {
    "en": "The language is on.",
    "ar": "تم تفعيل اللغة."
+  },
+  "settings.example": {
+   "en": "Example",
+   "ar": "مثال"
   },
   "settings.export": {
    "en": "Export JSON",
@@ -2034,9 +2138,17 @@
    "en": "{n} missing",
    "ar": "{n} غير مترجم"
   },
+  "settings.newCurrencyNote": {
+   "en": "New currencies start disabled. Enable one when services should be able to use it.",
+   "ar": "تبدأ العملات الجديدة معطّلة. فعّلها عندما تريد أن تتمكن الخدمات من استخدامها."
+  },
   "settings.newDisabledNote": {
    "en": "New languages start turned off. Translate the texts, then turn the language on.",
    "ar": "تبدأ اللغات الجديدة متوقفة. ترجم النصوص ثم فعّل اللغة."
+  },
+  "settings.noCurrencies": {
+   "en": "No currencies match.",
+   "ar": "لا توجد عملات مطابقة."
   },
   "settings.noLanguages": {
    "en": "No languages",
@@ -2062,6 +2174,14 @@
    "en": "Keep words in braces, such as {label} or {n}, exactly as they are.",
    "ar": "احتفظ بالكلمات بين الأقواس مثل {label} أو {n} كما هي تمامًا."
   },
+  "settings.position.after": {
+   "en": "After the amount",
+   "ar": "بعد المبلغ"
+  },
+  "settings.position.before": {
+   "en": "Before the amount",
+   "ar": "قبل المبلغ"
+  },
   "settings.removeText": {
    "en": "Remove translation",
    "ar": "إزالة الترجمة"
@@ -2082,25 +2202,33 @@
    "en": "Show in the portal",
    "ar": "إظهار في البوابة"
   },
-  "settings.shown.backoffice": {
-   "en": "Back office only",
-   "ar": "المكتب الخلفي فقط"
-  },
-  "settings.shown.both": {
-   "en": "Portal and back office",
-   "ar": "البوابة والمكتب الخلفي"
-  },
-  "settings.shown.none": {
-   "en": "Hidden",
-   "ar": "مخفية"
-  },
-  "settings.shown.portal": {
-   "en": "Portal only",
-   "ar": "البوابة فقط"
-  },
   "settings.shownIn": {
    "en": "Shown in",
    "ar": "يظهر في"
+  },
+  "settings.shownTag.backoffice": {
+   "en": "Back office",
+   "ar": "المكتب الخلفي"
+  },
+  "settings.shownTag.none": {
+   "en": "Hidden",
+   "ar": "مخفية"
+  },
+  "settings.shownTag.portal": {
+   "en": "Portal",
+   "ar": "البوابة"
+  },
+  "settings.symbol": {
+   "en": "Symbol",
+   "ar": "الرمز المعروض"
+  },
+  "settings.symbolHint": {
+   "en": "Shown with amounts. UAE content rules use \"AED\" for the dirham.",
+   "ar": "يظهر مع المبالغ. تستخدم إرشادات المحتوى الإماراتية \"AED\" للدرهم."
+  },
+  "settings.symbolPosition": {
+   "en": "Symbol position",
+   "ar": "موضع الرمز"
   },
   "settings.title": {
    "en": "Settings",
@@ -2281,6 +2409,10 @@
   "status.notify.approvedPay": {
    "en": "Your application was approved. Please pay {currency} {amount} to receive your certificate.",
    "ar": "تمت الموافقة على طلبك. يرجى دفع {amount} {currency} لاستلام شهادتك."
+  },
+  "status.notify.approvedPayPrice": {
+   "en": "Your application was approved. Please pay {price} to receive your certificate.",
+   "ar": "تمت الموافقة على طلبك. يرجى دفع {price} لاستلام شهادتك."
   },
   "status.notify.certificateReady": {
    "en": "Your certificate is ready to download.",
@@ -2983,6 +3115,9 @@
   "builder.options": [
    "backoffice"
   ],
+  "builder.pageTitle": [
+   "backoffice"
+  ],
   "builder.pattern": [
    "backoffice"
   ],
@@ -3063,10 +3198,16 @@
   "builder.rule.currency": [
    "services"
   ],
+  "builder.rule.currencyDisabled": [
+   "services"
+  ],
   "builder.rule.description": [
    "services"
   ],
   "builder.rule.fee": [
+   "services"
+  ],
+  "builder.rule.feeDecimals": [
    "services"
   ],
   "builder.rule.fieldKey": [
@@ -3161,6 +3302,9 @@
   "builder.stepSettings": [
    "backoffice"
   ],
+  "builder.stepTitle": [
+   "backoffice"
+  ],
   "builder.steps": [
    "backoffice"
   ],
@@ -3179,9 +3323,7 @@
   "builder.tab.versions": [
    "backoffice"
   ],
-  "builder.title": [
-   "backoffice"
-  ],
+  "builder.title": [],
   "builder.type": [
    "backoffice"
   ],
@@ -3284,7 +3426,8 @@
   "chat.guided": [
    "portal"
   ],
-  "chat.guided.allFilled": [
+  "chat.guided.allFilled": [],
+  "chat.guided.allFilledPrice": [
    "services"
   ],
   "chat.guided.cannotSubmit": [
@@ -3347,9 +3490,7 @@
   "completed": [
    "backoffice"
   ],
-  "currency.AED": [
-   "services"
-  ],
+  "currency.AED": [],
   "decision": [
    "backoffice"
   ],
@@ -3417,6 +3558,33 @@
    "services"
   ],
   "errors.conflict": [
+   "services"
+  ],
+  "errors.currency.code": [
+   "services"
+  ],
+  "errors.currency.decimals": [
+   "services"
+  ],
+  "errors.currency.deleteDefault": [
+   "services"
+  ],
+  "errors.currency.disableDefault": [
+   "services"
+  ],
+  "errors.currency.exists": [
+   "services"
+  ],
+  "errors.currency.name": [
+   "services"
+  ],
+  "errors.currency.notFound": [
+   "services"
+  ],
+  "errors.currency.position": [
+   "services"
+  ],
+  "errors.currency.symbol": [
    "services"
   ],
   "errors.document.empty": [
@@ -3896,6 +4064,9 @@
    "portal",
    "backoffice"
   ],
+  "settings.addCurrency": [
+   "backoffice"
+  ],
   "settings.addKey": [
    "backoffice"
   ],
@@ -3914,6 +4085,30 @@
   "settings.completion": [
    "backoffice"
   ],
+  "settings.currencies": [
+   "backoffice"
+  ],
+  "settings.currenciesIntro": [
+   "backoffice"
+  ],
+  "settings.currency": [
+   "backoffice"
+  ],
+  "settings.currencyCode": [
+   "backoffice"
+  ],
+  "settings.currencyCodeHint": [
+   "backoffice"
+  ],
+  "settings.currencyName": [
+   "backoffice"
+  ],
+  "settings.decimals": [
+   "backoffice"
+  ],
+  "settings.decimalsHint": [
+   "backoffice"
+  ],
   "settings.defaultSet": [
    "backoffice"
   ],
@@ -3924,6 +4119,9 @@
    "backoffice"
   ],
   "settings.deleteConfirm": [
+   "backoffice"
+  ],
+  "settings.deleteCurrencyConfirm": [
    "backoffice"
   ],
   "settings.deleteKey": [
@@ -3947,6 +4145,9 @@
   "settings.disabled": [
    "backoffice"
   ],
+  "settings.editCurrency": [
+   "backoffice"
+  ],
   "settings.editLanguage": [
    "backoffice"
   ],
@@ -3957,6 +4158,9 @@
    "backoffice"
   ],
   "settings.enabled": [
+   "backoffice"
+  ],
+  "settings.example": [
    "backoffice"
   ],
   "settings.export": [
@@ -4007,7 +4211,13 @@
   "settings.missingCount": [
    "backoffice"
   ],
+  "settings.newCurrencyNote": [
+   "backoffice"
+  ],
   "settings.newDisabledNote": [
+   "backoffice"
+  ],
+  "settings.noCurrencies": [
    "backoffice"
   ],
   "settings.noLanguages": [
@@ -4028,6 +4238,12 @@
   "settings.placeholdersHint": [
    "backoffice"
   ],
+  "settings.position.after": [
+   "backoffice"
+  ],
+  "settings.position.before": [
+   "backoffice"
+  ],
   "settings.removeText": [
    "backoffice"
   ],
@@ -4043,19 +4259,25 @@
   "settings.showInPortal": [
    "backoffice"
   ],
-  "settings.shown.backoffice": [
-   "backoffice"
-  ],
-  "settings.shown.both": [
-   "backoffice"
-  ],
-  "settings.shown.none": [
-   "backoffice"
-  ],
-  "settings.shown.portal": [
-   "backoffice"
-  ],
   "settings.shownIn": [
+   "backoffice"
+  ],
+  "settings.shownTag.backoffice": [
+   "backoffice"
+  ],
+  "settings.shownTag.none": [
+   "backoffice"
+  ],
+  "settings.shownTag.portal": [
+   "backoffice"
+  ],
+  "settings.symbol": [
+   "backoffice"
+  ],
+  "settings.symbolHint": [
+   "backoffice"
+  ],
+  "settings.symbolPosition": [
    "backoffice"
   ],
   "settings.title": [
@@ -4230,6 +4452,11 @@
    "services"
   ],
   "status.notify.approvedPay": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.approvedPayPrice": [
    "portal",
    "backoffice",
    "services"

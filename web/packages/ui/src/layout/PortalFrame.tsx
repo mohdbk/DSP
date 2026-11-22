@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { Outlet, useRouter, useRouterState } from '@tanstack/react-router';
 import { siteName, useLang } from '@dsp/core';
 import { AppShell, type NavItem } from './AppShell';
@@ -39,7 +39,8 @@ export function PortalFrame({ service, homeLabel, navItems, user, notificationsH
       account={signedIn && user ? (
         <AccountArea name={user.name} role={user.role} unread={unread} notificationsHref={notificationsHref} onSignOut={onSignOut} />
       ) : undefined}>
-      <Outlet />
+      {/* TanStack Router memoises route components, so they wouldn't see the new language: remount the page. */}
+      <div className="contents"><Fragment key={lang}><Outlet /></Fragment></div>
     </AppShell>
   );
 }

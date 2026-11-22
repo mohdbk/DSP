@@ -12,6 +12,7 @@ import { ServiceEditorPage } from './pages/builder/ServiceEditor';
 import { LanguagesPage } from './pages/settings/Languages';
 import { TranslationsPage } from './pages/settings/Translations';
 import { AiSettingsPage } from './pages/settings/AiSettings';
+import { CurrenciesPage } from './pages/settings/Currencies';
 
 /** The back-office frame: government header and footer, staff navigation and the signed-in officer. */
 function Root() {
@@ -68,12 +69,16 @@ const translationsRoute = createRoute({
   getParentRoute: () => rootRoute, path: '/settings/translations', beforeLoad: guard, validateSearch: validateListSearch,
   component: TranslationsPage,
 });
+const currenciesRoute = createRoute({
+  getParentRoute: () => rootRoute, path: '/settings/currencies', beforeLoad: guard, validateSearch: validateListSearch,
+  component: CurrenciesPage,
+});
 const aiSettingsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/settings/ai', beforeLoad: guard, component: AiSettingsPage });
 
 export const router = createRouter({
   routeTree: rootRoute.addChildren([
     indexRoute, loginRoute, inboxRoute, taskRoute, applicationsRoute, applicationRoute, servicesRoute, newServiceRoute, serviceRoute,
-    settingsRoute, languagesRoute, translationsRoute, aiSettingsRoute,
+    settingsRoute, languagesRoute, translationsRoute, currenciesRoute, aiSettingsRoute,
   ]),
 });
 

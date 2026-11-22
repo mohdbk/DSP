@@ -62,12 +62,12 @@ export function ServicesPage() {
 
   return (
     <>
-      <PageHeader title={t('builder.title')} intro={t('builder.intro')}
+      <PageHeader title={t('builder.pageTitle')} intro={t('builder.intro')}
         actions={<AegovLink href="/services/new" appearance="solid" variant="primary">{t('builder.new')}</AegovLink>} />
       {error && <Notice kind="error">{error}</Notice>}
       {!services && !error && <Loading />}
       {services && (
-        <DataTable label={t('builder.title')} data={services} columns={columns} getRowId={s => s.code}
+        <DataTable label={t('builder.pageTitle')} data={services} columns={columns} getRowId={s => s.code}
           onRowAction={s => navigate({ to: '/services/$code', params: { code: s.code } })}
           {...listStateProps(search, next => navigate({ to: '/services', search: next, replace: true }))}
           emptyTitle={t('builder.empty')} />

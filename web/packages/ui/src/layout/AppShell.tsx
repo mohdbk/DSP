@@ -39,7 +39,7 @@ export function AppShell({ service, homeLabel, nav = [], account, children }: {
         {/* The header sizes its logo with ::slotted(img), but Tailwind's base styles (height: auto; max-width: 100%) win
             over shadow styles, so the same AEGOV sizes are set here: 48/64/72px tall, at most 12/18/20rem wide. */}
         <img slot="logo" src={logo} alt={t('entity.name')} className="h-12 w-auto max-w-48 lg:h-16 lg:max-w-72 xl:h-18 xl:max-w-80" />
-        <div slot="actions"><LanguageSwitch /></div>
+        <div slot="actions"><LanguageSwitch onDark /></div>
         {nav.length > 0 && (
           <AegovNavbar slot="navigation" labelNav={t('nav.main')}>
             {nav.map(item => <AegovNavbarItem key={item.href} href={item.href} isActive={!!item.active}>{item.label}</AegovNavbarItem>)}

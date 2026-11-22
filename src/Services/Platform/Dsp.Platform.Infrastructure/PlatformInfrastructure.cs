@@ -21,6 +21,7 @@ public abstract class PlatformDbContext(DbContextOptions options) : DbContext(op
     public DbSet<Language> Languages => Set<Language>();
     public DbSet<Translation> Translations => Set<Translation>();
     public DbSet<AiSettings> AiSettings => Set<AiSettings>();
+    public DbSet<Currency> Currencies => Set<Currency>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +45,17 @@ public abstract class PlatformDbContext(DbContextOptions options) : DbContext(op
             e.Property(x => x.Key).HasMaxLength(200);
             e.Property(x => x.LanguageCode).HasMaxLength(35);
             e.Property(x => x.Text).HasMaxLength(4000);
+            e.Property(x => x.UpdatedBy).HasMaxLength(200);
+        });
+        modelBuilder.Entity<Currency>(e =>
+        {
+            e.ToTable("Currencies");
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.Code).IsUnique();
+            e.Property(x => x.Code).HasMaxLength(3);
+            e.Property(x => x.Name).IsLocalizedText().HasMaxLength(2000);
+            e.Property(x => x.Symbol).HasMaxLength(10);
+            e.Property(x => x.SymbolPosition).HasMaxLength(6);
             e.Property(x => x.UpdatedBy).HasMaxLength(200);
         });
         modelBuilder.Entity<AiSettings>(e =>
@@ -115,6 +127,30 @@ public sealed class TranslationRepository(PlatformDbContext db) : ITranslationRe
 
     public async Task RemoveKeyAsync(string key, CancellationToken ct) =>
         db.Translations.RemoveRange(await db.Translations.Where(t => t.Key == key).ToListAsync(ct));
+}
+
+public sealed class CurrencyRepository(PlatformDbContext db, PlatformCache cache) : ICurrencyRepository
+{
+    public async Task<IReadOnlyList<Currency>> ListAsync(CancellationToken ct) => await db.Currencies.ToListAsync(ct);
+
+    public Task<Currency?> GetAsync(string code, CancellationToken ct) => db.Currencies.FirstOrDefaultAsync(c => c.Code == code, ct);
+
+    public async Task AddAsync(Currency currency, CancellationToken ct) => await db.Currencies.AddAsync(currency, ct);
+
+    public void Remove(Currency currency) => db.Currencies.Remove(currency);
+
+    public async Task SaveChangesAsync(CancellationToken ct)
+    {
+        await db.SaveChangesAsync(ct);
+        cache.Clear();
+    }
+}
+
+/// <summary>The Platform service reads its own currencies directly instead of over HTTP.</summary>
+public sealed class LocalCurrencies(CurrencyService currencies, PlatformCache cache) : ICurrencies
+{
+    public Task<IReadOnlyList<CurrencyInfo>> ListAsync(CancellationToken ct) =>
+        cache.GetAsync("currencies", () => currencies.ListAllAsync(ct));
 }
 
 public sealed class AiSettingsRepository(PlatformDbContext db, PlatformCache cache) : IAiSettingsRepository
@@ -242,6 +278,8 @@ public static class DependencyInjection
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
         services.AddScoped<IAiSettingsRepository, AiSettingsRepository>();
+        services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+        services.AddScoped<ICurrencies, LocalCurrencies>(); // before AddDspLocalization, which then keeps it
         services.AddSingleton<ISecretProtector, AesSecretProtector>();
         services.AddHttpClient(nameof(AiConnectionTester));
         services.AddScoped<IAiConnectionTester, AiConnectionTester>();

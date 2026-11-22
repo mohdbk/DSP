@@ -29,6 +29,9 @@ public static class LocalizationRegistration
             c.DefaultRequestHeaders.Add(InternalApi.Header, configuration["Internal:ApiKey"] ?? "");
             c.Timeout = TimeSpan.FromSeconds(10);
         });
+        services.TryAddSingleton<ICurrencies>(sp => new CurrencyClient(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient(nameof(LocalizationClient)),
+            sp.GetRequiredService<ILogger<CurrencyClient>>()));
         services.AddScoped<RequestLanguage>();
         services.AddScoped<IMessages>(sp => sp.GetRequiredService<RequestLanguage>().Messages);
         return services;
@@ -92,6 +95,33 @@ public sealed class LocalizationClient(HttpClient http, ILogger<LocalizationClie
         {
             logger.LogWarning(ex, "Platform service unavailable; using the last known {Key}", key);
             return hit.Value as T ?? fallback;
+        }
+    }
+}
+
+/// <summary>
+/// The currencies from the Platform service, cached for 30 seconds. If Platform can't be reached the last known list
+/// is used, and before the first one an empty list (amounts are then written with their code and two decimals).
+/// </summary>
+public sealed class CurrencyClient(HttpClient http, ILogger<CurrencyClient> logger) : ICurrencies
+{
+    private static readonly TimeSpan Ttl = TimeSpan.FromSeconds(30);
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+    private (DateTimeOffset At, IReadOnlyList<CurrencyInfo> Value)? _cache;
+
+    public async Task<IReadOnlyList<CurrencyInfo>> ListAsync(CancellationToken ct)
+    {
+        if (_cache is { } hit && DateTimeOffset.UtcNow - hit.At < Ttl) return hit.Value;
+        try
+        {
+            var value = await http.GetFromJsonAsync<List<CurrencyInfo>>("/internal/platform/currencies", Json, ct) ?? [];
+            _cache = (DateTimeOffset.UtcNow, value);
+            return value;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+        {
+            logger.LogWarning(ex, "Platform currencies unavailable; using the last known list");
+            return _cache?.Value ?? [];
         }
     }
 }

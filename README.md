@@ -96,6 +96,8 @@ Back Office → Settings has three pages:
   or deleted.
 - **Translations**: every key with the default text and the chosen language's text, and where it is used (portal,
   back office, both, or service messages); search, filter, edit, add keys, import and export JSON. Changes reach both portals and every service within 30 seconds.
+- **Currencies**: ISO code, name in every language, symbol and its position, decimals, enabled and default. The
+  builder offers enabled currencies only and checks the fee's decimals; every amount is written with these settings.
 - **AI**: provider, address, model, key (write-only, encrypted), temperature, timeout, limits, chat and review
   an emergency **Pause AI** (the model is otherwise always used once set up), the chat and pre-review prompts (with reset to default; `{ministry}` and `{portal}` come from
   Translations), extra instructions, and a connection test. The platform's safety rules are always added and

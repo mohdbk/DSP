@@ -80,7 +80,7 @@ public class AgenticProcessStepsTests
         _apps = new ApplicationServiceTests.FakeApplications(_log);
         _steps = new ProcessSteps(_apps, new PaymentCompletedHandlerTests.NoTasks(), new PaymentCompletedHandlerTests.NoPayments(),
             new PaymentCompletedHandlerTests.NoCertificates(), _bus, new StatusNotifier(_bus),
-            NullLogger<ProcessSteps>.Instance, new EmbeddedServiceCatalog(), _assessments, _reviewer, TestText.Localization, _policy);
+            NullLogger<ProcessSteps>.Instance, new EmbeddedServiceCatalog(), _assessments, _reviewer, TestText.Localization, _policy, TestText.Currencies);
 
         _app = ServiceApplication.Create("TRADE_NAME_RESERVATION", "Trade Name Reservation", WorkflowVersions.AiAssisted,
             "uaepass:abc", "Fatima", 200, "AED", new Dictionary<string, string?> { ["tradeNameAr"] = "Falcon" });

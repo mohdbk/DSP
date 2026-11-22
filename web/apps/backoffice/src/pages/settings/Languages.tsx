@@ -16,9 +16,10 @@ interface Draft {
   showInPortal: boolean; showInBackoffice: boolean;
 }
 
-/** Where a language is offered, for the table and its filter. */
-const shownIn = (l: LanguageAdmin) =>
-  l.showInPortal && l.showInBackoffice ? 'both' : l.showInPortal ? 'portal' : l.showInBackoffice ? 'backoffice' : 'none';
+/** Where a language is offered, as a list for the tags and the multiple filter ("none" when hidden from both). */
+const shownIn = (l: LanguageAdmin): string[] =>
+  [...(l.showInPortal ? ['portal'] : []), ...(l.showInBackoffice ? ['backoffice'] : [])].concat(l.showInPortal || l.showInBackoffice ? [] : ['none']);
+const shownVariant: Record<string, 'aegold' | 'seablue' | 'slate'> = { portal: 'aegold', backoffice: 'seablue', none: 'slate' };
 
 /** Languages: add, rename (in every language), order, enable, disable, make default and delete. */
 export function LanguagesPage() {
@@ -70,7 +71,8 @@ export function LanguagesPage() {
     showInPortal: draft!.showInPortal, showInBackoffice: draft!.showInBackoffice,
   });
 
-  const columns = useMemo<ColumnDef<LanguageAdmin, string>[]>(() => [
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const columns = useMemo<ColumnDef<LanguageAdmin, any>[]>(() => [
     {
       id: 'language', header: t('settings.language'), accessorFn: l => `${ownName(l)} ${loc(l.name)}`,
       cell: c => (
@@ -87,9 +89,13 @@ export function LanguagesPage() {
       meta: { filter: true, filterLabel: v => t(`settings.lang.${v}`) },
     },
     {
-      id: 'shownIn', header: t('settings.shownIn'), accessorFn: shownIn,
-      cell: c => <Tag variant={c.getValue() === 'none' ? 'slate' : 'aegold'}>{t(`settings.shown.${c.getValue()}`)}</Tag>,
-      meta: { filter: true, filterLabel: v => t(`settings.shown.${v}`) },
+      id: 'shownIn', header: t('settings.shownIn'), accessorFn: shownIn, enableSorting: false,
+      cell: c => (
+        <span className="flex flex-wrap gap-1">
+          {c.getValue<string[]>().map(v => <Tag key={v} variant={shownVariant[v]}>{t(`settings.shownTag.${v}`)}</Tag>)}
+        </span>
+      ),
+      meta: { filter: true, multiple: true, filterOptions: ['portal', 'backoffice', 'none'], filterLabel: v => t(`settings.shownTag.${v}`) },
     },
     {
       id: 'direction', header: t('settings.direction'), accessorFn: l => l.direction,

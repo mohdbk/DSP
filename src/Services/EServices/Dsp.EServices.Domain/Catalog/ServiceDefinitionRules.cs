@@ -19,7 +19,9 @@ public static partial class ServiceDefinitionRules
     public const int MaxChecklistItems = 20;
 
     /// <param name="messages">Messages in the editor's language; its default language is the one every text needs.</param>
-    public static List<FieldError> Validate(ServiceDefinition d, IMessages messages)
+    /// <param name="currency">The service's currency from the platform, when known: it must be enabled and the fee must
+    /// not have more decimals than it allows.</param>
+    public static List<FieldError> Validate(ServiceDefinition d, IMessages messages, CurrencyInfo? currency = null)
     {
         var errors = new List<FieldError>();
         var lang = messages.DefaultLanguage;
@@ -37,6 +39,8 @@ public static partial class ServiceDefinitionRules
         Require(d.Category, "category", "builder.rule.category");
         if (d.Fee <= 0) Add("fee", "builder.rule.fee");
         if (string.IsNullOrWhiteSpace(d.Currency) || d.Currency.Length != 3) Add("currency", "builder.rule.currency");
+        else if (currency is not null && !currency.IsEnabled) Add("currency", "builder.rule.currencyDisabled", ("currency", d.Currency));
+        if (currency is not null && d.Fee > 0 && !currency.Fits(d.Fee)) Add("fee", "builder.rule.feeDecimals", ("decimals", currency.Decimals));
         if (!WorkflowVersions.IsKnown(d.WorkflowVersion)) Add("workflowVersion", "builder.rule.workflow");
 
         if (d.ReviewChecklist is { } checklist)

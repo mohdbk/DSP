@@ -209,3 +209,45 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122172009_Currencies'
+)
+BEGIN
+    CREATE TABLE [platform].[Currencies] (
+        [Id] uniqueidentifier NOT NULL,
+        [Code] nvarchar(3) NOT NULL,
+        [Name] nvarchar(2000) NOT NULL,
+        [Symbol] nvarchar(10) NOT NULL,
+        [SymbolPosition] nvarchar(6) NOT NULL,
+        [Decimals] int NOT NULL,
+        [IsEnabled] bit NOT NULL,
+        [IsDefault] bit NOT NULL,
+        [SortOrder] int NOT NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedBy] nvarchar(200) NOT NULL,
+        CONSTRAINT [PK_Currencies] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122172009_Currencies'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_Currencies_Code] ON [platform].[Currencies] ([Code]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261122172009_Currencies'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261122172009_Currencies', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

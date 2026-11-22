@@ -32,6 +32,7 @@ var api = app.MapApi("platform");
 api.MapGet("/languages", (LanguageService svc, CancellationToken ct) => svc.ListEnabledAsync(ct)).AllowAnonymous();
 api.MapGet("/catalog/{lang}", (string lang, TranslationService svc, CancellationToken ct) => svc.GetCatalogAsync(lang, ct))
     .AllowAnonymous();
+api.MapGet("/currencies", (CurrencyService svc, CancellationToken ct) => svc.ListAllAsync(ct)).AllowAnonymous();
 
 // Staff: languages, texts and AI settings.
 var admin = api.MapGroup("/admin").RequireAuthorization("staff");
@@ -72,6 +73,23 @@ admin.MapGet("/translations/{code}/export", (string code, ClaimsPrincipal user, 
 admin.MapPost("/translations/{code}/import", (string code, Dictionary<string, string> strings, ClaimsPrincipal user,
     TranslationService svc, CancellationToken ct) => svc.ImportAsync(Caller(user), code, strings, ct));
 
+admin.MapGet("/currencies", (ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) => svc.ListForAdminAsync(Caller(user), ct));
+admin.MapPost("/currencies", (CurrencyRequest req, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
+    svc.CreateAsync(Caller(user), req, ct));
+admin.MapPut("/currencies/{code}", (string code, CurrencyRequest req, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
+    svc.UpdateAsync(Caller(user), code, req, ct));
+admin.MapPost("/currencies/{code}/enable", (string code, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
+    svc.SetEnabledAsync(Caller(user), code, true, ct));
+admin.MapPost("/currencies/{code}/disable", (string code, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
+    svc.SetEnabledAsync(Caller(user), code, false, ct));
+admin.MapPost("/currencies/{code}/default", (string code, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
+    svc.SetDefaultAsync(Caller(user), code, ct));
+admin.MapDelete("/currencies/{code}", async (string code, ClaimsPrincipal user, CurrencyService svc, CancellationToken ct) =>
+{
+    await svc.DeleteAsync(Caller(user), code, ct);
+    return Results.NoContent();
+});
+
 admin.MapGet("/ai", (ClaimsPrincipal user, AiSettingsService svc, CancellationToken ct) => svc.GetAsync(Caller(user), ct));
 admin.MapPut("/ai", (AiSettingsRequest req, ClaimsPrincipal user, AiSettingsService svc, CancellationToken ct) =>
     svc.UpdateAsync(Caller(user), req, ct));
@@ -83,6 +101,7 @@ internalApi.MapGet("/languages", (LanguageService svc, CancellationToken ct) => 
 internalApi.MapGet("/catalog/{lang}", async (string lang, TranslationService svc, CancellationToken ct) =>
     (await svc.GetCatalogAsync(lang, ct)).Strings);
 internalApi.MapGet("/ai", (AiSettingsService svc, CancellationToken ct) => svc.GetRuntimeAsync(ct));
+internalApi.MapGet("/currencies", (CurrencyService svc, CancellationToken ct) => svc.ListAllAsync(ct));
 // The AI policy alone (no model address or key), for services that act on the AI's results.
 internalApi.MapGet("/ai/policy", (AiSettingsService svc, CancellationToken ct) => svc.GetPolicyAsync(ct));
 

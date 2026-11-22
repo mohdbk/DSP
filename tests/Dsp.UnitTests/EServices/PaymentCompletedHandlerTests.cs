@@ -17,7 +17,7 @@ public class PaymentCompletedHandlerTests
     {
         var steps = new ProcessSteps(_store, new NoTasks(), new NoPayments(), new NoCertificates(), _bus,
             new StatusNotifier(_bus), NullLogger<ProcessSteps>.Instance, new Dsp.EServices.Infrastructure.Catalog.EmbeddedServiceCatalog(),
-            new InMemoryAssessments(), new StubReviewer(), TestText.Localization, new FixedAiPolicy(100));
+            new InMemoryAssessments(), new StubReviewer(), TestText.Localization, new FixedAiPolicy(100), TestText.Currencies);
         _handler = new PaymentCompletedHandler(_store, steps, _workflow, NullLogger<PaymentCompletedHandler>.Instance);
     }
 

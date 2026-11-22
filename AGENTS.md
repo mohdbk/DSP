@@ -181,7 +181,8 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   components follow. Use logical utilities only (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`,
   `text-start`/`text-end`), never left/right.
 - Wrap values that may be the other direction in `<bdi>` (numbers, references, names). Amounts read `AED 1,500`
-  in a left-to-right span (`Money`). Dates read `11 November 2026`; keep Latin digits.
+  in a left-to-right span (`Money`). Format amounts only with `formatMoney` (web) or `ICurrencies.FormatAsync`
+  (services): symbol, position and decimals come from Settings → Currencies; never hard-code `#,0.##` or a code. Dates read `11 November 2026`; keep Latin digits.
 
 ### Accessibility
 

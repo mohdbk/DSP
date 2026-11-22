@@ -17,6 +17,18 @@ public static class TestText
 
     public static ILocalization Localization { get; } = new SeedLocalization();
 
+    /// <summary>The shipped currencies as Platform serves them: AED (default) and KWD enabled, USD disabled.</summary>
+    public static ICurrencies Currencies { get; } = new FixedCurrencies([
+        new CurrencyInfo("AED", Text("UAE dirham", "درهم إماراتي"), "AED", "before", 2, true, true, 0),
+        new CurrencyInfo("KWD", Text("Kuwaiti dinar", "دينار كويتي"), "KWD", "before", 3, true, false, 10),
+        new CurrencyInfo("USD", Text("US dollar", "دولار أمريكي"), "USD", "before", 2, false, false, 20),
+    ]);
+
+    private sealed class FixedCurrencies(IReadOnlyList<CurrencyInfo> list) : ICurrencies
+    {
+        public Task<IReadOnlyList<CurrencyInfo>> ListAsync(CancellationToken ct) => Task.FromResult(list);
+    }
+
     public static LocalizedText Text(string en, string? ar = null) =>
         ar is null ? LocalizedText.Of("en", en) : new LocalizedText([new("en", en), new("ar", ar)]);
 

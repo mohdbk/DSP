@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { ApiError, getDefaultLang, getLang, t, type BuilderService, type FieldError, type LocalizedText, type ServiceDefinition } from '@dsp/core';
+import { ApiError, getCurrencies, getDefaultLang, getLang, t, type BuilderService, type FieldError, type LocalizedText, type ServiceDefinition } from '@dsp/core';
 import { AegovButton, AegovLink, MultilingualField, Notice, PageHeader, Panel, TextField } from '@dsp/ui';
 import { api } from '../../session';
 
@@ -11,7 +11,7 @@ const textNow = (text: string): LocalizedText => ({ [getLang()]: text });
 function blankService(code: string, name: LocalizedText): ServiceDefinition {
   return {
     code, name, description: {}, category: textNow(t('builder.defaultCategory')),
-    fee: 100, currency: 'AED', referenceField: null, workflowVersion: 1, reviewChecklist: [],
+    fee: 100, currency: getCurrencies().find(c => c.isDefault)?.code ?? 'AED', referenceField: null, workflowVersion: 1, reviewChecklist: [],
     steps: [{
       id: 'applicant', title: textNow(t('builder.defaultStep')), fields: [
         { key: 'fullName', label: textNow(t('builder.defaultFullName')), type: 'text', required: true, maxLength: 150, prefillFrom: 'name' },

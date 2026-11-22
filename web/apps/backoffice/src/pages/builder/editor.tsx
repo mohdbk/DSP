@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  FIELD_TYPES, formatDate, getLang, loc, PROFILE_CLAIMS, t, type FieldDefinition, type FieldType, type FormData, type FormStep,
+  FIELD_TYPES, formatDate, getCurrencies, getLang, loc, PROFILE_CLAIMS, t, type FieldDefinition, type FieldType, type FormData, type FormStep,
   type LocalizedText, type ServiceDefinition, type ServiceVersionInfo,
 } from '@dsp/core';
 import {
@@ -37,8 +37,10 @@ export function DetailsSection({ def, change, err }: EditorProps) {
         onChange={v => change(d => { d.category = v ?? {}; })} />
       <div className="grid gap-x-4 md:grid-cols-3">
         <NumberField id="fee" label={t('builder.fee')} value={def.fee} error={err('fee')} onChange={v => change(d => { d.fee = v ?? 0; })} />
-        <TextField id="currency" label={t('builder.currency')} dir="ltr" value={def.currency} error={err('currency')}
-          onChange={v => change(d => { d.currency = v.toUpperCase().slice(0, 3); })} />
+        <ChoiceField id="currency" as="select" label={t('builder.currency')} value={def.currency} error={err('currency')}
+          choices={getCurrencies().filter(c => c.isEnabled || c.code === def.currency)
+            .map(c => ({ value: c.code, label: `${c.code} · ${loc(c.name, c.code)}` }))}
+          onChange={v => change(d => { d.currency = v; })} />
         <ChoiceField id="referenceField" as="select" label={t('builder.referenceField')} hint={t('builder.referenceHelp')}
           error={err('referenceField')} value={def.referenceField ?? ''}
           choices={[{ value: '', label: t('builder.none') }, ...textFields.map(f => ({ value: f.key, label: `${loc(f.label)} (${f.key})` }))]}
@@ -183,7 +185,7 @@ function StepSettings({ step, at, err, update, remove, canRemove }: {
       actions={<AegovButton appearance="link" variant="danger" size="sm" isDisabled={!canRemove} onAegovButtonClick={remove}>{t('builder.remove')}</AegovButton>}>
       <TextField id={`${at}-id`} label={t('builder.stepId')} dir="ltr" value={step.id} error={err(`${at}.id`)}
         onChange={v => update(s => { s.id = v.toLowerCase().replace(/[^a-z0-9-]/g, '-'); })} />
-      <MultilingualField id={`${at}-title`} label={t('builder.title')} value={step.title}
+      <MultilingualField id={`${at}-title`} label={t('builder.stepTitle')} value={step.title}
         error={code => err(`${at}.title.${code}`)} onChange={v => update(s => { s.title = v ?? {}; })} />
       <MultilingualField id={`${at}-desc`} multiline optional label={t('builder.stepDesc')} value={step.description}
         onChange={v => update(s => { s.description = v; })} />
