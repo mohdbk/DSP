@@ -47,12 +47,21 @@ public static class WorkflowVersions
     public const int Standard = 1;
 
     /// <summary>
-    /// v2, agentic: an AI pre-review first (it can ask the applicant for more information); clear cases are approved
-    /// automatically when the service allows it, everything else goes to staff.
+    /// v2, AI-assisted (partially agentic): an AI review first — it can ask the applicant to fix things and gives the
+    /// officer a recommendation and findings — then an officer decides every case.
     /// </summary>
     public const int AiAssisted = 2;
 
-    public static bool IsKnown(int version) => version is Standard or AiAssisted;
+    /// <summary>
+    /// v3, agentic: as AI-assisted, and the AI approves clear cases itself (see Applications.AutoApprovalPolicy).
+    /// Anything unclear, every rejection and an audit sample still go to an officer.
+    /// </summary>
+    public const int Agentic = 3;
+
+    public static bool IsKnown(int version) => version is Standard or AiAssisted or Agentic;
+
+    /// <summary>The AI reviews applications (AI-assisted and agentic).</summary>
+    public static bool UsesAi(int version) => version is AiAssisted or Agentic;
 }
 
 public sealed class FormStep

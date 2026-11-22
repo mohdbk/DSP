@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { formatDate, formatMoney, loc, openDocument, t, type Application, type Payment, type ServiceDefinition } from '@dsp/core';
+import { formatDate, formatMoney, loc, openDocument, t, type Application, type Payment, type ServiceDefinition, usesAi } from '@dsp/core';
 import {
   AegovButton, ApplicationJourney, ApplicationSummary, CreditCard, DescriptionList, DownloadSimple, IconLabel, Money, Notice, Panel, ServiceAnswers, SplitLayout,
 } from '@dsp/ui';
@@ -50,7 +50,7 @@ export function StatusView({ app, service, onRefresh }: {
       main={(
         <>
           {app.status === 'Rejected' && <Notice kind="error" title={t('status.notApproved')}>{app.decisionComment}</Notice>}
-          {(app.status === 'AiReview' || (app.status === 'Submitted' && app.workflowVersion === 2)) && (
+          {(app.status === 'AiReview' || (app.status === 'Submitted' && usesAi(app.workflowVersion))) && (
             <Notice kind="info">{t('status.aiChecking')}</Notice>
           )}
           {app.status === 'AwaitingPayment' && !paid && (

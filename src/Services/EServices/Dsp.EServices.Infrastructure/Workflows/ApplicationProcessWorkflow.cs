@@ -68,7 +68,7 @@ public sealed class ApplicationProcessWorkflow : WorkflowBase
 }
 
 /// <summary>
-/// The agentic process (workflow version 2), side by side with version 1: services move to it by publishing
+/// The AI process, for workflow versions 2 (AI-assisted) and 3 (agentic), side by side with version 1: services move to it by publishing
 /// a new service version, while applications already in flight finish on the version they started.
 /// submitted → AI pre-review ⟲ (ask the applicant for missing or inconsistent information, at most twice)
 /// → clear case and the service allows it: approved automatically → payment → certificate;

@@ -107,6 +107,10 @@ public sealed class ApplicationRepository(EServicesDbContext db) : IApplicationR
         await db.Applications.AsNoTracking().Where(a => a.Status != ApplicationStatus.Draft)
             .OrderByDescending(a => a.UpdatedAt).Take(take).ToListAsync(ct);
 
+    public async Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct) =>
+        await db.Applications.AsNoTracking().Where(a => a.ServiceCode == serviceCode && a.Approved != null)
+            .OrderByDescending(a => a.UpdatedAt).Take(take).ToListAsync(ct);
+
     public Task<bool> ReferenceInUseAsync(string serviceCode, string referenceValue, Guid excludeId,
         CancellationToken ct) =>
         db.Applications.AnyAsync(a => a.ServiceCode == serviceCode && a.Id != excludeId &&
@@ -152,6 +156,19 @@ public sealed class AiAssessmentRepository(EServicesDbContext db) : IAiAssessmen
     public async Task<IReadOnlyList<AiAssessment>> ListForApplicationAsync(Guid applicationId, CancellationToken ct) =>
         (await db.AiAssessments.AsNoTracking().Where(a => a.ApplicationId == applicationId).ToListAsync(ct))
             .OrderByDescending(a => a.Round).ThenByDescending(a => a.CreatedAt).ToList();
+
+    public async Task<IReadOnlyDictionary<Guid, AiAssessment>> LatestForApplicationsAsync(IReadOnlyCollection<Guid> applicationIds,
+        CancellationToken ct)
+    {
+        var latest = new Dictionary<Guid, AiAssessment>();
+        foreach (var chunk in applicationIds.Chunk(500))
+        {
+            var rows = await db.AiAssessments.AsNoTracking().Where(a => chunk.Contains(a.ApplicationId)).ToListAsync(ct);
+            foreach (var group in rows.GroupBy(a => a.ApplicationId))
+                latest[group.Key] = group.OrderByDescending(a => a.Round).ThenByDescending(a => a.CreatedAt).First();
+        }
+        return latest;
+    }
 
     public async Task AddAsync(AiAssessment assessment, CancellationToken ct) => await db.AiAssessments.AddAsync(assessment, ct);
 }

@@ -35,6 +35,9 @@ public interface IApplicationRepository
 
     Task<IReadOnlyList<ServiceApplication>> ListForApplicantAsync(string applicantId, CancellationToken ct);
     Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct);
+
+    /// <summary>The service's most recently decided applications (approved or rejected), newest first.</summary>
+    Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct);
     Task<bool> ReferenceInUseAsync(string serviceCode, string referenceValue, Guid excludeId, CancellationToken ct);
 
     /// <summary>Reference values (e.g. trade names) of other active applications for the service.</summary>
@@ -56,6 +59,10 @@ public interface IReviewTaskRepository
 public interface IAiAssessmentRepository
 {
     Task<IReadOnlyList<AiAssessment>> ListForApplicationAsync(Guid applicationId, CancellationToken ct);
+
+    /// <summary>The latest round for each of the applications that has one.</summary>
+    Task<IReadOnlyDictionary<Guid, AiAssessment>> LatestForApplicationsAsync(IReadOnlyCollection<Guid> applicationIds, CancellationToken ct);
+
     Task AddAsync(AiAssessment assessment, CancellationToken ct);
 }
 

@@ -79,6 +79,7 @@ public class PaymentCompletedHandlerTests
         public Task<ServiceApplication?> ReadAsync(Guid id, CancellationToken ct) => GetAsync(id, ct);
         public Task<IReadOnlyList<ServiceApplication>> ListForApplicantAsync(string applicantId, CancellationToken ct) => throw new NotSupportedException();
         public Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct) => throw new NotSupportedException();
         public Task<bool> ReferenceInUseAsync(string s, string r, Guid e, CancellationToken ct) => Task.FromResult(false);
         public Task<IReadOnlyList<string>> ListActiveReferencesAsync(string s, Guid e, int take, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<string>>([]);

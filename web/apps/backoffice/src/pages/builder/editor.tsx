@@ -49,7 +49,8 @@ export function DetailsSection({ def, change, err }: EditorProps) {
       <ChoiceField id="process" as="cards" label={t('builder.process')} error={err('workflowVersion')} value={String(def.workflowVersion)}
         choices={[
           { value: '1', label: t('process.v1'), hint: t('builder.processV1') },
-          { value: '2', label: t('process.v2'), hint: t('builder.processV2Auto') },
+          { value: '2', label: t('process.v2'), hint: t('builder.processV2') },
+          { value: '3', label: t('process.v3'), hint: t('builder.processV2Auto') },
         ]}
         onChange={v => change(d => { d.workflowVersion = Number(v); })} />
     </Panel>
@@ -72,7 +73,7 @@ export function ReviewSection({ def, change, err, hasErr }: EditorProps) {
   });
   return (
     <Panel>
-      {def.workflowVersion !== 2 && <Notice kind="info">{t('builder.checklistV1')}</Notice>}
+      {def.workflowVersion === 1 && <Notice kind="info">{t('builder.checklistV1')}</Notice>}
       {listError && <Notice kind="error">{listError}</Notice>}
       <p className="mb-4 text-sm text-aeblack-600">{t('builder.checklistHelp')}</p>
       <div className={orderedLanguages().length > 1 ? 'grid gap-x-4 md:grid-cols-2' : undefined}>

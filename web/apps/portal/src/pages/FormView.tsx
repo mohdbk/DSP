@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ApiError, loc, openDocument, t, uploadDocument, type Application, type FieldError, type FormData, type SaveResult, type ServiceDefinition } from '@dsp/core';
+import { ApiError, loc, openDocument, t, uploadDocument, type Application, type FieldError, type FormData, type SaveResult, type ServiceDefinition, usesAi } from '@dsp/core';
 import {
   Actions, AegovButton, ArrowLeft, ArrowRight, IconLabel, Notice, Panel, PaperPlaneRight, PencilSimple, ServiceAnswers, StepFields, StepProgress,
 } from '@dsp/ui';
@@ -92,7 +92,7 @@ export function FormView({ app, service, onChange, resubmit }: {
           <ServiceAnswers steps={steps} values={app.data} fileNames={fileNames}
             onOpenFile={id => openDocument(api, id)}
             stepAction={i => <AegovButton appearance="link" size="sm" onAegovButtonClick={() => setCurrent(i)}><IconLabel icon={PencilSimple}>{t('form.change')}</IconLabel></AegovButton>} />
-          {!resubmit && <div className="mt-6"><Notice kind="info">{app.workflowVersion === 2 ? t('form.afterSubmitAi') : t('form.afterSubmit')}</Notice></div>}
+          {!resubmit && <div className="mt-6"><Notice kind="info">{t(app.workflowVersion === 3 ? 'form.afterSubmitAgentic' : usesAi(app.workflowVersion) ? 'form.afterSubmitAi' : 'form.afterSubmit')}</Notice></div>}
           <Actions align="between">
             <AegovButton appearance="outline" isDisabled={busy} onAegovButtonClick={() => setCurrent(steps.length - 1)}><IconLabel icon={ArrowLeft} mirror>{t('back')}</IconLabel></AegovButton>
             <AegovButton isLoading={busy} onAegovButtonClick={submit}><IconLabel icon={PaperPlaneRight} mirror>{resubmit ? t('form.resubmit') : t('form.submit')}</IconLabel></AegovButton>

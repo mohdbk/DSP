@@ -1,4 +1,4 @@
-import { formatDate, loc, t, type AiAssessment } from '@dsp/core';
+import { formatDate, loc, t, type AiAssessment, usesAi } from '@dsp/core';
 import { Panel } from '../layout/Page';
 import { Tag } from '../feedback/Feedback';
 
@@ -18,9 +18,9 @@ export function RecommendationTag({ value, short }: { value?: string | null; sho
   return <Tag variant={variant}>{t((short ? `ai.recShort.${value}` : `ai.rec.${value}`))}</Tag>;
 }
 
-/** What the AI pre-review found, for the officer. The AI advises; staff decide. */
+/** What the AI review found, for the officer. The AI advises; staff decide. */
 export function AiReviewPanel({ assessments, workflowVersion }: { assessments?: AiAssessment[]; workflowVersion: number }) {
-  if (workflowVersion !== 2) {
+  if (!usesAi(workflowVersion)) {
     return <Panel title={t('ai.title')}><p className="text-aeblack-600">{t('ai.none')}</p></Panel>;
   }
   if (!assessments) return null;

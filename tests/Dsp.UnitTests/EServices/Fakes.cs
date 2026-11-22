@@ -12,6 +12,11 @@ public sealed class InMemoryAssessments : IAiAssessmentRepository
         Task.FromResult<IReadOnlyList<AiAssessment>>(Items.Where(a => a.ApplicationId == applicationId)
             .OrderByDescending(a => a.Round).ToList());
 
+    public Task<IReadOnlyDictionary<Guid, AiAssessment>> LatestForApplicationsAsync(IReadOnlyCollection<Guid> applicationIds,
+        CancellationToken ct) =>
+        Task.FromResult<IReadOnlyDictionary<Guid, AiAssessment>>(Items.Where(a => applicationIds.Contains(a.ApplicationId))
+            .GroupBy(a => a.ApplicationId).ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.Round).First()));
+
     public Task AddAsync(AiAssessment assessment, CancellationToken ct)
     {
         Items.Add(assessment);

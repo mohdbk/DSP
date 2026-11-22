@@ -107,7 +107,7 @@ public sealed class ProcessSteps(
     {
         var app = await LoadAsync(applicationId, ct);
         string? recommendation = null;
-        if (app.WorkflowVersion == WorkflowVersions.AiAssisted)
+        if (WorkflowVersions.UsesAi(app.WorkflowVersion))
             recommendation = (await assessments.ListForApplicationAsync(app.Id, ct)).FirstOrDefault()?.Recommendation;
 
         app.StartReview();

@@ -99,6 +99,9 @@ export interface Application {
   decidedByAi?: boolean;
 }
 
+/** The application process: 1 standard, 2 AI-assisted (officer decides), 3 agentic (AI approves clear cases). */
+export const usesAi = (workflowVersion: number) => workflowVersion === 2 || workflowVersion === 3;
+
 export interface FieldError { field: string; message: string }
 
 export interface SaveResult { application: Application; errors: FieldError[] }

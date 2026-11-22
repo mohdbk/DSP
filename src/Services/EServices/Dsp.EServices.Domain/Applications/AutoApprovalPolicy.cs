@@ -19,7 +19,7 @@ public sealed record AutoApprovalOutcome(bool Approve, string Reason);
 /// Straight-through processing for the agentic process. The AI approves an application itself only when all of
 /// these hold; otherwise a case officer decides as usual:
 /// <list type="bullet">
-/// <item>the service uses the agentic process (choosing it is choosing straight-through processing);</item>
+/// <item>the service uses the agentic process (v3; AI-assisted v2 always leaves the decision to an officer);</item>
 /// <item>the model reviewed it (not just the built-in checks: the AI isn't paused, missing or failing);</item>
 /// <item>it recommends approval, with no questions for the applicant;</item>
 /// <item>there are no issues or warnings — from the model or from the built-in checks — only "checked, fine";</item>
@@ -34,7 +34,7 @@ public static class AutoApprovalPolicy
 
     public static AutoApprovalOutcome Evaluate(int workflowVersion, AiAssessment? latest, Guid applicationId, int auditSamplePercent)
     {
-        if (workflowVersion != WorkflowVersions.AiAssisted)
+        if (workflowVersion != WorkflowVersions.Agentic)
             return new(false, AutoApprovalReasons.NotAgentic);
         if (latest is null || latest.Mode != "llm")
             return new(false, AutoApprovalReasons.NoModel);

@@ -26,8 +26,8 @@ export function ApplicationsPage() {
     { id: 'reference', header: t('reference'), accessorFn: a => a.referenceValue ?? '', cell: c => c.getValue() ? <bdi>{c.getValue()}</bdi> : '—' },
     {
       id: 'process', header: t('workflow'), accessorFn: a => String(a.workflowVersion),
-      cell: c => t(c.getValue() === '2' ? 'process.v2' : 'process.v1'),
-      meta: { filter: true, filterLabel: v => t(v === '2' ? 'process.v2' : 'process.v1') },
+      cell: c => t(`process.v${c.getValue()}`),
+      meta: { filter: true, filterLabel: v => t(`process.v${v}`) },
     },
     {
       id: 'status', header: t('status'), accessorFn: a => a.status, cell: c => <StatusBadge status={c.getValue() as ApplicationStatus} />,

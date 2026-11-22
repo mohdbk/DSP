@@ -50,8 +50,8 @@ export function ServicesPage({ creating = false }: { creating?: boolean }) {
     },
     {
       id: 'process', header: t('builder.process'), accessorFn: s => String(s.workflowVersion),
-      cell: c => (c.getValue() === '2' ? <Tag variant="techblue">{t('process.v2')}</Tag> : t('process.v1')),
-      meta: { filter: true, filterLabel: v => t(v === '2' ? 'process.v2' : 'process.v1') },
+      cell: c => (c.getValue() === '1' ? t('process.v1') : <Tag variant={c.getValue() === '3' ? 'aegold' : 'techblue'}>{t(`process.v${c.getValue()}`)}</Tag>),
+      meta: { filter: true, filterLabel: v => t(`process.v${v}`) },
     },
     {
       id: 'updated', header: t('builder.lastChange'), accessorFn: s => s.updatedAt,

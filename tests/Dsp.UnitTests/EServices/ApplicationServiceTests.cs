@@ -166,6 +166,9 @@ public class ApplicationServiceTests
         public Task<IReadOnlyList<ServiceApplication>> ListAllAsync(int take, CancellationToken ct) =>
             Task.FromResult<IReadOnlyList<ServiceApplication>>(_items.Take(take).ToList());
 
+        public Task<IReadOnlyList<ServiceApplication>> ListDecidedAsync(string serviceCode, int take, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ServiceApplication>>(_items.Where(a => a.ServiceCode == serviceCode && a.Approved != null).Take(take).ToList());
+
         public Task<bool> ReferenceInUseAsync(string serviceCode, string referenceValue, Guid excludeId, CancellationToken ct) =>
             Task.FromResult(_items.Any(a => a.ServiceCode == serviceCode && a.Id != excludeId &&
                                             a.ReferenceValue == referenceValue && a.Status != ApplicationStatus.Draft &&
