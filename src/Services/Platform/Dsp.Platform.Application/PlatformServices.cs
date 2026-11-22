@@ -62,7 +62,9 @@ public sealed record LanguageRequest(string Code, LocalizedText Name, string Dir
 
 public sealed record CatalogDto(string Language, string DefaultLanguage, string Direction, IReadOnlyDictionary<string, string> Strings);
 
-public sealed record TranslationRowDto(string Key, string DefaultText, string? Text, DateTimeOffset? UpdatedAt, string? UpdatedBy);
+/// <param name="UsedIn">Where the key is used: "portal", "backoffice" and/or "services"; empty for keys staff added or no longer used.</param>
+public sealed record TranslationRowDto(string Key, string DefaultText, string? Text, DateTimeOffset? UpdatedAt, string? UpdatedBy,
+    IReadOnlyList<string> UsedIn);
 
 public sealed record SetTranslationRequest(string? Text);
 
@@ -184,7 +186,13 @@ public sealed class LanguageService(ILanguageRepository languages, ITranslationR
 }
 
 /// <summary>Message texts: catalogues for the portals and services, and translation management for staff.</summary>
-public sealed class TranslationService(ILanguageRepository languages, ITranslationRepository translations)
+/// <summary>Where each shipped key is used (worked out from the source by tools/i18n/usage.mjs).</summary>
+public interface ITextUsage
+{
+    IReadOnlyList<string> UsedIn(string key);
+}
+
+public sealed class TranslationService(ILanguageRepository languages, ITranslationRepository translations, ITextUsage usage)
 {
     /// <summary>Every key in <paramref name="code"/>, with the default language's text where it has none.</summary>
     public async Task<CatalogDto> GetCatalogAsync(string code, CancellationToken ct)
@@ -213,8 +221,8 @@ public sealed class TranslationService(ILanguageRepository languages, ITranslati
 
         var rows = defaults.OrderBy(t => t.Key, StringComparer.Ordinal)
             .Select(d => target.TryGetValue(d.Key, out var t)
-                ? new TranslationRowDto(d.Key, d.Text, t.Text, t.UpdatedAt, t.UpdatedBy)
-                : new TranslationRowDto(d.Key, d.Text, null, null, null))
+                ? new TranslationRowDto(d.Key, d.Text, t.Text, t.UpdatedAt, t.UpdatedBy, usage.UsedIn(d.Key))
+                : new TranslationRowDto(d.Key, d.Text, null, null, null, usage.UsedIn(d.Key)))
             .Where(r => !missingOnly || r.Text is null)
             .Where(r => string.IsNullOrWhiteSpace(search) ||
                         r.Key.Contains(search, StringComparison.OrdinalIgnoreCase) ||
@@ -355,7 +363,8 @@ public sealed class AiSettingsService(IAiSettingsRepository settings, ISecretPro
 /// <summary>The languages and texts shipped with a release, added to the database on start-up.</summary>
 public sealed record SeedLanguage(string Code, LocalizedText Name, string Direction, bool IsDefault, int SortOrder);
 
-public sealed record SeedData(IReadOnlyList<SeedLanguage> Languages, IReadOnlyDictionary<string, LocalizedText> Strings);
+public sealed record SeedData(IReadOnlyList<SeedLanguage> Languages, IReadOnlyDictionary<string, LocalizedText> Strings,
+    IReadOnlyDictionary<string, string[]>? Usage = null);
 
 /// <summary>
 /// First start: creates the shipped languages (the shipped default becomes the default) and their texts.

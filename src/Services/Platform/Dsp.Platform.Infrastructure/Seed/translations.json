@@ -214,10 +214,6 @@
    "en": "Extra instructions",
    "ar": "تعليمات إضافية"
   },
-  "ai.settings.instructionsHint": {
-   "en": "Added to the built-in instructions. The built-in guardrails always apply.",
-   "ar": "تُضاف إلى التعليمات المدمجة، وتبقى الضوابط المدمجة سارية دائمًا."
-  },
   "ai.settings.intro": {
    "en": "The model behind the chat assistant and the AI pre-review. Any OpenAI-compatible service works. Without a model, the guided chat and the built-in checks are used.",
    "ar": "النموذج الذي يعمل خلف المساعد والمراجعة المسبقة. تعمل أي خدمة متوافقة مع OpenAI. وبدون نموذج تُستخدم المحادثة الموجهة والفحوص المدمجة."
@@ -1986,6 +1982,34 @@
    "en": "Every text of both portals, the e-services' messages, notifications and the assistant, in each language. Texts with {placeholders} keep them as they are.",
    "ar": "جميع نصوص البوابتين ورسائل الخدمات والإشعارات والمساعد بكل لغة. احتفظ بالعناصر بين القوسين مثل {placeholders} كما هي."
   },
+  "settings.use.backoffice": {
+   "en": "Back office",
+   "ar": "المكتب الخلفي"
+  },
+  "settings.use.both": {
+   "en": "Portal and back office",
+   "ar": "البوابة والمكتب الخلفي"
+  },
+  "settings.use.portal": {
+   "en": "Portal",
+   "ar": "البوابة"
+  },
+  "settings.use.services": {
+   "en": "Service messages",
+   "ar": "رسائل الخدمات"
+  },
+  "settings.use.unused": {
+   "en": "Not found in the code",
+   "ar": "غير موجود في الشيفرة"
+  },
+  "settings.usedIn": {
+   "en": "Used in",
+   "ar": "مستخدم في"
+  },
+  "settings.usedInNote": {
+   "en": "Used in: where a text appears. Service messages come from the platform's services (errors, notifications, chat, certificates) and can appear in either portal.",
+   "ar": "مستخدم في: مكان ظهور النص. رسائل الخدمات تصدر من خدمات المنصة (الأخطاء والإشعارات والمحادثة والشهادات) وقد تظهر في أي من البوابتين."
+  },
   "signOut": {
    "en": "Sign out",
    "ar": "تسجيل الخروج"
@@ -2306,5 +2330,1836 @@
    "en": "Process",
    "ar": "الإجراء"
   }
+ },
+ "usage": {
+  "ai.advice": [
+   "backoffice"
+  ],
+  "ai.mode.llm": [
+   "backoffice"
+  ],
+  "ai.mode.rules": [
+   "backoffice"
+  ],
+  "ai.mode.unavailable": [
+   "backoffice"
+  ],
+  "ai.none": [
+   "backoffice"
+  ],
+  "ai.questions": [
+   "backoffice"
+  ],
+  "ai.rec.approve": [
+   "backoffice"
+  ],
+  "ai.rec.reject": [
+   "backoffice"
+  ],
+  "ai.rec.request_information": [
+   "backoffice"
+  ],
+  "ai.rec.unavailable": [
+   "backoffice"
+  ],
+  "ai.recShort.approve": [
+   "backoffice"
+  ],
+  "ai.recShort.reject": [
+   "backoffice"
+  ],
+  "ai.recShort.request_information": [
+   "backoffice"
+  ],
+  "ai.recShort.unavailable": [
+   "backoffice"
+  ],
+  "ai.review.checkAgain": [
+   "services"
+  ],
+  "ai.review.unavailable": [
+   "services"
+  ],
+  "ai.round": [
+   "backoffice"
+  ],
+  "ai.rules.ask.missing": [
+   "services"
+  ],
+  "ai.rules.ask.notArabic": [
+   "services"
+  ],
+  "ai.rules.ask.notLatin": [
+   "services"
+  ],
+  "ai.rules.confirmItem": [
+   "services"
+  ],
+  "ai.rules.datePast": [
+   "services"
+  ],
+  "ai.rules.fileAttached": [
+   "services"
+  ],
+  "ai.rules.hasArabic": [
+   "services"
+  ],
+  "ai.rules.missing": [
+   "services"
+  ],
+  "ai.rules.mixed": [
+   "services"
+  ],
+  "ai.rules.notArabic": [
+   "services"
+  ],
+  "ai.rules.placeholder": [
+   "services"
+  ],
+  "ai.rules.similar": [
+   "services"
+  ],
+  "ai.rules.summary.ask": [
+   "services"
+  ],
+  "ai.rules.summary.clean": [
+   "services"
+  ],
+  "ai.rules.summary.warnings": [
+   "services"
+  ],
+  "ai.settings.apiKey": [
+   "backoffice"
+  ],
+  "ai.settings.apiKeyNone": [
+   "backoffice"
+  ],
+  "ai.settings.apiKeySaved": [
+   "backoffice"
+  ],
+  "ai.settings.baseUrl": [
+   "backoffice"
+  ],
+  "ai.settings.baseUrlHint": [
+   "backoffice"
+  ],
+  "ai.settings.behaviour": [
+   "backoffice"
+  ],
+  "ai.settings.chatEnabled": [
+   "backoffice"
+  ],
+  "ai.settings.chatEnabledHint": [
+   "backoffice"
+  ],
+  "ai.settings.chatInstructions": [
+   "backoffice"
+  ],
+  "ai.settings.chatPrompt": [
+   "backoffice"
+  ],
+  "ai.settings.configured": [
+   "backoffice"
+  ],
+  "ai.settings.connection": [
+   "backoffice"
+  ],
+  "ai.settings.extraHint": [
+   "backoffice"
+  ],
+  "ai.settings.history": [
+   "backoffice"
+  ],
+  "ai.settings.historyHint": [
+   "backoffice"
+  ],
+  "ai.settings.instructions": [
+   "backoffice"
+  ],
+  "ai.settings.intro": [
+   "backoffice"
+  ],
+  "ai.settings.iterations": [
+   "backoffice"
+  ],
+  "ai.settings.iterationsHint": [
+   "backoffice"
+  ],
+  "ai.settings.lastChange": [
+   "backoffice"
+  ],
+  "ai.settings.model": [
+   "backoffice"
+  ],
+  "ai.settings.modelHint": [
+   "backoffice"
+  ],
+  "ai.settings.notConfigured": [
+   "backoffice"
+  ],
+  "ai.settings.promptCustom": [
+   "backoffice"
+  ],
+  "ai.settings.promptDefault": [
+   "backoffice"
+  ],
+  "ai.settings.prompts": [
+   "backoffice"
+  ],
+  "ai.settings.promptsIntro": [
+   "backoffice"
+  ],
+  "ai.settings.provider": [
+   "backoffice"
+  ],
+  "ai.settings.providerHint": [
+   "backoffice"
+  ],
+  "ai.settings.removeKey": [
+   "backoffice"
+  ],
+  "ai.settings.resetPrompt": [
+   "backoffice"
+  ],
+  "ai.settings.reviewEnabled": [
+   "backoffice"
+  ],
+  "ai.settings.reviewEnabledHint": [
+   "backoffice"
+  ],
+  "ai.settings.reviewInstructions": [
+   "backoffice"
+  ],
+  "ai.settings.reviewPrompt": [
+   "backoffice"
+  ],
+  "ai.settings.saved": [
+   "backoffice"
+  ],
+  "ai.settings.temperature": [
+   "backoffice"
+  ],
+  "ai.settings.temperatureHint": [
+   "backoffice"
+  ],
+  "ai.settings.test": [
+   "backoffice"
+  ],
+  "ai.settings.timeout": [
+   "backoffice"
+  ],
+  "ai.settings.timeoutHint": [
+   "backoffice"
+  ],
+  "ai.sev.info": [
+   "backoffice"
+  ],
+  "ai.sev.issue": [
+   "backoffice"
+  ],
+  "ai.sev.warning": [
+   "backoffice"
+  ],
+  "ai.test.latency": [
+   "backoffice"
+  ],
+  "ai.test.notConfigured": [
+   "services"
+  ],
+  "ai.test.ok": [
+   "services"
+  ],
+  "ai.test.rejected": [
+   "services"
+  ],
+  "ai.test.unreachable": [
+   "services"
+  ],
+  "ai.title": [
+   "backoffice"
+  ],
+  "app.backoffice": [
+   "backoffice"
+  ],
+  "app.backofficeHome": [
+   "backoffice"
+  ],
+  "app.chat": [
+   "portal"
+  ],
+  "app.form": [
+   "portal"
+  ],
+  "app.howToApply": [
+   "portal"
+  ],
+  "app.infoNeeded": [
+   "portal"
+  ],
+  "app.infoNeededHow": [
+   "portal"
+  ],
+  "app.infoNeededIntro": [
+   "portal"
+  ],
+  "app.notFound": [
+   "portal",
+   "backoffice"
+  ],
+  "app.portal": [
+   "portal",
+   "services"
+  ],
+  "app.portalHome": [
+   "portal"
+  ],
+  "app.progress": [
+   "portal"
+  ],
+  "app.progressValue": [
+   "portal"
+  ],
+  "app.sideNote": [
+   "portal"
+  ],
+  "app.yours": [
+   "portal"
+  ],
+  "applicant": [
+   "portal",
+   "backoffice"
+  ],
+  "approved": [
+   "backoffice"
+  ],
+  "apps.back": [
+   "backoffice"
+  ],
+  "apps.empty": [
+   "backoffice"
+  ],
+  "apps.title": [
+   "backoffice"
+  ],
+  "apps.viewCertificate": [
+   "backoffice"
+  ],
+  "back": [
+   "portal",
+   "backoffice"
+  ],
+  "builder.addField": [
+   "backoffice"
+  ],
+  "builder.addOption": [
+   "backoffice"
+  ],
+  "builder.addStep": [
+   "backoffice"
+  ],
+  "builder.backToList": [
+   "backoffice"
+  ],
+  "builder.by": [
+   "backoffice"
+  ],
+  "builder.category": [
+   "backoffice"
+  ],
+  "builder.checklist": [
+   "backoffice"
+  ],
+  "builder.checklistErrors": [
+   "backoffice"
+  ],
+  "builder.checklistHelp": [
+   "backoffice"
+  ],
+  "builder.checklistV1": [
+   "backoffice"
+  ],
+  "builder.code": [
+   "backoffice"
+  ],
+  "builder.codeHelp": [
+   "backoffice"
+  ],
+  "builder.create": [
+   "backoffice"
+  ],
+  "builder.createTitle": [
+   "backoffice"
+  ],
+  "builder.created": [
+   "backoffice"
+  ],
+  "builder.creating": [],
+  "builder.currency": [
+   "backoffice"
+  ],
+  "builder.defaultCategory": [
+   "backoffice"
+  ],
+  "builder.defaultFullName": [
+   "backoffice"
+  ],
+  "builder.defaultStep": [
+   "backoffice"
+  ],
+  "builder.description": [
+   "backoffice"
+  ],
+  "builder.discard": [
+   "backoffice"
+  ],
+  "builder.discardConfirm": [
+   "backoffice"
+  ],
+  "builder.discarded": [
+   "backoffice"
+  ],
+  "builder.draft": [
+   "backoffice"
+  ],
+  "builder.drag": [
+   "backoffice"
+  ],
+  "builder.editingDraft": [
+   "backoffice"
+  ],
+  "builder.editingLive": [
+   "backoffice"
+  ],
+  "builder.empty": [
+   "backoffice"
+  ],
+  "builder.errors": [
+   "backoffice"
+  ],
+  "builder.fee": [
+   "backoffice"
+  ],
+  "builder.fieldKey": [
+   "backoffice"
+  ],
+  "builder.fieldSettings": [
+   "backoffice"
+  ],
+  "builder.fields": [
+   "backoffice"
+  ],
+  "builder.help": [
+   "backoffice"
+  ],
+  "builder.inLanguage": [
+   "backoffice"
+  ],
+  "builder.intro": [
+   "backoffice"
+  ],
+  "builder.label": [
+   "backoffice"
+  ],
+  "builder.lastChange": [
+   "backoffice"
+  ],
+  "builder.less": [],
+  "builder.live": [
+   "backoffice"
+  ],
+  "builder.liveNone": [
+   "backoffice"
+  ],
+  "builder.max": [
+   "backoffice"
+  ],
+  "builder.maxLength": [
+   "backoffice"
+  ],
+  "builder.min": [
+   "backoffice"
+  ],
+  "builder.minLength": [
+   "backoffice"
+  ],
+  "builder.more": [],
+  "builder.moveDown": [],
+  "builder.moveUp": [],
+  "builder.name": [
+   "backoffice"
+  ],
+  "builder.new": [
+   "backoffice"
+  ],
+  "builder.newField": [
+   "backoffice"
+  ],
+  "builder.none": [
+   "backoffice"
+  ],
+  "builder.notLive": [
+   "backoffice"
+  ],
+  "builder.optionN": [
+   "backoffice"
+  ],
+  "builder.optionValue": [
+   "backoffice"
+  ],
+  "builder.options": [
+   "backoffice"
+  ],
+  "builder.pattern": [
+   "backoffice"
+  ],
+  "builder.patternMsg": [
+   "backoffice"
+  ],
+  "builder.placeholder": [
+   "backoffice"
+  ],
+  "builder.prefill": [
+   "backoffice"
+  ],
+  "builder.prefill.email": [
+   "backoffice"
+  ],
+  "builder.prefill.emirates_id": [
+   "backoffice"
+  ],
+  "builder.prefill.mobile": [
+   "backoffice"
+  ],
+  "builder.prefill.name": [
+   "backoffice"
+  ],
+  "builder.previewIntro": [
+   "backoffice"
+  ],
+  "builder.process": [
+   "backoffice"
+  ],
+  "builder.processV1": [
+   "backoffice"
+  ],
+  "builder.processV2": [
+   "backoffice"
+  ],
+  "builder.publish": [
+   "backoffice"
+  ],
+  "builder.published": [
+   "backoffice"
+  ],
+  "builder.publishedAt": [
+   "backoffice"
+  ],
+  "builder.publishing": [],
+  "builder.ready": [
+   "backoffice"
+  ],
+  "builder.referenceField": [
+   "backoffice"
+  ],
+  "builder.referenceHelp": [
+   "backoffice"
+  ],
+  "builder.remove": [
+   "backoffice"
+  ],
+  "builder.required": [
+   "backoffice"
+  ],
+  "builder.rule.category": [
+   "services"
+  ],
+  "builder.rule.checklistItem": [
+   "services"
+  ],
+  "builder.rule.checklistMax": [
+   "services"
+  ],
+  "builder.rule.code": [
+   "services"
+  ],
+  "builder.rule.codeExists": [
+   "services"
+  ],
+  "builder.rule.currency": [
+   "services"
+  ],
+  "builder.rule.description": [
+   "services"
+  ],
+  "builder.rule.fee": [
+   "services"
+  ],
+  "builder.rule.fieldKey": [
+   "services"
+  ],
+  "builder.rule.fieldKeyUnique": [
+   "services"
+  ],
+  "builder.rule.fieldType": [
+   "services"
+  ],
+  "builder.rule.fieldsMax": [
+   "services"
+  ],
+  "builder.rule.fieldsNone": [
+   "services"
+  ],
+  "builder.rule.label": [
+   "services"
+  ],
+  "builder.rule.max": [
+   "services"
+  ],
+  "builder.rule.maxLength": [
+   "services"
+  ],
+  "builder.rule.minLength": [
+   "services"
+  ],
+  "builder.rule.name": [
+   "services"
+  ],
+  "builder.rule.optionLabel": [
+   "services"
+  ],
+  "builder.rule.optionValue": [
+   "services"
+  ],
+  "builder.rule.optionValueUnique": [
+   "services"
+  ],
+  "builder.rule.optionsNone": [
+   "services"
+  ],
+  "builder.rule.pattern": [
+   "services"
+  ],
+  "builder.rule.prefill": [
+   "services"
+  ],
+  "builder.rule.referenceMissing": [
+   "services"
+  ],
+  "builder.rule.referenceType": [
+   "services"
+  ],
+  "builder.rule.stepId": [
+   "services"
+  ],
+  "builder.rule.stepIdUnique": [
+   "services"
+  ],
+  "builder.rule.stepTitle": [
+   "services"
+  ],
+  "builder.rule.stepsMax": [
+   "services"
+  ],
+  "builder.rule.stepsNone": [
+   "services"
+  ],
+  "builder.rule.workflow": [
+   "services"
+  ],
+  "builder.save": [
+   "backoffice"
+  ],
+  "builder.saved": [
+   "backoffice"
+  ],
+  "builder.saving": [],
+  "builder.step": [],
+  "builder.stepDesc": [
+   "backoffice"
+  ],
+  "builder.stepId": [
+   "backoffice"
+  ],
+  "builder.stepN": [
+   "backoffice"
+  ],
+  "builder.stepSettings": [
+   "backoffice"
+  ],
+  "builder.steps": [
+   "backoffice"
+  ],
+  "builder.tab.details": [
+   "backoffice"
+  ],
+  "builder.tab.form": [
+   "backoffice"
+  ],
+  "builder.tab.preview": [
+   "backoffice"
+  ],
+  "builder.tab.review": [
+   "backoffice"
+  ],
+  "builder.tab.versions": [
+   "backoffice"
+  ],
+  "builder.title": [
+   "backoffice"
+  ],
+  "builder.type": [
+   "backoffice"
+  ],
+  "builder.type.checkbox": [
+   "backoffice"
+  ],
+  "builder.type.date": [
+   "backoffice"
+  ],
+  "builder.type.email": [
+   "backoffice"
+  ],
+  "builder.type.file": [
+   "backoffice"
+  ],
+  "builder.type.number": [
+   "backoffice"
+  ],
+  "builder.type.phone": [
+   "backoffice"
+  ],
+  "builder.type.select": [
+   "backoffice"
+  ],
+  "builder.type.text": [
+   "backoffice"
+  ],
+  "builder.type.textarea": [
+   "backoffice"
+  ],
+  "builder.unsaved": [
+   "backoffice"
+  ],
+  "builder.version": [
+   "backoffice"
+  ],
+  "builder.vstatus.Draft": [
+   "backoffice"
+  ],
+  "builder.vstatus.Published": [
+   "backoffice"
+  ],
+  "builder.vstatus.Retired": [
+   "backoffice"
+  ],
+  "cancel": [
+   "backoffice"
+  ],
+  "catalog.aiAssisted": [
+   "portal",
+   "backoffice"
+  ],
+  "catalog.apply": [
+   "portal",
+   "backoffice"
+  ],
+  "catalog.intro": [
+   "portal"
+  ],
+  "catalog.starting": [],
+  "catalog.welcome": [
+   "portal"
+  ],
+  "certificate.disclaimer": [
+   "services"
+  ],
+  "certificate.holder": [
+   "services"
+  ],
+  "certificate.issued": [
+   "services"
+  ],
+  "certificate.number": [
+   "services"
+  ],
+  "certificate.statement": [
+   "services"
+  ],
+  "chat.ai": [
+   "portal"
+  ],
+  "chat.alreadySubmitted": [
+   "services"
+  ],
+  "chat.ask.checkbox": [
+   "services"
+  ],
+  "chat.ask.date": [
+   "services"
+  ],
+  "chat.ask.file": [
+   "services"
+  ],
+  "chat.ask.select": [
+   "services"
+  ],
+  "chat.ask.text": [
+   "services"
+  ],
+  "chat.guided": [
+   "portal"
+  ],
+  "chat.guided.allFilled": [
+   "services"
+  ],
+  "chat.guided.cannotSubmit": [
+   "services"
+  ],
+  "chat.guided.filesNotInChat": [
+   "services"
+  ],
+  "chat.guided.gotIt": [
+   "services"
+  ],
+  "chat.guided.greeting": [
+   "services"
+  ],
+  "chat.guided.notUnderstood": [
+   "services"
+  ],
+  "chat.guided.prefilled": [
+   "services"
+  ],
+  "chat.guided.submitted": [
+   "services"
+  ],
+  "chat.guided.uploadNext": [
+   "services"
+  ],
+  "chat.listSeparator": [
+   "services"
+  ],
+  "chat.message": [
+   "portal"
+  ],
+  "chat.placeholder": [
+   "portal"
+  ],
+  "chat.saved": [
+   "portal"
+  ],
+  "chat.send": [
+   "portal"
+  ],
+  "chat.start": [
+   "services"
+  ],
+  "chat.toolLimit": [
+   "services"
+  ],
+  "chat.typing": [
+   "portal"
+  ],
+  "chat.words.confirm": [
+   "services"
+  ],
+  "chat.words.yes": [
+   "services"
+  ],
+  "comment": [
+   "backoffice"
+  ],
+  "completed": [
+   "backoffice"
+  ],
+  "currency.AED": [
+   "services"
+  ],
+  "decision": [
+   "backoffice"
+  ],
+  "due": [
+   "backoffice"
+  ],
+  "entity.home": [
+   "portal",
+   "backoffice"
+  ],
+  "entity.name": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "errors.ai.baseUrl": [
+   "services"
+  ],
+  "errors.ai.history": [
+   "services"
+  ],
+  "errors.ai.iterations": [
+   "services"
+  ],
+  "errors.ai.promptLength": [
+   "services"
+  ],
+  "errors.ai.temperature": [
+   "services"
+  ],
+  "errors.ai.timeout": [
+   "services"
+  ],
+  "errors.application.maxInformationRequests": [
+   "services"
+  ],
+  "errors.application.notEditable": [
+   "services"
+  ],
+  "errors.application.notFound": [
+   "services"
+  ],
+  "errors.application.paymentBeforeApproval": [
+   "services"
+  ],
+  "errors.application.paymentMismatch": [
+   "services"
+  ],
+  "errors.application.questionsRequired": [
+   "services"
+  ],
+  "errors.application.rejectReason": [
+   "services"
+  ],
+  "errors.application.rejectWithoutDecision": [
+   "services"
+  ],
+  "errors.application.reviewSubmittedOnly": [
+   "services"
+  ],
+  "errors.assessment.round": [
+   "services"
+  ],
+  "errors.conflict": [
+   "services"
+  ],
+  "errors.document.empty": [
+   "services"
+  ],
+  "errors.document.notFound": [
+   "services"
+  ],
+  "errors.document.tooLarge": [
+   "services"
+  ],
+  "errors.document.type": [
+   "services"
+  ],
+  "errors.forbidden": [
+   "services"
+  ],
+  "errors.language.code": [
+   "services"
+  ],
+  "errors.language.deleteDefault": [
+   "services"
+  ],
+  "errors.language.direction": [
+   "services"
+  ],
+  "errors.language.disableDefault": [
+   "services"
+  ],
+  "errors.language.exists": [
+   "services"
+  ],
+  "errors.language.name": [
+   "services"
+  ],
+  "errors.language.notFound": [
+   "services"
+  ],
+  "errors.notFound": [
+   "services"
+  ],
+  "errors.notification.notFound": [
+   "services"
+  ],
+  "errors.payment.alreadyPaid": [
+   "services"
+  ],
+  "errors.payment.amount": [
+   "services"
+  ],
+  "errors.payment.notFound": [
+   "services"
+  ],
+  "errors.payment.payer": [
+   "services"
+  ],
+  "errors.requestFailed": [
+   "portal",
+   "backoffice"
+  ],
+  "errors.service.codeChange": [
+   "services"
+  ],
+  "errors.service.editDraftOnly": [
+   "services"
+  ],
+  "errors.service.noDraftToDiscard": [
+   "services"
+  ],
+  "errors.service.noDraftToPublish": [
+   "services"
+  ],
+  "errors.service.notFound": [
+   "services"
+  ],
+  "errors.service.publishDraftOnly": [
+   "services"
+  ],
+  "errors.service.retirePublishedOnly": [
+   "services"
+  ],
+  "errors.service.unreadable": [
+   "services"
+  ],
+  "errors.service.version": [
+   "services"
+  ],
+  "errors.sessionEnded": [
+   "portal",
+   "backoffice"
+  ],
+  "errors.signIn.credentials": [
+   "services"
+  ],
+  "errors.signIn.expired": [
+   "services"
+  ],
+  "errors.signIn.provider": [
+   "services"
+  ],
+  "errors.signIn.unverified": [
+   "services"
+  ],
+  "errors.signIn.username": [
+   "services"
+  ],
+  "errors.staffOnly": [
+   "services"
+  ],
+  "errors.task.completed": [
+   "services"
+  ],
+  "errors.task.notFound": [
+   "services"
+  ],
+  "errors.translation.defaultRequired": [
+   "services"
+  ],
+  "errors.translation.empty": [
+   "services"
+  ],
+  "errors.translation.key": [
+   "services"
+  ],
+  "errors.translation.tooLong": [
+   "services"
+  ],
+  "errors.translation.unknownKey": [
+   "services"
+  ],
+  "errors.uaePass.cancelled": [
+   "services"
+  ],
+  "errors.uaePass.failed": [
+   "services"
+  ],
+  "errors.unexpected": [
+   "services"
+  ],
+  "errors.unexpectedDetail": [
+   "services"
+  ],
+  "errors.validation": [
+   "services"
+  ],
+  "fee": [
+   "portal",
+   "backoffice"
+  ],
+  "footer.about": [
+   "portal",
+   "backoffice"
+  ],
+  "footer.rights": [
+   "portal",
+   "backoffice"
+  ],
+  "form.afterSubmit": [
+   "portal"
+  ],
+  "form.afterSubmitAi": [
+   "portal"
+  ],
+  "form.allRequired": [
+   "portal"
+  ],
+  "form.attached": [
+   "portal",
+   "backoffice"
+  ],
+  "form.attention": [
+   "portal"
+  ],
+  "form.change": [
+   "portal"
+  ],
+  "form.confirmed": [
+   "portal",
+   "backoffice"
+  ],
+  "form.fileHint": [
+   "portal",
+   "backoffice"
+  ],
+  "form.notConfirmed": [
+   "portal",
+   "backoffice"
+  ],
+  "form.notProvided": [
+   "portal",
+   "backoffice"
+  ],
+  "form.openFile": [
+   "portal",
+   "backoffice"
+  ],
+  "form.optional": [
+   "portal",
+   "backoffice"
+  ],
+  "form.resubmit": [
+   "portal"
+  ],
+  "form.review": [
+   "portal"
+  ],
+  "form.reviewTitle": [
+   "portal"
+  ],
+  "form.saveContinue": [
+   "portal",
+   "backoffice"
+  ],
+  "form.saveReview": [
+   "portal"
+  ],
+  "form.saving": [],
+  "form.select": [
+   "portal",
+   "backoffice"
+  ],
+  "form.submit": [
+   "portal"
+  ],
+  "form.submitting": [],
+  "form.uploadFailed": [
+   "portal",
+   "backoffice"
+  ],
+  "form.uploaded": [
+   "portal",
+   "backoffice"
+  ],
+  "form.uploadedName": [
+   "portal",
+   "backoffice"
+  ],
+  "form.uploading": [
+   "portal",
+   "backoffice"
+  ],
+  "inbox.ai": [
+   "backoffice"
+  ],
+  "inbox.application": [
+   "backoffice"
+  ],
+  "inbox.empty": [
+   "backoffice"
+  ],
+  "inbox.emptyHint": [
+   "backoffice"
+  ],
+  "inbox.intro": [
+   "backoffice"
+  ],
+  "inbox.open": [
+   "backoffice"
+  ],
+  "inbox.title": [
+   "backoffice"
+  ],
+  "journey.aiReview": [
+   "portal",
+   "backoffice"
+  ],
+  "journey.certificate": [
+   "portal",
+   "backoffice"
+  ],
+  "journey.payment": [
+   "portal",
+   "backoffice"
+  ],
+  "journey.review": [
+   "portal",
+   "backoffice"
+  ],
+  "journey.submitted": [
+   "portal",
+   "backoffice"
+  ],
+  "lang.choose": [
+   "portal",
+   "backoffice"
+  ],
+  "lang.switchTo": [
+   "portal",
+   "backoffice"
+  ],
+  "lastUpdate": [
+   "portal"
+  ],
+  "loading": [
+   "portal",
+   "backoffice"
+  ],
+  "login.failed": [
+   "portal"
+  ],
+  "login.intro": [
+   "portal"
+  ],
+  "login.none": [
+   "portal"
+  ],
+  "login.signingIn": [
+   "portal"
+  ],
+  "login.staging": [
+   "portal"
+  ],
+  "login.title": [
+   "portal"
+  ],
+  "login.unavailable": [
+   "portal"
+  ],
+  "login.with": [
+   "portal"
+  ],
+  "my.browse": [
+   "portal"
+  ],
+  "my.empty": [
+   "portal"
+  ],
+  "my.title": [
+   "portal"
+  ],
+  "my.toStart": [
+   "portal"
+  ],
+  "nav.allApplications": [
+   "backoffice"
+  ],
+  "nav.builder": [
+   "backoffice"
+  ],
+  "nav.inbox": [
+   "backoffice"
+  ],
+  "nav.main": [
+   "portal",
+   "backoffice"
+  ],
+  "nav.menu": [
+   "portal",
+   "backoffice"
+  ],
+  "nav.myApplications": [
+   "portal"
+  ],
+  "nav.services": [
+   "portal"
+  ],
+  "nav.settings": [
+   "backoffice"
+  ],
+  "notifications": [
+   "portal",
+   "backoffice"
+  ],
+  "notifications.applicationTitle": [
+   "services"
+  ],
+  "notifications.empty": [
+   "portal"
+  ],
+  "notifications.markRead": [
+   "portal",
+   "backoffice"
+  ],
+  "notifications.open": [
+   "portal",
+   "backoffice"
+  ],
+  "notifications.staffNewBody": [
+   "services"
+  ],
+  "notifications.staffNewTitle": [
+   "services"
+  ],
+  "notifications.title": [
+   "portal"
+  ],
+  "notifications.unread": [
+   "portal",
+   "backoffice"
+  ],
+  "number": [
+   "portal",
+   "backoffice"
+  ],
+  "overdue": [
+   "backoffice"
+  ],
+  "process.v1": [
+   "portal",
+   "backoffice"
+  ],
+  "process.v2": [
+   "portal",
+   "backoffice"
+  ],
+  "received": [
+   "backoffice"
+  ],
+  "reference": [
+   "portal",
+   "backoffice"
+  ],
+  "rejected": [
+   "backoffice"
+  ],
+  "rules.agency.endBeforeStart": [
+   "services"
+  ],
+  "rules.agency.minimumTerm": [
+   "services"
+  ],
+  "rules.tradeName.reservedWord": [
+   "services"
+  ],
+  "save": [
+   "backoffice"
+  ],
+  "service": [
+   "portal",
+   "backoffice"
+  ],
+  "settings.addKey": [
+   "backoffice"
+  ],
+  "settings.addLanguage": [
+   "backoffice"
+  ],
+  "settings.ai": [
+   "backoffice"
+  ],
+  "settings.code": [
+   "backoffice"
+  ],
+  "settings.codeHint": [
+   "backoffice"
+  ],
+  "settings.completion": [
+   "backoffice"
+  ],
+  "settings.defaultSet": [
+   "backoffice"
+  ],
+  "settings.defaultText": [
+   "backoffice"
+  ],
+  "settings.delete": [
+   "backoffice"
+  ],
+  "settings.deleteConfirm": [
+   "backoffice"
+  ],
+  "settings.deleteKey": [
+   "backoffice"
+  ],
+  "settings.deleted": [
+   "backoffice"
+  ],
+  "settings.dir.ltr": [
+   "backoffice"
+  ],
+  "settings.dir.rtl": [
+   "backoffice"
+  ],
+  "settings.direction": [
+   "backoffice"
+  ],
+  "settings.disable": [
+   "backoffice"
+  ],
+  "settings.disabled": [
+   "backoffice"
+  ],
+  "settings.editLanguage": [
+   "backoffice"
+  ],
+  "settings.editText": [
+   "backoffice"
+  ],
+  "settings.enable": [
+   "backoffice"
+  ],
+  "settings.enabled": [
+   "backoffice"
+  ],
+  "settings.export": [
+   "backoffice"
+  ],
+  "settings.import": [
+   "backoffice"
+  ],
+  "settings.importHint": [
+   "backoffice"
+  ],
+  "settings.imported": [
+   "backoffice"
+  ],
+  "settings.key": [
+   "backoffice"
+  ],
+  "settings.keyHint": [
+   "backoffice"
+  ],
+  "settings.lang.default": [
+   "backoffice"
+  ],
+  "settings.lang.disabled": [
+   "backoffice"
+  ],
+  "settings.lang.enabled": [
+   "backoffice"
+  ],
+  "settings.language": [
+   "backoffice"
+  ],
+  "settings.languageName": [
+   "backoffice"
+  ],
+  "settings.languageNameHint": [
+   "backoffice"
+  ],
+  "settings.languages": [
+   "backoffice"
+  ],
+  "settings.languagesIntro": [
+   "backoffice"
+  ],
+  "settings.makeDefault": [
+   "backoffice"
+  ],
+  "settings.missingCount": [
+   "backoffice"
+  ],
+  "settings.newDisabledNote": [
+   "backoffice"
+  ],
+  "settings.noLanguages": [
+   "backoffice"
+  ],
+  "settings.noTexts": [
+   "backoffice"
+  ],
+  "settings.order": [
+   "backoffice"
+  ],
+  "settings.ownName": [
+   "backoffice"
+  ],
+  "settings.ownNameHint": [
+   "backoffice"
+  ],
+  "settings.placeholdersHint": [
+   "backoffice"
+  ],
+  "settings.removeText": [
+   "backoffice"
+  ],
+  "settings.removed": [
+   "backoffice"
+  ],
+  "settings.saved": [
+   "backoffice"
+  ],
+  "settings.title": [
+   "backoffice"
+  ],
+  "settings.tr.missing": [
+   "backoffice"
+  ],
+  "settings.tr.translated": [
+   "backoffice"
+  ],
+  "settings.translations": [
+   "backoffice"
+  ],
+  "settings.translationsIntro": [
+   "backoffice"
+  ],
+  "settings.use.backoffice": [
+   "backoffice"
+  ],
+  "settings.use.both": [
+   "backoffice"
+  ],
+  "settings.use.portal": [
+   "backoffice"
+  ],
+  "settings.use.services": [
+   "backoffice"
+  ],
+  "settings.use.unused": [
+   "backoffice"
+  ],
+  "settings.usedIn": [
+   "backoffice"
+  ],
+  "settings.usedInNote": [
+   "backoffice"
+  ],
+  "signOut": [
+   "portal",
+   "backoffice"
+  ],
+  "site.name": [
+   "portal",
+   "backoffice"
+  ],
+  "sla": [
+   "backoffice"
+  ],
+  "slaDue": [
+   "backoffice"
+  ],
+  "staff": [
+   "backoffice"
+  ],
+  "staffLogin.intro": [
+   "backoffice"
+  ],
+  "staffLogin.password": [
+   "backoffice"
+  ],
+  "staffLogin.signIn": [
+   "backoffice"
+  ],
+  "staffLogin.signingIn": [],
+  "staffLogin.title": [
+   "backoffice"
+  ],
+  "staffLogin.username": [
+   "backoffice"
+  ],
+  "status": [
+   "portal",
+   "backoffice"
+  ],
+  "status.AiReview": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.Approved": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.AwaitingPayment": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.Draft": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.InformationRequested": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.Paid": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.Rejected": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.Submitted": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.UnderReview": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.aiChecking": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.amount": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.approvedTitle": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.certificateReady": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.details": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.download": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.for": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.issued": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notApproved": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.aiReview": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.approvedPay": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.certificateReady": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.informationReceived": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.informationRequested": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.paid": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.rejected": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.submitted": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.notify.underReview": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.pay": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.payToReceive": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.paymentReceived": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.processing": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "status.simulated": [
+   "portal",
+   "backoffice",
+   "services"
+  ],
+  "steps": [
+   "portal",
+   "backoffice"
+  ],
+  "submitted": [
+   "portal",
+   "backoffice"
+  ],
+  "table.all": [
+   "portal",
+   "backoffice"
+  ],
+  "table.results": [
+   "portal",
+   "backoffice"
+  ],
+  "table.search": [
+   "portal",
+   "backoffice"
+  ],
+  "table.searchHint": [
+   "portal",
+   "backoffice"
+  ],
+  "table.sortAscending": [
+   "portal",
+   "backoffice"
+  ],
+  "table.sortDescending": [
+   "portal",
+   "backoffice"
+  ],
+  "task.alreadyDone": [
+   "backoffice"
+  ],
+  "task.application": [
+   "backoffice"
+  ],
+  "task.approve": [
+   "backoffice"
+  ],
+  "task.backToInbox": [
+   "backoffice"
+  ],
+  "task.commentHint": [
+   "backoffice"
+  ],
+  "task.commentLabel": [
+   "backoffice"
+  ],
+  "task.commentPlaceholder": [
+   "backoffice"
+  ],
+  "task.reasonRequired": [
+   "backoffice"
+  ],
+  "task.recorded": [
+   "backoffice"
+  ],
+  "task.reject": [
+   "backoffice"
+  ],
+  "uaePass": [
+   "portal"
+  ],
+  "uaePass.signIn": [
+   "portal"
+  ],
+  "updated": [
+   "backoffice"
+  ],
+  "validation.confirm": [
+   "services"
+  ],
+  "validation.date": [
+   "services"
+  ],
+  "validation.email": [
+   "services"
+  ],
+  "validation.file": [
+   "services"
+  ],
+  "validation.max": [
+   "services"
+  ],
+  "validation.maxLength": [
+   "services"
+  ],
+  "validation.min": [
+   "services"
+  ],
+  "validation.minLength": [
+   "services"
+  ],
+  "validation.number": [
+   "services"
+  ],
+  "validation.option": [
+   "services"
+  ],
+  "validation.pattern": [
+   "services"
+  ],
+  "validation.referenceInUse": [
+   "services"
+  ],
+  "validation.required": [
+   "services"
+  ],
+  "validation.unknownField": [
+   "services"
+  ],
+  "workflow": [
+   "portal",
+   "backoffice"
+  ]
  }
 }

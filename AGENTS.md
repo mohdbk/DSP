@@ -167,7 +167,10 @@ search, filters, sort and page in validated search params. AEGOV anchors are han
   includes the ministry name (`entity.name`), the product name (`app.portal`) and `site.name`. No hard-coded
   user-facing text in components, pages or services.
 - New keys go in `src/Services/Platform/Dsp.Platform.Infrastructure/Seed/translations.json` with every shipped
-  language. The seeder adds missing keys at start-up and never overwrites a text staff edited.
+  language. The seeder adds missing keys at start-up and never overwrites a text staff edited. Then run
+  `node tools/i18n/usage.mjs`: it records where each key is used (portal, back office, service messages) for the
+  Translations page, and CI fails when it is out of date. Prefer literal keys (`t('a.b')`) or a clear prefix
+  (``t(`status.${s}`)``) so the tool can find them.
 - Forms that edit data texts use `MultilingualField` (one input per enabled language, default first and required).
 - The language switch names each language in its own name, and sets `lang` and `dir` on `<html>`; AEGOV
   components follow. Use logical utilities only (`ms-`/`me-`, `ps-`/`pe-`, `start-`/`end-`,

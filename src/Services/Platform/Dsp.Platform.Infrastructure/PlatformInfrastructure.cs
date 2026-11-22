@@ -56,8 +56,8 @@ public abstract class PlatformDbContext(DbContextOptions options) : DbContext(op
             e.Property(x => x.ProtectedApiKey).HasMaxLength(2000);
             e.Property(x => x.ChatInstructions).HasMaxLength(8000);
             e.Property(x => x.ReviewInstructions).HasMaxLength(8000);
-            e.Property(x => x.ChatPrompt).HasMaxLength(AiSettings.MaxPromptLength);
-            e.Property(x => x.ReviewPrompt).HasMaxLength(AiSettings.MaxPromptLength);
+            e.Property(x => x.ChatPrompt).HasMaxLength(Dsp.Platform.Domain.AiSettings.MaxPromptLength);
+            e.Property(x => x.ReviewPrompt).HasMaxLength(Dsp.Platform.Domain.AiSettings.MaxPromptLength);
             e.Property(x => x.UpdatedBy).HasMaxLength(200);
         });
     }
@@ -225,12 +225,20 @@ public static class ShippedTexts
     }
 }
 
+/// <summary>Where each key is used, from the "usage" block of the shipped texts.</summary>
+public sealed class ShippedTextUsage(SeedData seed) : ITextUsage
+{
+    public IReadOnlyList<string> UsedIn(string key) =>
+        seed.Usage is not null && seed.Usage.TryGetValue(key, out var where) ? where : [];
+}
+
 public static class DependencyInjection
 {
     public static IServiceCollection AddPlatformInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDspDbContext<PlatformDbContext, PlatformSqlServerDbContext, PlatformPostgresDbContext>(configuration, "Platform");
         services.AddSingleton<PlatformCache>();
+        services.AddSingleton<ITextUsage>(new ShippedTextUsage(ShippedTexts.Load()));
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
         services.AddScoped<IAiSettingsRepository, AiSettingsRepository>();

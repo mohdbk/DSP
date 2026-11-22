@@ -12,6 +12,16 @@ import { api } from '../../session';
 import { SettingsNav } from './SettingsNav';
 
 const route = getRouteApi('/settings/translations');
+
+/** One value per key for filtering: which portal shows it, or "services" for API messages only, or "unused". */
+function scopeOf(r: TranslationRow): string {
+  const portal = r.usedIn.includes('portal');
+  const backoffice = r.usedIn.includes('backoffice');
+  if (portal && backoffice) return 'both';
+  if (portal) return 'portal';
+  if (backoffice) return 'backoffice';
+  return r.usedIn.includes('services') ? 'services' : 'unused';
+}
 const base = '/api/v1/platform/admin';
 
 /** Every key with its text in the default language and in the chosen language. */
@@ -80,6 +90,16 @@ export function TranslationsPage() {
       cell: c => c.getValue() ? <span lang={code} dir={language?.direction}>{c.getValue()}</span> : '—',
     },
     {
+      id: 'usedIn', header: t('settings.usedIn'), accessorFn: scopeOf,
+      cell: c => (
+        <span className="flex flex-wrap gap-1">
+          <Tag variant={c.getValue() === 'unused' ? 'slate' : 'aegold'}>{t(`settings.use.${c.getValue()}`)}</Tag>
+          {c.getValue() !== 'services' && c.row.original.usedIn.includes('services') && <Tag variant="slate">{t('settings.use.services')}</Tag>}
+        </span>
+      ),
+      meta: { filter: true, filterLabel: v => t(`settings.use.${v}`) },
+    },
+    {
       id: 'state', header: t('status'), accessorFn: r => (r.text ? 'translated' : 'missing'),
       cell: c => <Tag variant={c.getValue() === 'missing' ? 'aered' : 'aegreen'}>{t(`settings.tr.${c.getValue()}`)}</Tag>,
       meta: { filter: true, filterLabel: v => t(`settings.tr.${v}`) },
@@ -94,6 +114,7 @@ export function TranslationsPage() {
       <PageHeader title={t('settings.translations')} intro={t('settings.translationsIntro')} actions={<SettingsNav current="translations" />}
         badges={rows && <Tag variant={missing ? 'aegold' : 'aegreen'}>{t('settings.missingCount', { n: missing })}</Tag>} />
       {message && <Notice kind={message.kind}>{message.text}</Notice>}
+      <p className="mb-4 text-sm text-aeblack-600">{t('settings.usedInNote')}</p>
 
       <Panel className="mb-6 block">
         <div className="grid items-start gap-x-4 md:grid-cols-[minmax(0,1fr)_auto]">

@@ -228,6 +228,8 @@ export interface TranslationRow {
   text?: string | null;
   updatedAt?: string | null;
   updatedBy?: string | null;
+  /** Where the key is used: 'portal', 'backoffice' and/or 'services' (messages from the APIs). Empty: added by staff or unused. */
+  usedIn: string[];
 }
 
 export interface AiSettingsView {
