@@ -12,9 +12,12 @@ export function Notice({ kind = 'info', title, children, actions }: {
   actions?: ReactNode;
 }) {
   return (
-    <AegovCallout variant={kind} className="mb-4 block">
-      {title && <p className="font-bold">{title}</p>}
-      {children}
+    // One stable wrapper per slot: AEGOV moves slotted nodes, so React must not add or remove them directly.
+    <AegovCallout key={actions ? 'actions' : 'plain'} variant={kind} className="mb-4 block">
+      <div>
+        {title && <p className="font-bold">{title}</p>}
+        {children}
+      </div>
       {actions && <div slot="actions" className="flex flex-wrap gap-3">{actions}</div>}
     </AegovCallout>
   );

@@ -91,7 +91,7 @@ export function ChoiceField(props: BaseProps & {
   if (as === 'select') {
     return (
       <Framed props={props}>
-        <AegovSelect fieldId={props.id} name={props.id} value={props.value} placeholder={props.placeholder ?? t('form.select')}
+        <AegovSelect key={props.choices.map(c => c.value).join('|')} fieldId={props.id} name={props.id} value={props.value} placeholder={props.placeholder ?? t('form.select')}
           isRequired={!!props.required} isDisabled={!!props.disabled} isInvalid={!!props.error}
           errorMessage={props.error ?? ''} hint={props.hint ?? ''}
           onAegovSelectChange={e => props.onChange(String(e.detail.value ?? ''))}>
@@ -102,7 +102,7 @@ export function ChoiceField(props: BaseProps & {
   }
   return (
     <div className="mb-5" dir={props.dir}>
-      <AegovRadioGroup name={props.id} label={labelText(props)} appearance={as === 'cards' ? 'cards' : 'default'}
+      <AegovRadioGroup key={props.choices.map(c => c.value).join('|')} name={props.id} label={labelText(props)} appearance={as === 'cards' ? 'cards' : 'default'}
         isRequired={!!props.required} isDisabled={!!props.disabled} isInvalid={!!props.error}
         errorMessage={props.error ?? ''} hint={props.hint ?? ''}
         onAegovRadioGroupChange={e => props.onChange(e.detail.value ?? '')}>

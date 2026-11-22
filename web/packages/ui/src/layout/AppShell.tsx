@@ -21,9 +21,12 @@ export function AppShell({ service, nav = [], account, children }: {
   account?: ReactNode;
   children: ReactNode;
 }) {
+  // The header moves its slotted children into its own layout, so React must never add or remove them in place:
+  // when the shape changes (signed in or out), the key gives React a fresh header instead.
+  const shape = `${nav.length > 0 ? 'nav' : 'bare'}-${account ? 'account' : 'anonymous'}`;
   return (
     <div className="flex min-h-screen flex-col bg-whitely-50">
-      <AegovHeader entityName={t('entity.name')} entityDomain={ENTITY_DOMAIN} logoLabel={t('entity.home')}
+      <AegovHeader key={shape} entityName={t('entity.name')} entityDomain={ENTITY_DOMAIN} logoLabel={t('entity.home')}
         skipContentContainer="#main" labelMenu={t('nav.menu')}>
         <img slot="logo" src={logoUrl} alt={t('entity.name')} />
         <div slot="actions"><LanguageSwitch /></div>

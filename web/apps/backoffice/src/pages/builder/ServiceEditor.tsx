@@ -146,7 +146,8 @@ export function ServiceEditorPage() {
         {tabs.map(([id, label, n]) => (
           <AegovTab key={id} slot="tabs" tabId={id}>
             {t(label)}
-            {n > 0 && <AegovBadge slot="icon-end" variant="aered" size="sm">{n}</AegovBadge>}
+            {/* Always rendered (hidden at zero): the tab moves slotted nodes, so React must not add or remove them. */}
+            <AegovBadge slot="icon-end" variant="aered" size="sm" className={n > 0 ? undefined : 'hidden'}>{n}</AegovBadge>
           </AegovTab>
         ))}
         <AegovTabPanel tabId="details"><div className="pt-6"><DetailsSection {...props} /></div></AegovTabPanel>
