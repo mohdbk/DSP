@@ -185,7 +185,7 @@ export function TranslationsPage() {
 
       {!editing && isDefault && (
         <Actions align="start">
-          <AegovButton appearance="outline" onAegovButtonClick={() => { setNewKey(''); setText(''); setEditing({ key: '', defaultText: '', isNew: true }); }}>
+          <AegovButton appearance="outline" onAegovButtonClick={() => { setNewKey(''); setText(''); setEditing({ key: '', defaultText: '', usedIn: [], isNew: true }); }}>
             {t('settings.addKey')}
           </AegovButton>
         </Actions>
